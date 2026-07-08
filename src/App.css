@@ -36,8 +36,8 @@ body {
   border-radius: 0px !important;
   border: 1px solid var(--art-deco-gold-dark) !important;
   background-color: #151518 !important;
-  background-image: url('/panel_bg.jpg') !important;
-  background-size: cover !important;
+  background-image: url('/toolbar_bg_tall.jpg') !important;
+  background-size: 100% 100% !important;
   background-position: center !important;
 }
 .react-flow__controls-button {
@@ -131,13 +131,6 @@ body {
 /* 1. Clean Dark Background — Matte Stone Deco */
 .cosmic-canvas {
   background-color: #0a0a0c !important;
-  background-image: 
-    linear-gradient(rgba(240, 192, 80, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(240, 192, 80, 0.05) 1px, transparent 1px),
-    url('/canvas_bg.jpg') !important;
-  background-size: 100px 100px, 100px 100px, cover !important;
-  background-blend-mode: normal, normal, normal !important;
-  background-position: center !important;
 }
 
 /* Remove the teamwork agents' starfield overlays */
@@ -153,8 +146,8 @@ body {
   border-radius: 0px !important;
   border: 1px solid var(--art-deco-gold-dark) !important;
   background-color: #1a1a1e !important;
-  background-image: url('/button_bg.jpg') !important;
-  background-size: cover !important;
+  background-image: url('/button_bg_small.jpg') !important;
+  background-size: 100% 100% !important;
   background-position: center !important;
   text-transform: uppercase !important;
   letter-spacing: 0.1em !important;
@@ -174,8 +167,8 @@ body {
   border-radius: 0px !important;
   border: 1px solid var(--art-deco-gold-dark) !important;
   background-color: #151518 !important;
-  background-image: url('/panel_bg.jpg') !important;
-  background-size: cover !important;
+  background-image: url('/panel_bg_wide.jpg') !important;
+  background-size: 100% 100% !important;
   background-position: center !important;
   box-shadow: 
     0 0 0 1px var(--art-deco-gold-dark),
@@ -219,8 +212,8 @@ body {
 /* 4. CreateNodeMenu panel (+ Add Node button and dropdown list) */
 .art-deco-node-panel-wrapper > div > button {
   background-color: #151518 !important;
-  background-image: url('/panel_bg.jpg') !important;
-  background-size: cover !important;
+  background-image: url('/panel_bg_wide.jpg') !important;
+  background-size: 100% 100% !important;
   background-position: center !important;
   color: var(--art-deco-gold) !important;
   border: 1px solid var(--art-deco-gold-dark) !important;
@@ -240,8 +233,8 @@ body {
 
 .art-deco-node-panel-wrapper div.absolute {
   background-color: #131316 !important;
-  background-image: url('/panel_bg.jpg') !important;
-  background-size: cover !important;
+  background-image: url('/panel_bg_wide.jpg') !important;
+  background-size: 100% 100% !important;
   background-position: center !important;
   border: 1px solid var(--art-deco-gold-dark) !important;
   border-radius: 0px !important;
@@ -293,8 +286,8 @@ body {
 /* 5. CanvasSearch bar (search input and result list) */
 .art-deco-search-wrapper input {
   background-color: #151518 !important;
-  background-image: url('/panel_bg.jpg') !important;
-  background-size: cover !important;
+  background-image: url('/panel_bg_wide.jpg') !important;
+  background-size: 100% 100% !important;
   background-position: center !important;
   color: var(--foreground) !important;
   border: 1px solid var(--art-deco-gold-dark) !important;
@@ -316,8 +309,8 @@ body {
 
 .art-deco-search-wrapper .absolute.top-full {
   background-color: #131316 !important;
-  background-image: url('/panel_bg.jpg') !important;
-  background-size: cover !important;
+  background-image: url('/panel_bg_wide.jpg') !important;
+  background-size: 100% 100% !important;
   background-position: center !important;
   border: 1px solid var(--art-deco-gold-dark) !important;
   border-radius: 0px !important;

@@ -7,6 +7,7 @@ import {
   Panel,
   ReactFlowProvider,
   useReactFlow,
+  useViewport,
   ConnectionMode,
   ControlButton
 } from '@xyflow/react';
@@ -36,6 +37,28 @@ import { LogicNode } from './components/LogicNode';
 import { ItemNode } from './components/ItemNode';
 import { DeckNode } from './components/DeckNode';
 import { PrintNode } from './components/PrintNode';
+
+const DynamicCanvasBackground = () => {
+  const { x, y, zoom } = useViewport();
+  
+  return (
+    <div 
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        pointerEvents: 'none',
+        zIndex: -1,
+        backgroundImage: "url('/canvas_bg_seamless.jpg')",
+        backgroundRepeat: 'repeat',
+        backgroundPosition: `${x}px ${y}px`,
+        backgroundSize: `${512 * zoom}px ${512 * zoom}px`,
+      }}
+    />
+  );
+};
 
 const nodeTypes = {
   document: ThemeNode, // Main text box
@@ -261,7 +284,8 @@ function FlowCanvas() {
             style: { stroke: '#a88530', strokeWidth: 2 } 
           }}
         >
-          <Background color="rgba(240, 192, 80, 0.15)" variant={BackgroundVariant.Dots} gap={24} size={1.5} />
+          <DynamicCanvasBackground />
+          <Background color="rgba(240, 192, 80, 0.45)" variant={BackgroundVariant.Dots} gap={24} size={1.5} />
           <Controls>
             <ControlButton 
               onClick={() => {
