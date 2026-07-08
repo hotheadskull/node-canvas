@@ -2,15 +2,47 @@ import React, { useState } from 'react';
 import { Panel } from '@xyflow/react';
 import { useStore } from '../store/useStore';
 import { useReactFlow } from '@xyflow/react';
-import { Camera, Trash2, RotateCcw } from 'lucide-react';
+import { Camera, Trash2, RotateCcw, Download, Upload } from 'lucide-react';
+import React, { useState, useRef } from 'react';
 
 export function ProjectManager() {
-  const { projects, activeProjectId, setActiveProject, createProject, createSnapshot, deleteProject, restoreProject } = useStore();
+  const { projects, activeProjectId, setActiveProject, createProject, createSnapshot, deleteProject, restoreProject, trashedNodes, restoreNode, exportProjectJSON, importProjectJSON } = useStore();
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'workspaces' | 'snapshots' | 'trash'>('workspaces');
+  const [activeTab, setActiveTab] = useState<'workspaces' | 'snapshots' | 'trash' | 'nodes'>('workspaces');
   const [newTitle, setNewTitle] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { fitView } = useReactFlow();
+
+  const handleExport = async () => {
+    try {
+      const jsonStr = await exportProjectJSON();
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `backup_${Date.now()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e: any) {
+      alert(e.message);
+    }
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const content = event.target?.result as string;
+      await importProjectJSON(content);
+      alert('Project imported successfully!');
+      setIsOpen(false);
+    };
+    reader.readAsText(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
   const handleSelect = async (id: string) => {
     await setActiveProject(id);
@@ -60,13 +92,19 @@ export function ProjectManager() {
                 onClick={() => setActiveTab('snapshots')}
                 className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider ${activeTab === 'snapshots' ? 'bg-[#d4b98c]/20 text-[#d4b98c]' : 'text-gray-500 hover:text-gray-300'}`}
               >
-                Version History
+                Versions
               </button>
               <button 
                 onClick={() => setActiveTab('trash')}
                 className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider ${activeTab === 'trash' ? 'bg-red-900/40 text-red-400' : 'text-gray-500 hover:text-gray-300'}`}
               >
-                Recycle Bin
+                Bin (Projects)
+              </button>
+              <button 
+                onClick={() => setActiveTab('nodes')}
+                className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider ${activeTab === 'nodes' ? 'bg-orange-900/40 text-orange-400' : 'text-gray-500 hover:text-gray-300'}`}
+              >
+                Bin (Nodes)
               </button>
             </div>
 
@@ -136,18 +174,57 @@ export function ProjectManager() {
                   {trashedProjects.length === 0 && <div className="text-center p-4 text-xs text-gray-500">Recycle Bin is empty.</div>}
                 </div>
               )}
+
+              {activeTab === 'nodes' && (
+                <div className="flex flex-col gap-1">
+                  {trashedNodes?.map(n => (
+                    <div key={n.id} className="flex items-center justify-between bg-orange-900/10 p-2 rounded border border-orange-900/20">
+                      <div className="flex flex-col text-left">
+                        <span className="text-sm font-serif text-orange-200/70">{n.data.label || 'Untitled Node'}</span>
+                        <span className="text-[10px] text-gray-500">{n.type}</span>
+                      </div>
+                      <button 
+                        onClick={async () => {
+                          await restoreNode(n.id);
+                          // force refresh local view slightly
+                          setActiveProject(activeProjectId!);
+                        }}
+                        className="flex items-center gap-1 text-[10px] uppercase font-bold tracking-widest bg-orange-900/40 hover:bg-orange-800 text-orange-200 px-2 py-1 rounded transition-colors"
+                      >
+                        <RotateCcw size={12} /> Restore
+                      </button>
+                    </div>
+                  ))}
+                  {(!trashedNodes || trashedNodes.length === 0) && <div className="text-center p-4 text-xs text-gray-500">No deleted nodes in this workspace.</div>}
+                </div>
+              )}
             </div>
 
             <div className="border-t border-[#d4b98c]/20 p-2 flex flex-col gap-2">
-              <button
-                onClick={async () => {
-                  await createSnapshot();
-                  alert('Version created! Check the Version History tab.');
-                }}
-                className="w-full flex items-center justify-center gap-2 p-2 bg-[#d4b98c]/10 hover:bg-[#d4b98c]/20 text-[#d4b98c] rounded text-xs font-bold uppercase tracking-widest transition-colors"
-              >
-                <Camera size={14} /> Save Version
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={async () => {
+                    await createSnapshot();
+                    alert('Version created! Check the Version History tab.');
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 p-2 bg-[#d4b98c]/10 hover:bg-[#d4b98c]/20 text-[#d4b98c] rounded text-[10px] font-bold uppercase tracking-widest transition-colors"
+                >
+                  <Camera size={12} /> Save Ver
+                </button>
+                <button
+                  onClick={handleExport}
+                  className="flex-1 flex items-center justify-center gap-2 p-2 bg-[#d4b98c]/10 hover:bg-[#d4b98c]/20 text-[#d4b98c] rounded text-[10px] font-bold uppercase tracking-widest transition-colors"
+                >
+                  <Download size={12} /> Export JSON
+                </button>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex-1 flex items-center justify-center gap-2 p-2 bg-[#d4b98c]/10 hover:bg-[#d4b98c]/20 text-[#d4b98c] rounded text-[10px] font-bold uppercase tracking-widest transition-colors"
+                >
+                  <Upload size={12} /> Import JSON
+                </button>
+                <input type="file" accept=".json" className="hidden" ref={fileInputRef} onChange={handleImport} />
+              </div>
 
               {isCreating ? (
                 <form onSubmit={handleCreate} className="p-2 bg-black/40 rounded border border-[#d4b98c]/20">

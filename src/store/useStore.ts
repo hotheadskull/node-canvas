@@ -33,6 +33,7 @@ export type AppState = {
   projects: Project[];
   activeProjectId: string | null;
   nodes: AppNode[];
+  trashedNodes: AppNode[];
   edges: Edge[];
   isLoading: boolean;
   error: string | null;
@@ -55,6 +56,8 @@ export type AppState = {
   deleteProject: (id: string) => Promise<void>;
   restoreProject: (id: string) => Promise<void>;
   createSnapshot: () => Promise<void>;
+  exportProjectJSON: () => Promise<string>;
+  importProjectJSON: (jsonString: string) => Promise<void>;
 };
 
 const updateTimeouts: Record<string, ReturnType<typeof setTimeout>> = {};
@@ -374,9 +377,18 @@ export const useStore = create<AppState>((set, get) => ({
       // Only load non-deleted nodes for active project
       const dbNodes = await db.select().from(nodesTable).where(eq(nodesTable.project_id, initialProjectId));
       const activeNodes = dbNodes.filter((n: any) => !n.deleted_at);
+      const trashedDbNodes = dbNodes.filter((n: any) => n.deleted_at);
       const dbEdges = await db.select().from(edgesTable).where(eq(edgesTable.project_id, initialProjectId));
 
       set({
+        trashedNodes: trashedDbNodes.map((n: any) => ({
+          id: n.id,
+          type: n.node_type,
+          position: { x: n.x_position, y: n.y_position },
+          parentId: n.parent_id || undefined,
+          extent: n.parent_id ? 'parent' : undefined,
+          data: { label: n.title, content: n.content, manuscript: n.manuscript || '', notes: n.notes || '', metadata: n.metadata, updated_at: n.updated_at || Date.now() },
+        })),
         nodes: activeNodes.map((n: any) => ({
           id: n.id,
           type: n.node_type,
@@ -412,9 +424,18 @@ export const useStore = create<AppState>((set, get) => ({
     const { db } = await initDb();
     const dbNodes = await db.select().from(nodesTable).where(eq(nodesTable.project_id, id));
     const activeNodes = dbNodes.filter((n: any) => !n.deleted_at);
+    const trashedDbNodes = dbNodes.filter((n: any) => n.deleted_at);
     const dbEdges = await db.select().from(edgesTable).where(eq(edgesTable.project_id, id));
     
     set({
+      trashedNodes: trashedDbNodes.map((n: any) => ({
+        id: n.id,
+        type: n.node_type,
+        position: { x: n.x_position, y: n.y_position },
+        parentId: n.parent_id || undefined,
+        extent: n.parent_id ? 'parent' : undefined,
+        data: { label: n.title, content: n.content, manuscript: n.manuscript || '', notes: n.notes || '', updated_at: n.updated_at || Date.now() },
+      })),
       nodes: activeNodes.map((n: any) => ({
         id: n.id,
         type: n.node_type,
@@ -443,5 +464,78 @@ export const useStore = create<AppState>((set, get) => ({
     });
     set({ projects: [...get().projects, { id: newId, title, updated_at: Date.now() }] });
     await get().setActiveProject(newId);
+  },
+
+  exportProjectJSON: async () => {
+    const { activeProjectId, projects, nodes, edges } = get();
+    if (!activeProjectId) throw new Error('No active project to export');
+    const project = projects.find(p => p.id === activeProjectId);
+    const data = { project, nodes, edges };
+    return JSON.stringify(data, null, 2);
+  },
+
+  importProjectJSON: async (jsonString: string) => {
+    try {
+      const data = JSON.parse(jsonString);
+      if (!data.project || !data.nodes || !data.edges) throw new Error('Invalid JSON structure');
+      
+      const { db } = await initDb();
+      const newProjectId = crypto.randomUUID();
+      
+      // Insert new project
+      await db.insert(projectsTable).values({
+        id: newProjectId,
+        title: `${data.project.title} (Imported)`,
+        updated_at: Date.now()
+      });
+      
+      const idMap = new Map<string, string>();
+      
+      // Insert all nodes with new IDs
+      for (const node of data.nodes) {
+        const newId = crypto.randomUUID();
+        idMap.set(node.id, newId);
+      }
+      
+      for (const node of data.nodes) {
+        const mappedParentId = node.parentId ? idMap.get(node.parentId) : null;
+        await db.insert(nodesTable).values({
+          id: idMap.get(node.id)!,
+          project_id: newProjectId,
+          node_type: node.type,
+          title: node.data.label || '',
+          content: node.data.content || '',
+          manuscript: node.data.manuscript || '',
+          notes: node.data.notes || '',
+          metadata: node.data.metadata || null,
+          x_position: Math.round(node.position.x),
+          y_position: Math.round(node.position.y),
+          parent_id: mappedParentId,
+          updated_at: Date.now()
+        });
+      }
+      
+      // Insert edges mapped
+      for (const edge of data.edges) {
+        const mappedSource = idMap.get(edge.source);
+        const mappedTarget = idMap.get(edge.target);
+        if (mappedSource && mappedTarget) {
+          await db.insert(edgesTable).values({
+            id: crypto.randomUUID(),
+            project_id: newProjectId,
+            source_id: mappedSource,
+            target_id: mappedTarget,
+            label: edge.label || null
+          });
+        }
+      }
+      
+      // Load the imported project
+      set({ projects: [...get().projects, { id: newProjectId, title: `${data.project.title} (Imported)`, updated_at: Date.now() }] });
+      await get().setActiveProject(newProjectId);
+    } catch (e) {
+      console.error("Failed to import JSON:", e);
+      alert("Failed to import JSON file. It might be corrupted.");
+    }
   },
 }));

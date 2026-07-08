@@ -1,3 +1,31 @@
 .react-flow__node:not(.dragging) {
   transition: var(--node-transition, transform 0s) !important;
 }
+
+@media print {
+  /* Hide the React Flow canvas and all UI controls */
+  .react-flow, .react-flow__panel, button {
+    display: none !important;
+  }
+  
+  /* Show only the print preview modal */
+  .z-\[100\], .absolute.inset-0.bg-black\/80 {
+    position: static !important;
+    background: white !important;
+    color: black !important;
+    display: block !important;
+  }
+  
+  /* Ensure the markdown content fills the page */
+  .prose-invert {
+    color: black !important;
+    filter: invert(1);
+    height: auto !important;
+    overflow: visible !important;
+  }
+  
+  /* Remove scrollbars and borders */
+  .overflow-y-auto {
+    overflow: visible !important;
+  }
+}

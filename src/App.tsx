@@ -357,11 +357,56 @@ function FlowCanvas() {
     }
   }, [screenToFlowPosition, addNode, onConnect]);
 
+  const onDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const onDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+
+      const files = Array.from(event.dataTransfer.files);
+      if (files.length > 0) {
+        for (const file of files) {
+          if (file.name.endsWith('.md') || file.type === 'text/markdown' || file.name.endsWith('.txt')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const text = e.target?.result as string;
+              const position = screenToFlowPosition({
+                x: event.clientX,
+                y: event.clientY,
+              });
+              
+              // Spawn a theme node (Rich text editor) for imported documents
+              addNode({
+                id: crypto.randomUUID(),
+                type: 'theme',
+                position,
+                data: {
+                  label: file.name.replace(/\.(md|txt)$/i, ''),
+                  content: text,
+                  manuscript: text
+                }
+              });
+            };
+            reader.readAsText(file);
+          }
+        }
+      }
+    },
+    [screenToFlowPosition, addNode]
+  );
+
   return (
     <div style={{ width: '100vw', height: '100vh', display: 'flex' }}>
       
       {/* Visual Node Environment */}
-      <div style={{ flex: 1, position: 'relative' }}>
+      <div 
+        style={{ flex: 1, position: 'relative' }}
+        onDragOver={onDragOver}
+        onDrop={onDrop}
+      >
         <ReactFlow
           nodes={processedNodes}
           edges={processedEdges}
@@ -485,6 +530,14 @@ function FlowCanvas() {
               <div className="flex justify-between items-center p-6 border-b border-[#3730a3] bg-[#312e81]/30">
                 <h2 className="text-xl font-serif text-white">Compiled Manuscript Preview</h2>
                 <div className="flex gap-4">
+                  <button 
+                    onClick={() => {
+                      setTimeout(() => window.print(), 100);
+                    }}
+                    className="px-4 py-2 bg-[#d4b98c] hover:bg-[#fbbf24] text-black rounded font-bold text-sm tracking-widest uppercase transition-colors mr-2"
+                  >
+                    Download PDF
+                  </button>
                   <button 
                     onClick={() => {
                       const blob = new Blob([previewMarkdown], { type: 'text/markdown' });
