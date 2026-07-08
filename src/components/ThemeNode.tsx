@@ -58,7 +58,7 @@ export function ThemeNode({ id, data, selected, type }: NodeProps<AppNode>) {
 
   return (
     <div style={{ perspective: '1000px', width: '100%', height: '100%' }} className={data.isFusing ? 'animate-alchemy' : ''}>
-      <NodeResizer minWidth={220} minHeight={120} isVisible={selected} handleClassName="w-3 h-3 bg-white border-2 border-black rounded" />
+      <NodeResizer minWidth={220} minHeight={120} isVisible={selected} handleClassName="w-3 h-3 bg-[#151518] border-2 border-white rounded transition-transform hover:scale-125" />
 
       {/* Header Badges */}
       {nodeType === 'book' && (
@@ -99,10 +99,10 @@ export function ThemeNode({ id, data, selected, type }: NodeProps<AppNode>) {
               }}
             />
 
-            <Handle type="target" position={Position.Top} id="top" style={{ backgroundColor: theme.progressColor }} className={`w-4 h-4 rounded-full -top-2 border-2 border-[#111114] z-10 transition-opacity hover:scale-125 ${nodeType === 'region' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`} />
-            <Handle type="source" position={Position.Bottom} id="bottom" style={{ backgroundColor: theme.progressColor }} className={`w-4 h-4 rounded-full -bottom-2 border-2 border-[#111114] z-10 transition-opacity hover:scale-125 ${nodeType === 'region' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`} />
-            <Handle type="target" position={Position.Left} id="left" style={{ backgroundColor: theme.progressColor }} className={`w-4 h-4 rounded-full -left-2 border-2 border-[#111114] z-10 transition-opacity hover:scale-125 ${nodeType === 'region' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`} />
-            <Handle type="source" position={Position.Right} id="right" style={{ backgroundColor: theme.progressColor }} className={`w-4 h-4 rounded-full -right-2 border-2 border-[#111114] z-10 transition-opacity hover:scale-125 ${nodeType === 'region' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`} />
+            <Handle type="target" position={Position.Top} id="top" style={{ backgroundColor: theme.progressColor }} className={`w-3 h-3 rounded-full -top-2 border-2 border-[#151518] z-50 transition-transform hover:scale-125 ${nodeType === 'region' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`} />
+            <Handle type="source" position={Position.Bottom} id="bottom" style={{ backgroundColor: theme.progressColor }} className={`w-3 h-3 rounded-full -bottom-2 border-2 border-[#151518] z-50 transition-transform hover:scale-125 ${nodeType === 'region' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`} />
+            <Handle type="target" position={Position.Left} id="left" style={{ backgroundColor: theme.progressColor }} className={`w-3 h-3 rounded-full -left-2 border-2 border-[#151518] z-50 transition-transform hover:scale-125 ${nodeType === 'region' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`} />
+            <Handle type="source" position={Position.Right} id="right" style={{ backgroundColor: theme.progressColor }} className={`w-3 h-3 rounded-full -right-2 border-2 border-[#151518] z-50 transition-transform hover:scale-125 ${nodeType === 'region' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`} />
             
             <div className="flex justify-between items-center border-b pb-2 mb-2 z-10 relative" style={{ borderColor: theme.borderColor }}>
               <input 

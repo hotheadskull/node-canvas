@@ -22,11 +22,11 @@ export const QuoteNode = memo(({ id, data, selected }: any) => {
 
   return (
     <>
-      <NodeResizer minWidth={250} minHeight={150} isVisible={selected} handleClassName="w-3 h-3 bg-[#111114] border-2 border-[#facc15] rounded" />
+      <NodeResizer minWidth={250} minHeight={150} isVisible={selected} handleClassName="w-3 h-3 bg-[#151518] border-2 border-white rounded transition-transform hover:scale-125" />
       <div className="relative w-full h-full">
-        <Handle id="top" type="target" position={Position.Top} className="w-3 h-3 !bg-[#facc15] border-2 border-[#111114] rounded-full z-50 -top-2" />
+        <Handle id="top" type="target" position={Position.Top} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#facc15] -top-2" />
         
-        <div className={`relative w-full h-full flex flex-col bg-[#111114] text-white rounded-md shadow-2xl transition-colors shadow-lg duration-200 overflow-hidden
+        <div className={`relative w-full h-full flex flex-col bg-[#151518] text-white rounded-md shadow-2xl transition-colors shadow-lg duration-200 overflow-hidden
           ${selected ? 'ring-2 ring-[#facc15]' : 'ring-1 ring-[#854d0e]'}
         `} style={{ 
           boxShadow: selected ? '0 20px 40px rgba(133,77,14,0.3)' : '0 10px 30px rgba(0,0,0,0.5)',
@@ -96,7 +96,7 @@ export const QuoteNode = memo(({ id, data, selected }: any) => {
           </div>
         </div>
         
-        <Handle id="bottom" type="source" position={Position.Bottom} className="w-3 h-3 !bg-[#facc15] border-2 border-[#111114] rounded-full z-50 -bottom-2" />
+        <Handle id="bottom" type="source" position={Position.Bottom} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#facc15] -bottom-2" />
       </div>
     </>
   );

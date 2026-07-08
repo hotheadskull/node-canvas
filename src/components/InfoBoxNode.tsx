@@ -4,7 +4,7 @@ import { Handle, Position, NodeResizer } from '@xyflow/react';
 export const InfoBoxNode = memo(({ data, selected }: any) => {
   return (
     <>
-      <NodeResizer minWidth={300} minHeight={300} isVisible={selected} lineClassName="border-[#d4b98c]" handleClassName="w-3 h-3 bg-[#d4b98c] border-none" />
+      <NodeResizer minWidth={300} minHeight={300} isVisible={selected} lineClassName="border-[#d4b98c]" handleClassName="w-3 h-3 bg-[#151518] border-2 border-white rounded transition-transform hover:scale-125" />
       
       <div className="w-full h-full bg-[#1a1a1e]/40 border border-[#d4b98c]/30 rounded-xl backdrop-blur-sm shadow-inner shadow-black/50 p-6 flex flex-col pointer-events-auto">
         <input 
@@ -18,10 +18,10 @@ export const InfoBoxNode = memo(({ data, selected }: any) => {
         />
         
         {/* Handles for explicit connections from the outside */}
-        <Handle type="target" position={Position.Left} id="left-in" className="w-4 h-4 bg-[#d4b98c] -ml-2 border-2 border-[#111114]" />
-        <Handle type="source" position={Position.Right} id="right-out" className="w-4 h-4 bg-[#d4b98c] -mr-2 border-2 border-[#111114]" />
-        <Handle type="target" position={Position.Top} id="top-in" className="w-4 h-4 bg-[#d4b98c] -mt-2 border-2 border-[#111114]" />
-        <Handle type="source" position={Position.Bottom} id="bottom-out" className="w-4 h-4 bg-[#d4b98c] -mb-2 border-2 border-[#111114]" />
+        <Handle type="target" position={Position.Left} id="left-in" className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#d4b98c]" />
+        <Handle type="source" position={Position.Right} id="right-out" className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#d4b98c]" />
+        <Handle type="target" position={Position.Top} id="top-in" className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#d4b98c]" />
+        <Handle type="source" position={Position.Bottom} id="bottom-out" className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#d4b98c]" />
       </div>
     </>
   );

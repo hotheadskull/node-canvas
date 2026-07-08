@@ -7,11 +7,11 @@ export const SnippetNode = memo(({ id, data, selected }: any) => {
 
   return (
     <>
-      <NodeResizer minWidth={200} minHeight={150} isVisible={selected} handleClassName="w-3 h-3 bg-[#111114] border-2 border-gray-500 rounded" />
+      <NodeResizer minWidth={200} minHeight={150} isVisible={selected} handleClassName="w-3 h-3 bg-[#151518] border-2 border-white rounded transition-transform hover:scale-125" />
       <div style={{ width: '100%', height: '100%' }} className={`relative bg-[#fef08a] rounded shadow-md transition-colors shadow-lg duration-200 w-48 flex flex-col group
       ${selected ? 'shadow-[0_4px_20px_rgba(253,224,71,0.4)] scale-[1.02]' : ''}
     `}>
-      <Handle type="target" position={Position.Top} className="w-2 h-2 bg-[#ca8a04] border-0 rounded-full z-50 -top-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+      <Handle type="target" position={Position.Top} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#ca8a04]" />
 
       {/* Body */}
       <div className="p-3 flex-1 flex flex-col">
@@ -27,7 +27,7 @@ export const SnippetNode = memo(({ id, data, selected }: any) => {
         />
       </div>
 
-      <Handle type="source" position={Position.Bottom} className="w-2 h-2 bg-[#ca8a04] border-0 rounded-full z-50 -bottom-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+      <Handle type="source" position={Position.Bottom} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#ca8a04]" />
     </div>
     </>
   );

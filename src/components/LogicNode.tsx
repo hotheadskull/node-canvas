@@ -27,11 +27,11 @@ export const LogicNode = memo(({ id, data, selected }: any) => {
 
   return (
     <>
-      <NodeResizer minWidth={200} minHeight={150} isVisible={selected} handleClassName="w-3 h-3 bg-[#111114] border-2 border-gray-500 rounded" />
+      <NodeResizer minWidth={200} minHeight={150} isVisible={selected} handleClassName="w-3 h-3 bg-[#151518] border-2 border-white rounded transition-transform hover:scale-125" />
       <div style={{ width: '100%', height: '100%' }} className={`relative bg-[#0f1115] rounded-lg border-2 transition-colors shadow-lg duration-300 shadow-2xl flex flex-col
       ${selected ? 'border-[#3b82f6] shadow-[0_0_20px_rgba(59,130,246,0.3)]' : 'border-[#1e3a8a]'}
     `}>
-      <Handle type="target" position={Position.Top} className="w-3 h-3 bg-[#3b82f6] border-2 border-[#111114] rounded-full z-50 -top-2" />
+      <Handle type="target" position={Position.Top} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#3b82f6] -top-2" />
 
       {/* Header */}
       <div className="bg-[#1e3a8a]/30 p-3 border-b-2 border-[#1e3a8a] flex items-center gap-2 rounded-t-lg">
@@ -55,7 +55,7 @@ export const LogicNode = memo(({ id, data, selected }: any) => {
               <div className="relative w-full h-full flex flex-col">
                 <div className="absolute left-2 top-2 text-[10px] font-bold text-blue-600">P{i + 1}</div>
                 <textarea
-                  className="w-full bg-[#111114] border border-[#2a2a35] rounded p-2 pl-7 text-sm text-blue-50 resize-none focus:outline-none focus:border-[#3b82f6] transition-colors"
+                  className="w-full bg-[#151518] border border-[#2a2a35] rounded p-2 pl-7 text-sm text-blue-50 resize-none focus:outline-none focus:border-[#3b82f6] transition-colors"
                   rows={2}
                   value={premise}
                   onChange={(e) => updatePremise(i, e.target.value)}
@@ -92,7 +92,7 @@ export const LogicNode = memo(({ id, data, selected }: any) => {
             Conclusion
           </div>
           <textarea
-            className="w-full bg-[#111114] border border-[#3b82f6]/50 rounded p-3 text-sm font-bold text-white resize-none focus:outline-none focus:border-[#3b82f6] transition-colors shadow-[inset_0_0_10px_rgba(59,130,246,0.1)]"
+            className="w-full bg-[#151518] border border-[#3b82f6]/50 rounded p-3 text-sm font-bold text-white resize-none focus:outline-none focus:border-[#3b82f6] transition-colors shadow-[inset_0_0_10px_rgba(59,130,246,0.1)]"
             rows={3}
             value={conclusion}
             onChange={(e) => updateNodeData(id, { conclusion: e.target.value })}
@@ -102,7 +102,7 @@ export const LogicNode = memo(({ id, data, selected }: any) => {
 
       </div>
 
-      <Handle type="source" position={Position.Bottom} className="w-3 h-3 bg-[#3b82f6] border-2 border-[#111114] rounded-full z-50 -bottom-2" />
+      <Handle type="source" position={Position.Bottom} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#3b82f6] -bottom-2" />
     </div>
     </>
   );

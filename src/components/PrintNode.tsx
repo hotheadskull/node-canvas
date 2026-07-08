@@ -59,7 +59,7 @@ export const PrintNode = memo(({ id, data, selected }: any) => {
 
   return (
     <>
-      <NodeResizer minWidth={150} minHeight={400} isVisible={selected} handleClassName="w-3 h-3 bg-[#111114] border-2 border-indigo-500 rounded" />
+      <NodeResizer minWidth={150} minHeight={400} isVisible={selected} handleClassName="w-3 h-3 bg-[#151518] border-2 border-white rounded transition-transform hover:scale-125" />
       <div className={`relative bg-gradient-to-b from-[#1e1b4b] to-[#0f172a] rounded-lg border transition-colors shadow-lg flex flex-col h-full overflow-hidden
         ${selected ? 'border-indigo-400 shadow-[0_0_30px_rgba(99,102,241,0.4)]' : 'border-[#3730a3] shadow-[0_10px_20px_rgba(0,0,0,0.8)]'}
       `}>
@@ -88,7 +88,7 @@ export const PrintNode = memo(({ id, data, selected }: any) => {
                   type="target"
                   position={Position.Left}
                   id={`slot-${slot}`}
-                  className={`!w-4 !h-4 !border-2 !border-[#111114] !rounded-full !relative !left-0 !transform-none !top-0 z-10 transition-colors shrink-0
+                  className={`!w-3 !h-3 rounded-full border-2 !border-[#151518] !relative !left-0 !transform-none !top-0 z-10 transition-colors shrink-0
                     ${isConnected ? '!bg-indigo-400' : '!bg-[#312e81] group-hover:!bg-indigo-600'}
                   `}
                 />
@@ -112,7 +112,7 @@ export const PrintNode = memo(({ id, data, selected }: any) => {
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-[#111114] border-t border-[#3730a3] flex justify-center shrink-0">
+        <div className="p-4 bg-[#151518] border-t border-[#3730a3] flex justify-center shrink-0">
           <button 
             onClick={handlePreview}
             className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-full font-bold text-xs uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(79,70,229,0.5)] hover:shadow-[0_0_25px_rgba(99,102,241,0.8)]"

@@ -35,11 +35,11 @@ export const TaskNode = memo(({ id, data, selected }: any) => {
 
   return (
     <>
-      <NodeResizer minWidth={250} minHeight={150} isVisible={selected} handleClassName="w-3 h-3 bg-[#111114] border-2 border-[#fb923c] rounded" />
+      <NodeResizer minWidth={250} minHeight={150} isVisible={selected} handleClassName="w-3 h-3 bg-[#151518] border-2 border-white rounded transition-transform hover:scale-125" />
       <div className="relative w-full h-full">
-        <Handle id="top" type="target" position={Position.Top} className="w-3 h-3 bg-[#fb923c] border-2 border-[#111114] rounded-full z-50 -top-2" />
+        <Handle id="top" type="target" position={Position.Top} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#fb923c] -top-2" />
         
-        <div className={`relative w-full h-full flex flex-col bg-[#111114] text-white rounded-md shadow-2xl transition-colors shadow-lg duration-200 overflow-hidden border
+        <div className={`relative w-full h-full flex flex-col bg-[#151518] text-white rounded-md shadow-2xl transition-colors shadow-lg duration-200 overflow-hidden border
         ${selected ? 'border-[#fb923c] scale-[1.02]' : 'border-[#9a3412]'}
       `} style={{ 
         boxShadow: selected ? '0 20px 40px rgba(251,146,60,0.2)' : '0 10px 30px rgba(0,0,0,0.5)',
@@ -59,7 +59,7 @@ export const TaskNode = memo(({ id, data, selected }: any) => {
       </div>
 
       {/* Task List */}
-      <div className="flex flex-col flex-1 bg-[#111114] py-2 overflow-y-auto">
+      <div className="flex flex-col flex-1 bg-[#151518] py-2 overflow-y-auto">
         {tasks.map((task, i) => (
           <div key={i} className="flex items-center group px-3 py-1.5 hover:bg-[#1a1a24] transition-colors">
             <button 
@@ -100,7 +100,7 @@ export const TaskNode = memo(({ id, data, selected }: any) => {
           style={{ width: `${progressPercent}%` }}
         />
       </div>
-      <Handle id="bottom" type="source" position={Position.Bottom} className="w-3 h-3 bg-[#fb923c] border-2 border-[#111114] rounded-full z-50 -bottom-2" />
+      <Handle id="bottom" type="source" position={Position.Bottom} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#fb923c] -bottom-2" />
       </div>
     </div>
     </>

@@ -32,11 +32,11 @@ export const StatNode = memo(({ id, data, selected }: any) => {
 
   return (
     <>
-      <NodeResizer minWidth={280} minHeight={300} isVisible={selected} handleClassName="w-3 h-3 bg-[#111114] border-2 border-[#22d3ee] rounded" />
+      <NodeResizer minWidth={280} minHeight={300} isVisible={selected} handleClassName="w-3 h-3 bg-[#151518] border-2 border-white rounded transition-transform hover:scale-125" />
       <div className="relative w-full h-full">
-        <Handle id="top" type="target" position={Position.Top} className="w-3 h-3 bg-[#22d3ee] border-2 border-[#111114] rounded-full z-50 -top-2" />
+        <Handle id="top" type="target" position={Position.Top} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#22d3ee] -top-2" />
         
-        <div className={`relative w-full h-full flex flex-col bg-[#111114] text-white rounded-md shadow-2xl transition-colors shadow-lg duration-200 overflow-hidden border
+        <div className={`relative w-full h-full flex flex-col bg-[#151518] text-white rounded-md shadow-2xl transition-colors shadow-lg duration-200 overflow-hidden border
         ${selected ? 'border-[#22d3ee] scale-[1.01]' : 'border-[#164e63]'}
       `} style={{ 
         boxShadow: selected ? '0 20px 40px rgba(34,211,238,0.2)' : '0 10px 30px rgba(0,0,0,0.5)',
@@ -68,7 +68,7 @@ export const StatNode = memo(({ id, data, selected }: any) => {
           <input 
             type="text" 
             placeholder="Paste Image URL..." 
-            className="w-full bg-[#111114] border border-[#2a2a35] rounded px-2 py-1 text-xs text-center focus:outline-none focus:border-[#22d3ee]"
+            className="w-full bg-[#151518] border border-[#2a2a35] rounded px-2 py-1 text-xs text-center focus:outline-none focus:border-[#22d3ee]"
             value={data.metadata?.imageUrl || ''}
             onChange={(e) => updateMetadata({ imageUrl: e.target.value })}
             onPointerDown={(e) => e.stopPropagation()}
@@ -88,7 +88,7 @@ export const StatNode = memo(({ id, data, selected }: any) => {
       </div>
 
       {/* Dynamic Key-Value Stats Table */}
-      <div className="flex flex-col bg-[#111114]">
+      <div className="flex flex-col bg-[#151518]">
         {stats.map((stat, i) => (
           <div key={i} className="flex border-b border-[#1a1a24] group">
             <input
@@ -133,7 +133,7 @@ export const StatNode = memo(({ id, data, selected }: any) => {
         />
       </div>
       </div>
-        <Handle id="bottom" type="source" position={Position.Bottom} className="w-3 h-3 bg-[#22d3ee] border-2 border-[#111114] rounded-full z-50 -bottom-2" />
+        <Handle id="bottom" type="source" position={Position.Bottom} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#22d3ee] -bottom-2" />
       </div>
     </>
   );

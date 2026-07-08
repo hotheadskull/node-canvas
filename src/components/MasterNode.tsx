@@ -8,11 +8,11 @@ export const MasterNode = memo(({ id, data, selected }: any) => {
 
   return (
     <>
-      <NodeResizer minWidth={200} minHeight={150} isVisible={selected} handleClassName="w-3 h-3 bg-[#111114] border-2 border-gray-500 rounded" />
+      <NodeResizer minWidth={200} minHeight={150} isVisible={selected} handleClassName="w-3 h-3 bg-[#151518] border-2 border-white rounded transition-transform hover:scale-125" />
       <div style={{ width: '100%', height: '100%' }} className={`relative bg-[#0f1115] rounded-xl border-4 transition-colors shadow-lg duration-300 w-[500px] shadow-2xl flex flex-col
       ${selected ? 'border-[#fbbf24] shadow-[0_0_30px_rgba(251,191,36,0.3)] scale-[1.01]' : 'border-[#b45309]'}
     `}>
-      <Handle type="target" position={Position.Top} className="w-4 h-4 bg-[#fbbf24] border-2 border-[#111114] rounded-full z-50 -top-3" />
+      <Handle type="target" position={Position.Top} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#fbbf24] -top-2" />
 
       {/* Header */}
       <div className="bg-[#b45309]/30 p-4 border-b-2 border-[#b45309] flex items-center justify-center gap-3 rounded-t-lg">
@@ -32,7 +32,7 @@ export const MasterNode = memo(({ id, data, selected }: any) => {
         <div>
           <div className="text-xs font-bold text-amber-600 uppercase tracking-widest mb-1">Logline</div>
           <textarea
-            className="w-full bg-[#111114] border border-[#2a2a35] rounded p-3 text-sm text-amber-100/90 resize-none focus:outline-none focus:border-[#fbbf24] font-serif transition-colors"
+            className="w-full bg-[#151518] border border-[#2a2a35] rounded p-3 text-sm text-amber-100/90 resize-none focus:outline-none focus:border-[#fbbf24] font-serif transition-colors"
             rows={2}
             value={data.logline || ''}
             onChange={(e) => updateNodeData(id, { logline: e.target.value })}
@@ -45,7 +45,7 @@ export const MasterNode = memo(({ id, data, selected }: any) => {
             <div className="text-xs font-bold text-amber-600 uppercase tracking-widest mb-1">Core Theme</div>
             <input
               type="text"
-              className="w-full bg-[#111114] border border-[#2a2a35] rounded p-2 text-sm text-amber-100/90 focus:outline-none focus:border-[#fbbf24] transition-colors"
+              className="w-full bg-[#151518] border border-[#2a2a35] rounded p-2 text-sm text-amber-100/90 focus:outline-none focus:border-[#fbbf24] transition-colors"
               value={data.theme || ''}
               onChange={(e) => updateNodeData(id, { theme: e.target.value })}
               placeholder="e.g. Redemption"
@@ -55,7 +55,7 @@ export const MasterNode = memo(({ id, data, selected }: any) => {
             <div className="text-xs font-bold text-amber-600 uppercase tracking-widest mb-1">Target Audience</div>
             <input
               type="text"
-              className="w-full bg-[#111114] border border-[#2a2a35] rounded p-2 text-sm text-amber-100/90 focus:outline-none focus:border-[#fbbf24] transition-colors"
+              className="w-full bg-[#151518] border border-[#2a2a35] rounded p-2 text-sm text-amber-100/90 focus:outline-none focus:border-[#fbbf24] transition-colors"
               value={data.audience || ''}
               onChange={(e) => updateNodeData(id, { audience: e.target.value })}
               placeholder="e.g. Young Adult Fantasy"
@@ -66,7 +66,7 @@ export const MasterNode = memo(({ id, data, selected }: any) => {
         <div>
           <div className="text-xs font-bold text-amber-600 uppercase tracking-widest mb-1">Synopsis</div>
           <textarea
-            className="w-full bg-[#111114] border border-[#2a2a35] rounded p-3 text-sm text-amber-100/90 resize-none focus:outline-none focus:border-[#fbbf24] font-serif transition-colors"
+            className="w-full bg-[#151518] border border-[#2a2a35] rounded p-3 text-sm text-amber-100/90 resize-none focus:outline-none focus:border-[#fbbf24] font-serif transition-colors"
             rows={5}
             value={data.content || ''}
             onChange={(e) => updateNodeData(id, { content: e.target.value })}
@@ -76,7 +76,7 @@ export const MasterNode = memo(({ id, data, selected }: any) => {
 
       </div>
 
-      <Handle type="source" position={Position.Bottom} className="w-4 h-4 bg-[#fbbf24] border-2 border-[#111114] rounded-full z-50 -bottom-3" />
+      <Handle type="source" position={Position.Bottom} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#fbbf24] -bottom-2" />
     </div>
     </>
   );

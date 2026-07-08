@@ -86,11 +86,11 @@ export const SequenceNode = memo(({ id, data, selected }: any) => {
 
   return (
     <>
-      <NodeResizer minWidth={400} minHeight={200} isVisible={selected} handleClassName="w-3 h-3 bg-[#111114] border-2 border-gray-500 rounded" />
+      <NodeResizer minWidth={400} minHeight={200} isVisible={selected} handleClassName="w-3 h-3 bg-[#151518] border-2 border-white rounded transition-transform hover:scale-125" />
       <div className="relative w-full h-full flex flex-col">
-        <Handle id="top" type="target" position={Position.Top} className="w-3 h-3 bg-[#a855f7] border-2 border-[#111114] rounded-full z-50 -top-2" />
+        <Handle id="top" type="target" position={Position.Top} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#a855f7] -top-2" />
         
-        <div className={`relative flex flex-col bg-[#111114] text-white rounded-md shadow-2xl transition-colors shadow-lg duration-200 border w-full h-full
+        <div className={`relative flex flex-col bg-[#151518] text-white rounded-md shadow-2xl transition-colors shadow-lg duration-200 border w-full h-full
           ${selected ? 'border-[#a855f7] scale-[1.01]' : 'border-[#4c1d95]'}
         `} style={{ 
           boxShadow: selected ? '0 20px 40px rgba(168,85,247,0.2)' : '0 10px 30px rgba(0,0,0,0.5)'
@@ -157,7 +157,7 @@ export const SequenceNode = memo(({ id, data, selected }: any) => {
                       </div>
                       <button 
                         onClick={() => removeBeat(i)} 
-                        className="absolute -top-2 -right-2 bg-[#111114] border border-[#2a2a35] rounded-full p-1 text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity z-20"
+                        className="absolute -top-2 -right-2 bg-[#151518] border border-[#2a2a35] rounded-full p-1 text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity z-20"
                       >
                         <Trash2 size={12} />
                       </button>
@@ -182,7 +182,7 @@ export const SequenceNode = memo(({ id, data, selected }: any) => {
                         type="source" 
                         position={Position.Bottom} 
                         id={`beat-${beat.id}`}
-                        className="w-4 h-4 bg-[#111114] border-2 border-[#a855f7] bottom-[-10px] cursor-crosshair z-30" 
+                        className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#151518]" 
                       />
                     </div>
                   </div>
@@ -191,7 +191,7 @@ export const SequenceNode = memo(({ id, data, selected }: any) => {
             </div>
           </div>
         </div>
-        <Handle id="bottom" type="source" position={Position.Bottom} className="w-3 h-3 bg-[#4ade80] border-2 border-[#111114] rounded-full z-50 -bottom-2" />
+        <Handle id="bottom" type="source" position={Position.Bottom} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#4ade80] -bottom-2" />
       </div>
     </>
   );

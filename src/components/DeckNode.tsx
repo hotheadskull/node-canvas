@@ -25,7 +25,7 @@ export const DeckNode = memo(({ id, data, selected }: any) => {
 
   return (
     <>
-      <NodeResizer minWidth={200} minHeight={150} isVisible={selected} handleClassName="w-3 h-3 bg-[#111114] border-2 border-gray-500 rounded" />
+      <NodeResizer minWidth={200} minHeight={150} isVisible={selected} handleClassName="w-3 h-3 bg-[#151518] border-2 border-white rounded transition-transform hover:scale-125" />
       <div style={{ width: '100%', height: '100%' }} className={`relative bg-[#0f1115] rounded-xl border-2 transition-colors shadow-lg duration-300 w-72 shadow-2xl flex flex-col
       ${selected ? 'border-[#f43f5e] shadow-[0_0_20px_rgba(244,63,94,0.3)]' : 'border-[#881337]'}
     `}>
@@ -37,7 +37,7 @@ export const DeckNode = memo(({ id, data, selected }: any) => {
         <div className="absolute top-2 left-2 w-full h-full border-2 border-[#881337] rounded-xl -z-20 bg-[#0f1115]" />
       )}
 
-      <Handle type="target" position={Position.Top} className="w-3 h-3 bg-[#f43f5e] border-2 border-[#111114] rounded-full z-50 -top-2" />
+      <Handle type="target" position={Position.Top} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#f43f5e] -top-2" />
 
       {/* Header */}
       <div className="bg-[#881337]/30 p-2 border-b-2 border-[#881337] flex items-center justify-between rounded-t-lg">
@@ -54,7 +54,7 @@ export const DeckNode = memo(({ id, data, selected }: any) => {
         
         {/* Navigation */}
         {cards.length > 0 && (
-          <div className="flex items-center gap-2 bg-[#111114] rounded-full px-2 py-1 border border-[#881337]">
+          <div className="flex items-center gap-2 bg-[#151518] rounded-full px-2 py-1 border border-[#881337]">
             <button 
               onClick={handlePrev} 
               disabled={activeIndex === 0}
@@ -97,7 +97,7 @@ export const DeckNode = memo(({ id, data, selected }: any) => {
 
       </div>
 
-      <Handle type="source" position={Position.Bottom} className="w-3 h-3 bg-[#f43f5e] border-2 border-[#111114] rounded-full z-50 -bottom-2" />
+      <Handle type="source" position={Position.Bottom} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#f43f5e] -bottom-2" />
     </div>
     </>
   );

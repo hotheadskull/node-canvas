@@ -20,12 +20,12 @@ export const LoreNode = memo(({ id, data, selected }: any) => {
 
   return (
     <>
-      <NodeResizer minWidth={200} minHeight={150} isVisible={selected} handleClassName="w-3 h-3 bg-[#111114] border-2 border-gray-500 rounded" />
+      <NodeResizer minWidth={200} minHeight={150} isVisible={selected} handleClassName="w-3 h-3 bg-[#151518] border-2 border-white rounded transition-transform hover:scale-125" />
       <div style={{ width: '100%', height: '100%' }} className={`relative bg-[#0f1115] rounded-lg border-2 transition-colors shadow-lg duration-300 shadow-2xl flex flex-col
       ${selected ? 'border-[#22d3ee] shadow-[0_0_20px_rgba(34,211,238,0.3)]' : 'border-[#164e63]'}
     `}>
       {/* Target Handle */}
-      <Handle type="target" position={Position.Top} className="w-3 h-3 bg-[#22d3ee] border-2 border-[#111114] rounded-full z-50 -top-2" />
+      <Handle type="target" position={Position.Top} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#22d3ee] -top-2" />
 
       {/* Header */}
       <div className="bg-[#164e63]/30 p-2 border-b-2 border-[#164e63] flex flex-col gap-2 rounded-t-lg">
@@ -64,7 +64,7 @@ export const LoreNode = memo(({ id, data, selected }: any) => {
       </div>
 
       {/* Source Handle */}
-      <Handle type="source" position={Position.Bottom} className="w-3 h-3 bg-[#22d3ee] border-2 border-[#111114] rounded-full z-50 -bottom-2" />
+      <Handle type="source" position={Position.Bottom} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#22d3ee] -bottom-2" />
     </div>
     </>
   );
