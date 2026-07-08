@@ -383,7 +383,7 @@ function FlowCanvas() {
           }}
         >
           <DynamicCanvasBackground />
-          <Background color="rgba(240, 192, 80, 0.8)" variant={BackgroundVariant.Dots} gap={24} size={2.5} />
+          <Background color="rgba(240, 192, 80, 0.3)" variant={BackgroundVariant.Cross} gap={24} size={6} />
           <Controls>
             <ControlButton 
               onClick={() => {
