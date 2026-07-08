@@ -41,26 +41,68 @@ import { PrintNode } from './components/PrintNode';
 // Generate a random starfield SVG as a data URI for seamless background tiling
 const generateStarSVG = (density: number, maxSize: number, color: string) => {
   let circles = '';
-  for (let i = 0; i < density; i++) {
-    const cx = Math.floor(Math.random() * 512);
-    const cy = Math.floor(Math.random() * 512);
-    const r = (Math.random() * maxSize).toFixed(2);
-    const opacity = (Math.random() * 0.8 + 0.2).toFixed(2);
+  const size = 2048; // Increased tile size to 2048 to prevent visible repetition
+
+  const addCircle = (cx: number, cy: number, r: number, opacity: string) => {
     circles += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" opacity="${opacity}" />`;
+  };
+
+  for (let i = 0; i < density; i++) {
+    const cx = Math.random() * size;
+    const cy = Math.random() * size;
+    const r = Math.random() * maxSize;
+    const opacity = (Math.random() * 0.6 + 0.4).toFixed(2); // Brighter baseline opacity
+
+    // Draw the main star
+    addCircle(cx, cy, r, opacity);
+
+    // Seamless Edge Wrapping!
+    // If a star touches an edge, perfectly clone it on the opposite side.
+    if (cx - r < 0) addCircle(cx + size, cy, r, opacity);
+    if (cx + r > size) addCircle(cx - size, cy, r, opacity);
+    if (cy - r < 0) addCircle(cx, cy + size, r, opacity);
+    if (cy + r > size) addCircle(cx, cy - size, r, opacity);
+    
+    // Corner wrapping
+    if (cx - r < 0 && cy - r < 0) addCircle(cx + size, cy + size, r, opacity);
+    if (cx + r > size && cy - r < 0) addCircle(cx - size, cy + size, r, opacity);
+    if (cx - r < 0 && cy + r > size) addCircle(cx + size, cy - size, r, opacity);
+    if (cx + r > size && cy + r > size) addCircle(cx - size, cy - size, r, opacity);
   }
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">${circles}</svg>`;
-  // use encodeURIComponent for proper SVG data URI support across browsers
+  
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">${circles}</svg>`;
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 };
 
-const ShootingStars = () => {
+interface ShootingStarsProps {
+  x: number;
+  y: number;
+  zoom: number;
+}
+
+const ShootingStars = ({ x, y, zoom }: ShootingStarsProps) => {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-[-1]">
-      <div className="shooting-star star-1"></div>
-      <div className="shooting-star star-2"></div>
-      <div className="shooting-star star-3"></div>
-      <div className="shooting-star star-4"></div>
-      <div className="shooting-star star-5"></div>
+    // Transform container to world space!
+    <div 
+      className="absolute inset-0 overflow-visible pointer-events-none z-[-1]"
+      style={{
+        transform: `translate(${x}px, ${y}px) scale(${zoom})`,
+        transformOrigin: '0 0',
+      }}
+    >
+      {/* 
+        Container covers a massive area so shooting stars can be spawned far out 
+        and fly through the visible canvas.
+      */}
+      <div className="absolute inset-[-4000px]">
+        <div className="shooting-star star-1"></div>
+        <div className="shooting-star star-2"></div>
+        <div className="shooting-star star-3"></div>
+        <div className="shooting-star star-4"></div>
+        <div className="shooting-star star-5"></div>
+        <div className="shooting-star star-6"></div>
+        <div className="shooting-star star-7"></div>
+      </div>
     </div>
   );
 };
@@ -85,7 +127,7 @@ const DynamicCanvasBackground = () => {
           backgroundImage: `url('${farStars}')`,
           backgroundRepeat: 'repeat',
           backgroundPosition: `${x * 0.2}px ${y * 0.2}px`,
-          backgroundSize: `${512 * zoom}px ${512 * zoom}px`,
+          backgroundSize: `${2048 * zoom}px ${2048 * zoom}px`,
         }}
       />
 
@@ -96,7 +138,7 @@ const DynamicCanvasBackground = () => {
           backgroundImage: `url('${midStars}')`,
           backgroundRepeat: 'repeat',
           backgroundPosition: `${x * 0.5}px ${y * 0.5}px`,
-          backgroundSize: `${512 * zoom}px ${512 * zoom}px`,
+          backgroundSize: `${2048 * zoom}px ${2048 * zoom}px`,
         }}
       />
 
@@ -107,11 +149,11 @@ const DynamicCanvasBackground = () => {
           backgroundImage: `url('${nearStars}')`,
           backgroundRepeat: 'repeat',
           backgroundPosition: `${x * 1.0}px ${y * 1.0}px`,
-          backgroundSize: `${512 * zoom}px ${512 * zoom}px`,
+          backgroundSize: `${2048 * zoom}px ${2048 * zoom}px`,
         }}
       />
 
-      <ShootingStars />
+      <ShootingStars x={x} y={y} zoom={zoom} />
     </>
   );
 };
