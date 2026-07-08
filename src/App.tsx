@@ -256,12 +256,12 @@ function FlowCanvas() {
           panOnDrag={true}
           selectionOnDrag={false}
           fitView
-          className="bg-[#0a0a0c]"
+          className="cosmic-canvas"
           defaultEdgeOptions={{ 
-            style: { stroke: '#4c1d95', strokeWidth: 2 } 
+            style: { stroke: '#8c734b', strokeWidth: 2 } 
           }}
         >
-          <Background color="#2a2a35" variant={BackgroundVariant.Dots} gap={24} size={2} />
+          <Background color="rgba(212, 185, 140, 0.08)" variant={BackgroundVariant.Dots} gap={24} size={1.5} />
           <Controls>
             <ControlButton 
               onClick={() => {
@@ -287,7 +287,7 @@ function FlowCanvas() {
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedNodeId ? "text-white" : "text-gray-500"}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
             </ControlButton>
           </Controls>
-          <Panel position="top-left" className="m-4 flex gap-2">
+          <Panel position="top-left" className="m-4 flex gap-2 art-deco-node-panel-wrapper">
             <CreateNodeMenu onCreate={(type, label) => {
               const newNodeId = crypto.randomUUID();
               // Spawn in the center of the screen, with a slight random offset
@@ -342,7 +342,9 @@ function FlowCanvas() {
             }} />
             {/* Removed the old compile button here since we now use the Master Print Node */}
           </Panel>
-          <CanvasSearch />
+          <div className="art-deco-search-wrapper">
+            <CanvasSearch />
+          </div>
           <ProjectManager />
         </ReactFlow>
 

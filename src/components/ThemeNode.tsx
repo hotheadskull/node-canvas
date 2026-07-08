@@ -13,23 +13,23 @@ type Theme = {
 };
 
 const THEMES: Record<string, Theme> = {
-  document: { label: 'Document', borderColor: '#4c1d95', shadowColor: 'rgba(76,29,149,0.3)', textColor: '#a78bfa', bgColor: '#111114', progressColor: '#7c3aed' },
-  reference: { label: 'Reference', borderColor: '#064e3b', shadowColor: 'rgba(6,78,59,0.3)', textColor: '#34d399', bgColor: '#111114', progressColor: '#10b981' },
-  citation: { label: 'Citation', borderColor: '#854d0e', shadowColor: 'rgba(133,77,14,0.3)', textColor: '#facc15', bgColor: '#111114', progressColor: '#eab308' },
-  lore: { label: 'Lore', borderColor: '#164e63', shadowColor: 'rgba(22,78,99,0.3)', textColor: '#22d3ee', bgColor: '#111114', progressColor: '#06b6d4' },
-  snippet: { label: 'Snippet', borderColor: '#9a3412', shadowColor: 'rgba(154,52,18,0.3)', textColor: '#fb923c', bgColor: '#111114', progressColor: '#f97316' },
+  document: { label: 'Document', borderColor: '#8c734b', shadowColor: 'rgba(212,185,140,0.3)', textColor: '#d4b98c', bgColor: '#151518', progressColor: '#d4b98c' },
+  reference: { label: 'Reference', borderColor: '#3d6b56', shadowColor: 'rgba(52,211,153,0.2)', textColor: '#6ee7b7', bgColor: '#151518', progressColor: '#34d399' },
+  citation: { label: 'Citation', borderColor: '#8c734b', shadowColor: 'rgba(251,191,36,0.2)', textColor: '#fbbf24', bgColor: '#151518', progressColor: '#f59e0b' },
+  lore: { label: 'Lore', borderColor: '#2d5f6e', shadowColor: 'rgba(34,211,238,0.2)', textColor: '#67e8f9', bgColor: '#151518', progressColor: '#22d3ee' },
+  snippet: { label: 'Snippet', borderColor: '#7c4320', shadowColor: 'rgba(251,146,60,0.2)', textColor: '#fdba74', bgColor: '#151518', progressColor: '#fb923c' },
   
-  // Legacy / Backwards compatibility mapping (Optional to keep in select dropdown, or just use for rendering)
-  book: { label: 'Book', borderColor: '#4c1d95', shadowColor: 'rgba(76,29,149,0.3)', textColor: '#a78bfa', bgColor: '#111114', progressColor: '#7c3aed' },
-  chapter: { label: 'Chapter', borderColor: '#854d0e', shadowColor: 'rgba(133,77,14,0.3)', textColor: '#facc15', bgColor: '#111114', progressColor: '#eab308' },
-  scene: { label: 'Scene', borderColor: '#9a3412', shadowColor: 'rgba(154,52,18,0.3)', textColor: '#fb923c', bgColor: '#111114', progressColor: '#f97316' },
-  idea: { label: 'Idea', borderColor: '#334155', shadowColor: 'rgba(51,65,85,0.3)', textColor: '#94a3b8', bgColor: '#111114', progressColor: '#64748b' },
-  character: { label: 'Character', borderColor: '#164e63', shadowColor: 'rgba(22,78,99,0.3)', textColor: '#22d3ee', bgColor: '#111114', progressColor: '#06b6d4' },
-  location: { label: 'Location', borderColor: '#064e3b', shadowColor: 'rgba(6,78,59,0.3)', textColor: '#34d399', bgColor: '#111114', progressColor: '#10b981' },
-  faction: { label: 'Faction', borderColor: '#7f1d1d', shadowColor: 'rgba(127,29,29,0.3)', textColor: '#f87171', bgColor: '#111114', progressColor: '#ef4444' },
-  event: { label: 'Event', borderColor: '#3730a3', shadowColor: 'rgba(55,48,163,0.3)', textColor: '#818cf8', bgColor: '#111114', progressColor: '#6366f1' },
-  item: { label: 'Item', borderColor: '#713f12', shadowColor: 'rgba(113,63,18,0.3)', textColor: '#fde047', bgColor: '#111114', progressColor: '#eab308' },
-  directory: { label: 'Directory', borderColor: '#c026d3', shadowColor: 'rgba(192,38,211,0.3)', textColor: '#e879f9', bgColor: '#18181b', progressColor: '#d946ef' },
+  // Legacy / Backwards compatibility mapping
+  book: { label: 'Book', borderColor: '#8c734b', shadowColor: 'rgba(212,185,140,0.3)', textColor: '#d4b98c', bgColor: '#151518', progressColor: '#d4b98c' },
+  chapter: { label: 'Chapter', borderColor: '#8c734b', shadowColor: 'rgba(251,191,36,0.2)', textColor: '#fbbf24', bgColor: '#151518', progressColor: '#f59e0b' },
+  scene: { label: 'Scene', borderColor: '#7c4320', shadowColor: 'rgba(251,146,60,0.2)', textColor: '#fdba74', bgColor: '#151518', progressColor: '#fb923c' },
+  idea: { label: 'Idea', borderColor: '#4a4a55', shadowColor: 'rgba(148,163,184,0.2)', textColor: '#cbd5e1', bgColor: '#151518', progressColor: '#94a3b8' },
+  character: { label: 'Character', borderColor: '#2d5f6e', shadowColor: 'rgba(34,211,238,0.2)', textColor: '#67e8f9', bgColor: '#151518', progressColor: '#22d3ee' },
+  location: { label: 'Location', borderColor: '#3d6b56', shadowColor: 'rgba(52,211,153,0.2)', textColor: '#6ee7b7', bgColor: '#151518', progressColor: '#34d399' },
+  faction: { label: 'Faction', borderColor: '#6b2626', shadowColor: 'rgba(248,113,113,0.2)', textColor: '#fca5a5', bgColor: '#151518', progressColor: '#f87171' },
+  event: { label: 'Event', borderColor: '#3d3d8c', shadowColor: 'rgba(129,140,248,0.2)', textColor: '#a5b4fc', bgColor: '#151518', progressColor: '#818cf8' },
+  item: { label: 'Item', borderColor: '#8c734b', shadowColor: 'rgba(253,224,71,0.2)', textColor: '#fde68a', bgColor: '#151518', progressColor: '#fbbf24' },
+  directory: { label: 'Directory', borderColor: '#7c2d86', shadowColor: 'rgba(232,121,249,0.2)', textColor: '#f0abfc', bgColor: '#151518', progressColor: '#e879f9' },
 };
 
 export function ThemeNode({ id, data, selected, type }: NodeProps<AppNode>) {

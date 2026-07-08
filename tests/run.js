@@ -1,0 +1,7 @@
+import './f1_background.test.js';
+import './f2_node_geometry.test.js';
+import './f3_glowing_handles.test.js';
+import './f4_elastic_edges.test.js';
+import './f5_micro_interactions.test.js';
+import './cross_combinations.test.js';
+import './real_world_scenarios.test.js';

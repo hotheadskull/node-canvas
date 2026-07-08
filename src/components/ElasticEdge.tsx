@@ -54,12 +54,12 @@ export function ElasticEdge({
   // Calculate tension percentage (0 to 1)
   const tension = Math.max(0, Math.min(1, (distance - TENSION_START) / (MAX_STRETCH - TENSION_START)));
 
-  // Interpolate color from default (#4c1d95) to strained red (#ef4444)
-  // Base: 76, 29, 149
+  // Interpolate color from Art Deco gold (#8c734b) to strained red (#ef4444)
+  // Base: 140, 115, 75
   // Red: 239, 68, 68
-  const r = Math.round(76 + tension * (239 - 76));
-  const g = Math.round(29 + tension * (68 - 29));
-  const b = Math.round(149 + tension * (68 - 149));
+  const r = Math.round(140 + tension * (239 - 140));
+  const g = Math.round(115 + tension * (68 - 115));
+  const b = Math.round(75 + tension * (68 - 75));
   
   // Thinner stroke as it stretches
   const strokeWidth = Math.max(0.5, 2 - (tension * 1.5));
