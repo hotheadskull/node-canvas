@@ -38,8 +38,6 @@ export function ThemeNode({ id, data, selected, type }: NodeProps<AppNode>) {
   const [isFlipped, setIsFlipped] = useState(false);
   const updateNodeData = useStore(state => state.updateNodeData);
   const updateNodeType = useStore(state => state.updateNodeType);
-  const deleteNode = useStore(state => state.deleteNode);
-  const duplicateNode = useStore(state => state.duplicateNode);
 
   // Word count milestone logic for chapters
   const textContent = nodeType === 'chapter' || nodeType === 'scene' ? (data.manuscript || '') : (data.content || '');
