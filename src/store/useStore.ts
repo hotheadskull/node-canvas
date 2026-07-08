@@ -67,6 +67,7 @@ export const useStore = create<AppState>((set, get) => ({
   activeProjectId: null,
   nodes: [],
   edges: [],
+  trashedNodes: [],
   isLoading: true,
   error: null,
   previewMarkdown: null,

@@ -21,10 +21,7 @@ import { ProjectManager } from './components/ProjectManager';
 import './App.css';
 import { Trash2 } from 'lucide-react';
 
-import { InfoBoxNode } from './components/InfoBoxNode';
-
 import { QuoteNode } from './components/QuoteNode';
-
 import { StatNode } from './components/StatNode';
 import { TaskNode } from './components/TaskNode';
 import { SequenceNode } from './components/SequenceNode';

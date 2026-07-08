@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Panel } from '@xyflow/react';
 import { useStore } from '../store/useStore';
 import { useReactFlow } from '@xyflow/react';
 import { Camera, Trash2, RotateCcw, Download, Upload } from 'lucide-react';
-import React, { useState, useRef } from 'react';
 
 export function ProjectManager() {
   const { projects, activeProjectId, setActiveProject, createProject, createSnapshot, deleteProject, restoreProject, trashedNodes, restoreNode, exportProjectJSON, importProjectJSON } = useStore();
@@ -79,7 +78,7 @@ export function ProjectManager() {
         </button>
 
         {isOpen && (
-          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[400px] bg-[#1a1a1e]/95 border border-[#d4b98c]/30 rounded backdrop-blur-xl shadow-2xl shadow-black overflow-hidden texture-stone z-50">
+          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[600px] bg-[#1a1a1e]/95 border border-[#d4b98c]/30 rounded-xl backdrop-blur-xl shadow-2xl shadow-black overflow-hidden texture-stone z-50">
             
             <div className="flex border-b border-[#d4b98c]/20">
               <button 
@@ -108,7 +107,7 @@ export function ProjectManager() {
               </button>
             </div>
 
-            <div className="max-h-64 overflow-y-auto custom-scrollbar p-2">
+            <div className="max-h-80 overflow-y-auto custom-scrollbar p-4">
               {activeTab === 'workspaces' && (
                 <div className="flex flex-col gap-1">
                   {activeWorkspaces.map(p => (
@@ -200,55 +199,69 @@ export function ProjectManager() {
               )}
             </div>
 
-            <div className="border-t border-[#d4b98c]/20 p-2 flex flex-col gap-2">
-              <div className="flex gap-2">
+            <div className="border-t border-[#d4b98c]/20 p-4 bg-black/40 flex flex-col gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={async () => {
                     await createSnapshot();
-                    alert('Version created! Check the Version History tab.');
+                    alert('Version Snapshot saved! You can restore it anytime from the Versions tab.');
                   }}
-                  className="flex-1 flex items-center justify-center gap-2 p-2 bg-[#d4b98c]/10 hover:bg-[#d4b98c]/20 text-[#d4b98c] rounded text-[10px] font-bold uppercase tracking-widest transition-colors"
+                  className="flex flex-col items-start p-3 bg-[#d4b98c]/5 hover:bg-[#d4b98c]/10 text-[#d4b98c] rounded border border-[#d4b98c]/20 transition-all text-left"
                 >
-                  <Camera size={12} /> Save Ver
+                  <div className="flex items-center gap-2 font-bold uppercase tracking-widest text-[11px] mb-1">
+                    <Camera size={14} /> Save Version Snapshot
+                  </div>
+                  <span className="text-[10px] text-gray-400 font-sans normal-case tracking-normal">Instantly back up your current canvas state to history.</span>
                 </button>
+
                 <button
                   onClick={handleExport}
-                  className="flex-1 flex items-center justify-center gap-2 p-2 bg-[#d4b98c]/10 hover:bg-[#d4b98c]/20 text-[#d4b98c] rounded text-[10px] font-bold uppercase tracking-widest transition-colors"
+                  className="flex flex-col items-start p-3 bg-[#d4b98c]/5 hover:bg-[#d4b98c]/10 text-[#d4b98c] rounded border border-[#d4b98c]/20 transition-all text-left"
                 >
-                  <Download size={12} /> Export JSON
+                  <div className="flex items-center gap-2 font-bold uppercase tracking-widest text-[11px] mb-1">
+                    <Download size={14} /> Export to JSON
+                  </div>
+                  <span className="text-[10px] text-gray-400 font-sans normal-case tracking-normal">Download your entire workspace as a file to share or backup.</span>
                 </button>
+
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex-1 flex items-center justify-center gap-2 p-2 bg-[#d4b98c]/10 hover:bg-[#d4b98c]/20 text-[#d4b98c] rounded text-[10px] font-bold uppercase tracking-widest transition-colors"
+                  className="flex flex-col items-start p-3 bg-[#d4b98c]/5 hover:bg-[#d4b98c]/10 text-[#d4b98c] rounded border border-[#d4b98c]/20 transition-all text-left"
                 >
-                  <Upload size={12} /> Import JSON
+                  <div className="flex items-center gap-2 font-bold uppercase tracking-widest text-[11px] mb-1">
+                    <Upload size={14} /> Import Workspace
+                  </div>
+                  <span className="text-[10px] text-gray-400 font-sans normal-case tracking-normal">Load a previously exported .json universe backup file.</span>
                 </button>
                 <input type="file" accept=".json" className="hidden" ref={fileInputRef} onChange={handleImport} />
+                
+                {isCreating ? (
+                  <form onSubmit={handleCreate} className="p-3 bg-black/60 rounded border border-[#d4b98c]/30 flex flex-col gap-2">
+                    <input
+                      autoFocus
+                      type="text"
+                      value={newTitle}
+                      onChange={e => setNewTitle(e.target.value)}
+                      placeholder="Universe name..."
+                      className="w-full bg-transparent border-b border-[#d4b98c]/50 text-[#d4b98c] px-2 py-1 outline-none text-sm font-serif placeholder-[#d4b98c]/30"
+                    />
+                    <div className="flex gap-2">
+                      <button type="submit" className="flex-1 bg-[#d4b98c]/20 hover:bg-[#d4b98c]/30 text-[#d4b98c] py-1 text-xs font-bold rounded transition-colors">Create</button>
+                      <button type="button" onClick={() => setIsCreating(false)} className="flex-1 bg-transparent hover:bg-white/5 text-gray-400 py-1 text-xs rounded transition-colors">Cancel</button>
+                    </div>
+                  </form>
+                ) : (
+                  <button
+                    onClick={() => setIsCreating(true)}
+                    className="flex flex-col items-start p-3 bg-[#d4b98c]/5 hover:bg-[#d4b98c]/10 text-[#d4b98c] rounded border border-[#d4b98c]/20 transition-all text-left group"
+                  >
+                    <div className="flex items-center gap-2 font-bold uppercase tracking-widest text-[11px] mb-1 group-hover:text-white transition-colors">
+                      <span className="text-lg leading-none">+</span> Create New Workspace
+                    </div>
+                    <span className="text-[10px] text-gray-400 font-sans normal-case tracking-normal">Start a completely fresh universe from scratch.</span>
+                  </button>
+                )}
               </div>
-
-              {isCreating ? (
-                <form onSubmit={handleCreate} className="p-2 bg-black/40 rounded border border-[#d4b98c]/20">
-                  <input
-                    autoFocus
-                    type="text"
-                    value={newTitle}
-                    onChange={e => setNewTitle(e.target.value)}
-                    placeholder="New project name..."
-                    className="w-full bg-transparent border-b border-[#d4b98c]/50 text-[#d4b98c] px-2 py-1 outline-none text-sm font-serif mb-2 placeholder-[#d4b98c]/30"
-                  />
-                  <div className="flex gap-2">
-                    <button type="submit" className="flex-1 bg-[#d4b98c]/20 hover:bg-[#d4b98c]/30 text-[#d4b98c] py-1 text-xs rounded transition-colors">Create</button>
-                    <button type="button" onClick={() => setIsCreating(false)} className="flex-1 bg-transparent hover:bg-white/5 text-gray-400 py-1 text-xs rounded transition-colors">Cancel</button>
-                  </div>
-                </form>
-              ) : (
-                <button
-                  onClick={() => setIsCreating(true)}
-                  className="w-full p-2 text-xs text-gray-400 hover:text-white hover:bg-white/5 rounded transition-colors uppercase tracking-widest text-center"
-                >
-                  + New Workspace
-                </button>
-              )}
             </div>
             
           </div>
