@@ -50,8 +50,8 @@ const generateStarSVG = (density: number, maxSize: number, color: string) => {
   for (let i = 0; i < density; i++) {
     const cx = Math.random() * size;
     const cy = Math.random() * size;
-    const r = Math.random() * maxSize;
-    const opacity = (Math.random() * 0.6 + 0.4).toFixed(2); // Brighter baseline opacity
+    const r = Math.random() * maxSize + 0.8; // Minimum radius 0.8 so they don't vanish
+    const opacity = (Math.random() * 0.4 + 0.6).toFixed(2); // Brighter baseline opacity (0.6 - 1.0)
 
     // Draw the main star
     addCircle(cx, cy, r, opacity);
@@ -111,9 +111,9 @@ const DynamicCanvasBackground = () => {
   const { x, y, zoom } = useViewport();
   
   // Generate our layers only once
-  const farStars = useMemo(() => generateStarSVG(200, 1.0, '#ffffff'), []);
-  const midStars = useMemo(() => generateStarSVG(100, 1.5, '#d4b98c'), []); // Gold-ish
-  const nearStars = useMemo(() => generateStarSVG(30, 2.5, '#a8c7fa'), []); // Cyan/Blue-ish
+  const farStars = useMemo(() => generateStarSVG(400, 1.0, '#ffffff'), []);
+  const midStars = useMemo(() => generateStarSVG(200, 1.5, '#ffd999'), []); // Brighter gold
+  const nearStars = useMemo(() => generateStarSVG(75, 2.0, '#b8d4ff'), []); // Brighter cyan
 
   return (
     <>
@@ -383,7 +383,7 @@ function FlowCanvas() {
           }}
         >
           <DynamicCanvasBackground />
-          <Background color="rgba(240, 192, 80, 0.45)" variant={BackgroundVariant.Dots} gap={24} size={1.5} />
+          <Background color="rgba(240, 192, 80, 0.8)" variant={BackgroundVariant.Dots} gap={24} size={2.5} />
           <Controls>
             <ControlButton 
               onClick={() => {
