@@ -262,6 +262,11 @@ export function ProjectManager() {
                   </button>
                 )}
               </div>
+              <div className="mt-2 p-3 bg-indigo-900/20 border border-indigo-500/30 rounded text-center">
+                <span className="text-[11px] text-indigo-200/80 font-sans">
+                  💡 <b>Want to export your manuscript?</b> Spawn a <b>Print Node</b> on your canvas to compile and download your writing as a PDF or Markdown file.
+                </span>
+              </div>
             </div>
             
           </div>
