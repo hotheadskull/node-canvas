@@ -38,25 +38,40 @@ import { ItemNode } from './components/ItemNode';
 import { DeckNode } from './components/DeckNode';
 import { PrintNode } from './components/PrintNode';
 
+const ShootingStars = () => {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-[-1]">
+      <div className="shooting-star star-1"></div>
+      <div className="shooting-star star-2"></div>
+      <div className="shooting-star star-3"></div>
+      <div className="shooting-star star-4"></div>
+      <div className="shooting-star star-5"></div>
+    </div>
+  );
+};
+
 const DynamicCanvasBackground = () => {
   const { x, y, zoom } = useViewport();
   
   return (
-    <div 
-      style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        pointerEvents: 'none',
-        zIndex: -1,
-        backgroundImage: "url('/canvas_bg_seamless.jpg')",
-        backgroundRepeat: 'repeat',
-        backgroundPosition: `${x}px ${y}px`,
-        backgroundSize: `${512 * zoom}px ${512 * zoom}px`,
-      }}
-    />
+    <>
+      <div 
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          pointerEvents: 'none',
+          zIndex: -2,
+          backgroundImage: "url('/galaxy_final.jpg')",
+          backgroundRepeat: 'repeat',
+          backgroundPosition: `${x}px ${y}px`,
+          backgroundSize: `${1024 * zoom}px ${1024 * zoom}px`, // Increased base size for detailed galaxy
+        }}
+      />
+      <ShootingStars />
+    </>
   );
 };
 

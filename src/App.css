@@ -36,9 +36,6 @@ body {
   border-radius: 0px !important;
   border: 1px solid var(--art-deco-gold-dark) !important;
   background-color: #151518 !important;
-  background-image: url('/toolbar_bg_tall.jpg') !important;
-  background-size: 100% 100% !important;
-  background-position: center !important;
 }
 .react-flow__controls-button {
   background-color: transparent !important;
@@ -167,9 +164,6 @@ body {
   border-radius: 0px !important;
   border: 1px solid var(--art-deco-gold-dark) !important;
   background-color: #151518 !important;
-  background-image: url('/panel_bg_wide.jpg') !important;
-  background-size: 100% 100% !important;
-  background-position: center !important;
   box-shadow: 
     0 0 0 1px var(--art-deco-gold-dark),
     inset 0 0 20px rgba(0,0,0,0.9),
@@ -212,9 +206,6 @@ body {
 /* 4. CreateNodeMenu panel (+ Add Node button and dropdown list) */
 .art-deco-node-panel-wrapper > div > button {
   background-color: #151518 !important;
-  background-image: url('/panel_bg_wide.jpg') !important;
-  background-size: 100% 100% !important;
-  background-position: center !important;
   color: var(--art-deco-gold) !important;
   border: 1px solid var(--art-deco-gold-dark) !important;
   border-radius: 0px !important;
@@ -233,9 +224,6 @@ body {
 
 .art-deco-node-panel-wrapper div.absolute {
   background-color: #131316 !important;
-  background-image: url('/panel_bg_wide.jpg') !important;
-  background-size: 100% 100% !important;
-  background-position: center !important;
   border: 1px solid var(--art-deco-gold-dark) !important;
   border-radius: 0px !important;
   box-shadow: 
@@ -286,9 +274,6 @@ body {
 /* 5. CanvasSearch bar (search input and result list) */
 .art-deco-search-wrapper input {
   background-color: #151518 !important;
-  background-image: url('/panel_bg_wide.jpg') !important;
-  background-size: 100% 100% !important;
-  background-position: center !important;
   color: var(--foreground) !important;
   border: 1px solid var(--art-deco-gold-dark) !important;
   border-radius: 0px !important;
@@ -309,9 +294,6 @@ body {
 
 .art-deco-search-wrapper .absolute.top-full {
   background-color: #131316 !important;
-  background-image: url('/panel_bg_wide.jpg') !important;
-  background-size: 100% 100% !important;
-  background-position: center !important;
   border: 1px solid var(--art-deco-gold-dark) !important;
   border-radius: 0px !important;
   box-shadow: 
@@ -360,9 +342,6 @@ body {
 .react-flow__node > div:not(.react-flow__resize-control):not(.react-flow__handle) {
   /* Matte stone background with intricate gold line pattern (SVG data URI) */
   background-color: var(--art-deco-stone) !important;
-  background-image: url('/node_bg.jpg') !important;
-  background-size: cover !important;
-  background-position: center !important;
   border-radius: 0px !important;
   box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8), 0 10px 20px rgba(0, 0, 0, 0.6) !important;
 }
@@ -533,4 +512,49 @@ body {
   background: var(--art-deco-gold);
 }
 
+/* =======================================
+   10. COSMIC ANIMATIONS
+   ======================================= */
+.shooting-star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 0 4px 2px rgba(255, 255, 255, 0.8),
+              0 0 10px 4px rgba(240, 192, 80, 0.4),
+              0 0 20px 8px rgba(240, 192, 80, 0.2);
+  opacity: 0;
+  animation: shootingStar 5s linear infinite;
+}
 
+.shooting-star::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 150px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.8), transparent);
+  left: 100%;
+}
+
+@keyframes shootingStar {
+  0% {
+    transform: translate(0, 0) rotate(-45deg);
+    opacity: 1;
+  }
+  20% {
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-1000px, 1000px) rotate(-45deg);
+    opacity: 0;
+  }
+}
+
+.star-1 { top: 10%; left: 80%; animation-delay: 0s; animation-duration: 4s; }
+.star-2 { top: 20%; left: 90%; animation-delay: 3s; animation-duration: 5s; }
+.star-3 { top: 5%; left: 60%; animation-delay: 7s; animation-duration: 3.5s; }
+.star-4 { top: 40%; left: 95%; animation-delay: 1.5s; animation-duration: 4.5s; }
+.star-5 { top: 30%; left: 70%; animation-delay: 9s; animation-duration: 6s; }
