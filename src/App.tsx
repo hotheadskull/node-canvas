@@ -44,6 +44,7 @@ const generateStarSVG = (density: number, maxSize: number, color: string) => {
   const size = 2048; // Increased tile size to 2048 to prevent visible repetition
 
   const addCircle = (cx: number, cy: number, r: number, opacity: string) => {
+    circles += `<circle cx="${cx}" cy="${cy}" r="${r * 2.5}" fill="${color}" opacity="${(parseFloat(opacity) * 0.3).toFixed(2)}" />`;
     circles += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" opacity="${opacity}" />`;
   };
 
@@ -139,6 +140,7 @@ const DynamicCanvasBackground = () => {
           backgroundRepeat: 'repeat',
           backgroundPosition: `${x * 0.5}px ${y * 0.5}px`,
           backgroundSize: `${2048 * zoom}px ${2048 * zoom}px`,
+          filter: 'drop-shadow(0 0 3px rgba(255, 217, 153, 0.6))'
         }}
       />
 
@@ -150,6 +152,7 @@ const DynamicCanvasBackground = () => {
           backgroundRepeat: 'repeat',
           backgroundPosition: `${x * 1.0}px ${y * 1.0}px`,
           backgroundSize: `${2048 * zoom}px ${2048 * zoom}px`,
+          filter: 'drop-shadow(0 0 4px rgba(184, 212, 255, 0.8))'
         }}
       />
 
@@ -157,7 +160,7 @@ const DynamicCanvasBackground = () => {
 
       {/* Fade out the grid smoothly as the user zooms out */}
       <Background 
-        color={`rgba(240, 192, 80, ${Math.max(0, Math.min(0.3, (zoom - 0.2) * 0.5)).toFixed(2)})`} 
+        color={`rgba(240, 192, 80, ${Math.max(0, Math.min(0.2, (zoom - 0.15) * 0.25)).toFixed(2)})`} 
         variant={BackgroundVariant.Cross} 
         gap={24} 
         size={6} 
@@ -167,9 +170,8 @@ const DynamicCanvasBackground = () => {
 };
 
 const nodeTypes = {
-  document: ThemeNode, // Main text box
-  reference: ThemeNode, // Small connectable node
-  info_box: InfoBoxNode,
+  document: ThemeNode,
+  reference: SnippetNode,
   quote: QuoteNode,
   stat: StatNode,
   task: TaskNode,
@@ -416,7 +418,7 @@ function FlowCanvas() {
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedNodeId ? "text-white" : "text-gray-500"}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
             </ControlButton>
           </Controls>
-          <Panel position="top-left" className="m-4 flex gap-2 art-deco-node-panel-wrapper">
+          <Panel position="top-left" className="m-4 flex gap-2">
             <CreateNodeMenu onCreate={(type, label) => {
               const newNodeId = crypto.randomUUID();
               // Spawn in the center of the screen, with a slight random offset
@@ -471,7 +473,7 @@ function FlowCanvas() {
             }} />
             {/* Removed the old compile button here since we now use the Master Print Node */}
           </Panel>
-          <div className="art-deco-search-wrapper">
+          <div className="search-wrapper">
             <CanvasSearch />
           </div>
           <ProjectManager />
