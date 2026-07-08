@@ -1,0 +1,3 @@
+.react-flow__node:not(.dragging) {
+  transition: var(--node-transition, transform 0s) !important;
+}
