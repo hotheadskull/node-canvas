@@ -38,6 +38,21 @@ import { ItemNode } from './components/ItemNode';
 import { DeckNode } from './components/DeckNode';
 import { PrintNode } from './components/PrintNode';
 
+// Generate a random starfield SVG as a data URI for seamless background tiling
+const generateStarSVG = (density: number, maxSize: number, color: string) => {
+  let circles = '';
+  for (let i = 0; i < density; i++) {
+    const cx = Math.floor(Math.random() * 512);
+    const cy = Math.floor(Math.random() * 512);
+    const r = (Math.random() * maxSize).toFixed(2);
+    const opacity = (Math.random() * 0.8 + 0.2).toFixed(2);
+    circles += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" opacity="${opacity}" />`;
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">${circles}</svg>`;
+  // use encodeURIComponent for proper SVG data URI support across browsers
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+};
+
 const ShootingStars = () => {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-[-1]">
@@ -53,23 +68,49 @@ const ShootingStars = () => {
 const DynamicCanvasBackground = () => {
   const { x, y, zoom } = useViewport();
   
+  // Generate our layers only once
+  const farStars = useMemo(() => generateStarSVG(200, 1.0, '#ffffff'), []);
+  const midStars = useMemo(() => generateStarSVG(100, 1.5, '#d4b98c'), []); // Gold-ish
+  const nearStars = useMemo(() => generateStarSVG(30, 2.5, '#a8c7fa'), []); // Cyan/Blue-ish
+
   return (
     <>
+      {/* Base Dark Void */}
+      <div className="absolute inset-0 z-[-4] bg-[#08080a] pointer-events-none" />
+      
+      {/* Far Layer - Moves slowly */}
       <div 
         style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          pointerEvents: 'none',
-          zIndex: -2,
-          backgroundImage: "url('/galaxy_final.jpg')",
+          position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: -3,
+          backgroundImage: `url('${farStars}')`,
           backgroundRepeat: 'repeat',
-          backgroundPosition: `${x}px ${y}px`,
-          backgroundSize: `${1024 * zoom}px ${1024 * zoom}px`, // Increased base size for detailed galaxy
+          backgroundPosition: `${x * 0.2}px ${y * 0.2}px`,
+          backgroundSize: `${512 * zoom}px ${512 * zoom}px`,
         }}
       />
+
+      {/* Mid Layer - Moves at medium speed */}
+      <div 
+        style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: -2,
+          backgroundImage: `url('${midStars}')`,
+          backgroundRepeat: 'repeat',
+          backgroundPosition: `${x * 0.5}px ${y * 0.5}px`,
+          backgroundSize: `${512 * zoom}px ${512 * zoom}px`,
+        }}
+      />
+
+      {/* Near Layer - Moves 1:1 with the canvas */}
+      <div 
+        style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: -1,
+          backgroundImage: `url('${nearStars}')`,
+          backgroundRepeat: 'repeat',
+          backgroundPosition: `${x * 1.0}px ${y * 1.0}px`,
+          backgroundSize: `${512 * zoom}px ${512 * zoom}px`,
+        }}
+      />
+
       <ShootingStars />
     </>
   );
