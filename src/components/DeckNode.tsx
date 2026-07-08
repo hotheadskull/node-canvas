@@ -6,18 +6,20 @@ import { Layers, ChevronLeft, ChevronRight, Inbox } from 'lucide-react';
 export const DeckNode = memo(({ id, data, selected }: any) => {
   const updateNodeData = useStore(state => state.updateNodeData);
 
-  const cards = data.cards || [];
-  const activeIndex = data.activeIndex || 0;
+  // Cards live in metadata (not top-level data) so they persist to the DB
+  const meta = data.metadata || {};
+  const cards = meta.cards || [];
+  const activeIndex = meta.activeIndex || 0;
 
   const handlePrev = () => {
     if (activeIndex > 0) {
-      updateNodeData(id, { activeIndex: activeIndex - 1 });
+      updateNodeData(id, { metadata: { ...meta, activeIndex: activeIndex - 1 } });
     }
   };
 
   const handleNext = () => {
     if (activeIndex < cards.length - 1) {
-      updateNodeData(id, { activeIndex: activeIndex + 1 });
+      updateNodeData(id, { metadata: { ...meta, activeIndex: activeIndex + 1 } });
     }
   };
 

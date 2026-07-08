@@ -36,7 +36,7 @@ test('F5-3: useStore spiderweb auto-linking automatically creates connections', 
 test('F5-4: useStore strip HTML tags when evaluating auto-linking matches', () => {
   const content = fs.readFileSync(useStorePath, 'utf8');
   assert.ok(
-    /const\s+plainText\s*=\s*newText\.replace\(\/\\<\[\^\\>\]\+\\>\/g,\s*['"]{2}\)/.test(content),
+    /const\s+plainText\s*=\s*newText\.replace\(\/<\[\^>\]\+>\/g,\s*['"]{2}\)/.test(content),
     'Expected HTML tags to be stripped for clean plain text matching'
   );
 });

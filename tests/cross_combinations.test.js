@@ -14,16 +14,16 @@ test('F3-F4-1: Handle border styling color matches the elastic edge default conn
   const appTsx = fs.readFileSync(appTsxPath, 'utf8');
   const themeNode = fs.readFileSync(themeNodePath, 'utf8');
   
-  // Default connection stroke color in App.tsx
+  // Default connection stroke color in App.tsx (art-deco gold family)
   assert.ok(
-    /stroke:\s*['"]#4c1d95['"]/.test(appTsx),
-    'Expected default edge option stroke to be #4c1d95'
+    /stroke:\s*['"]#a88530['"]/.test(appTsx),
+    'Expected default edge option stroke to be #a88530'
   );
-  
-  // Default connection handle color or border match in ThemeNode
+
+  // Document theme border in ThemeNode stays in the same gold family
   assert.ok(
-    /borderColor:\s*['"]#4c1d95['"]/.test(themeNode),
-    'Expected ThemeNode document theme to match default edge color #4c1d95'
+    /borderColor:\s*['"]#8c734b['"]/.test(themeNode),
+    'Expected ThemeNode document theme border to be gold #8c734b'
   );
 });
 

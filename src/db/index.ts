@@ -8,7 +8,9 @@ let dbInstance: any = null;
 export async function initDb() {
   if (dbInstance) return dbInstance;
 
-  // Load the SQLite database via Tauri Rust backend
+  // Load the SQLite database via Tauri Rust backend.
+  // The filename is a legacy of the app's original working title -- renaming it
+  // would orphan existing users' data, so it stays "world_engine.db".
   const tauriDb = await Database.load('sqlite:world_engine.db');
 
   // Create the Drizzle proxy that intercepts SQL and sends it via Tauri IPC
@@ -30,7 +32,9 @@ export async function initDb() {
       return { rows };
     } catch (e: any) {
       console.error('SQL Execution Error:', e, 'SQL:', sql, 'Params:', params);
-      return { rows: [] };
+      // Rethrow so callers can tell a failed write from a successful one --
+      // swallowing here made the UI show data that was never persisted.
+      throw e instanceof Error ? e : new Error(String(e));
     }
   }, { schema });
 

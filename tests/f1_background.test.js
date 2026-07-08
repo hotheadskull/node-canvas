@@ -26,16 +26,16 @@ test('F1-2: ReactFlow canvas uses CSS background class bg-[#0a0a0c]', () => {
 test('F1-3: Background component has correct gap and size configurations', () => {
   const content = fs.readFileSync(appTsxPath, 'utf8');
   assert.ok(
-    /gap=\{24\}/.test(content) && /size=\{2\}/.test(content),
-    'Expected Background to have gap={24} and size={2} attributes'
+    /gap=\{24\}/.test(content) && /size=\{6\}/.test(content),
+    'Expected Background to have gap={24} and size={6} attributes'
   );
 });
 
-test('F1-4: Background variant is set to Dots in App.tsx', () => {
+test('F1-4: Background variant is set to Cross in App.tsx', () => {
   const content = fs.readFileSync(appTsxPath, 'utf8');
   assert.ok(
-    /variant=\{BackgroundVariant\.Dots\}/.test(content),
-    'Expected Background variant to be BackgroundVariant.Dots'
+    /variant=\{BackgroundVariant\.Cross\}/.test(content),
+    'Expected Background variant to be BackgroundVariant.Cross'
   );
 });
 
@@ -75,8 +75,8 @@ test('F1-Boundary-3: ReactFlow canvas specifies minZoom and maxZoom bounds', () 
 test('F1-Boundary-4: ReactFlow controls have high contrast border definition', () => {
   const content = fs.readFileSync(appCssPath, 'utf8');
   assert.ok(
-    /\.react-flow__controls\s*\{[^}]*border:\s*1px\s+solid\s+var\(--border\);?[^}]*\}/s.test(content),
-    'Expected ReactFlow controls to have a border using var(--border)'
+    /\.react-flow__controls\s*\{[^}]*border:\s*1px\s+solid\s+var\(--art-deco-gold-dark\)[^}]*\}/s.test(content),
+    'Expected ReactFlow controls to have a border using var(--art-deco-gold-dark)'
   );
 });
 

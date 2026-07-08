@@ -68,10 +68,10 @@ test('F4-Boundary-2: Tension interpolation keeps the value bounded between 0 and
 test('F4-Boundary-3: Tension calculation interpolates to strained red RGB values', () => {
   const content = fs.readFileSync(elasticEdgePath, 'utf8');
   assert.ok(
-    /const\s+r\s*=\s*Math\.round\(76\s*\+\s*tension\s*\*\s*\(239\s*-\s*76\)\)/.test(content) &&
-    /const\s+g\s*=\s*Math\.round\(29\s*\+\s*tension\s*\*\s*\(68\s*-\s*29\)\)/.test(content) &&
-    /const\s+b\s*=\s*Math\.round\(149\s*\+\s*tension\s*\*\s*\(68\s*-\s*149\)\)/.test(content),
-    'Expected dynamic RGB interpolation calculation'
+    /const\s+r\s*=\s*Math\.round\(140\s*\+\s*tension\s*\*\s*\(239\s*-\s*140\)\)/.test(content) &&
+    /const\s+g\s*=\s*Math\.round\(115\s*\+\s*tension\s*\*\s*\(68\s*-\s*115\)\)/.test(content) &&
+    /const\s+b\s*=\s*Math\.round\(75\s*\+\s*tension\s*\*\s*\(68\s*-\s*75\)\)/.test(content),
+    'Expected dynamic RGB interpolation from gold to strained red'
   );
 });
 

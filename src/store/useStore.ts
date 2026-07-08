@@ -37,6 +37,9 @@ export type AppState = {
   edges: Edge[];
   isLoading: boolean;
   error: string | null;
+  saveError: string | null;
+  clearSaveError: () => void;
+  reportSaveError: (action: string, e: unknown) => void;
   previewMarkdown: string | null;
   setPreviewMarkdown: (md: string | null) => void;
   onNodesChange: OnNodesChange<AppNode>;
@@ -62,6 +65,10 @@ export type AppState = {
 
 const updateTimeouts: Record<string, ReturnType<typeof setTimeout>> = {};
 
+// Node titles are used to build auto-link regexes; escape them so titles
+// containing regex metacharacters (e.g. "Dr. Who (Clone)") don't throw.
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 export const useStore = create<AppState>((set, get) => ({
   projects: [],
   activeProjectId: null,
@@ -70,75 +77,118 @@ export const useStore = create<AppState>((set, get) => ({
   trashedNodes: [],
   isLoading: true,
   error: null,
+  saveError: null,
+  clearSaveError: () => set({ saveError: null }),
+  reportSaveError: (action: string, e: unknown) => {
+    console.error(`Failed to ${action}:`, e);
+    const msg = e instanceof Error ? e.message : String(e);
+    set({ saveError: `Failed to ${action}: ${msg}` });
+  },
   previewMarkdown: null,
   setPreviewMarkdown: (md: string | null) => set({ previewMarkdown: md }),
-  
+
   onNodesChange: (changes: NodeChange<AppNode>[]) => {
+    const prevNodes = get().nodes;
+    // Capture removed nodes before applying changes so they land in the trash,
+    // whether removal came from our UI or React Flow's keyboard delete.
+    const removedNodes = changes
+      .filter(c => c.type === 'remove')
+      .map(c => prevNodes.find(n => n.id === (c as { id: string }).id))
+      .filter((n): n is AppNode => !!n);
+
     set({
-      nodes: applyNodeChanges(changes, get().nodes),
+      nodes: applyNodeChanges(changes, prevNodes),
+      ...(removedNodes.length > 0
+        ? { trashedNodes: [...get().trashedNodes, ...removedNodes] }
+        : {}),
     });
-    
-    // In a production app, we would debounce this async sync to SQLite
-    // For now, if a node's position changes (dragged), we update DB
+
     changes.forEach(async (change) => {
       if (change.type === 'position' && change.position) {
+        // Debounce position writes to avoid IPC flooding while dragging
         if (updateTimeouts[change.id]) clearTimeout(updateTimeouts[change.id]);
         updateTimeouts[change.id] = setTimeout(async () => {
-          const { db } = await initDb();
-          await db.update(nodesTable)
-            .set({ x_position: change.position!.x, y_position: change.position!.y })
-            .where(eq(nodesTable.id, change.id));
+          try {
+            const { db } = await initDb();
+            await db.update(nodesTable)
+              .set({ x_position: change.position!.x, y_position: change.position!.y })
+              .where(eq(nodesTable.id, change.id));
+          } catch (e) {
+            get().reportSaveError('save node position', e);
+          }
         }, 500);
+      } else if (change.type === 'remove') {
+        try {
+          const { db } = await initDb();
+          await db.update(nodesTable).set({ deleted_at: Date.now() }).where(eq(nodesTable.id, change.id));
+        } catch (e) {
+          get().reportSaveError('move node to trash', e);
+        }
       }
     });
   },
-  
+
   onEdgesChange: (changes: EdgeChange[]) => {
     set({
       edges: applyEdgeChanges(changes, get().edges),
     });
-    
+
     // Handle edge removals
     changes.forEach(async (change) => {
       if (change.type === 'remove') {
-        const { db } = await initDb();
-        await db.delete(edgesTable).where(eq(edgesTable.id, change.id));
+        try {
+          const { db } = await initDb();
+          await db.delete(edgesTable).where(eq(edgesTable.id, change.id));
+        } catch (e) {
+          get().reportSaveError('delete connection', e);
+        }
       }
     });
   },
-  
+
   onConnect: async (connection: Connection) => {
-    const edge = { ...connection, id: `${connection.source}-${connection.target}` };
+    // Self-loops break the elastic edge geometry (zero-length vector), and
+    // duplicate connections would just stack invisibly.
+    if (connection.source === connection.target) return;
+    const alreadyConnected = get().edges.some(
+      e => e.source === connection.source && e.target === connection.target
+    );
+    if (alreadyConnected) return;
+
+    const edge = { ...connection, id: crypto.randomUUID() };
     set({
       edges: addEdge(edge as any, get().edges),
     });
-    
-    const { db } = await initDb();
-    await db.insert(edgesTable).values({
-      id: edge.id,
-      project_id: get().activeProjectId,
-      source_id: connection.source,
-      target_id: connection.target,
-      label: ''
-    });
+
+    try {
+      const { db } = await initDb();
+      await db.insert(edgesTable).values({
+        id: edge.id,
+        project_id: get().activeProjectId,
+        source_id: connection.source,
+        target_id: connection.target,
+        label: ''
+      });
+    } catch (e) {
+      get().reportSaveError('save connection', e);
+    }
   },
 
   onReconnect: async (oldEdge: Edge, newConnection: Connection) => {
     set({
       edges: reconnectEdge(oldEdge, newConnection, get().edges),
     });
-    
-    // In a real app we'd update DB, but for now we just delete the old and insert new
-    const { db } = await initDb();
-    await db.delete(edgesTable).where(eq(edgesTable.id, oldEdge.id));
-    const newId = `${newConnection.source}-${newConnection.target}`;
-    await db.insert(edgesTable).values({
-      id: newId,
-      project_id: get().activeProjectId,
-      source_id: newConnection.source,
-      target_id: newConnection.target,
-      label: ''
-    });
+
+    // reconnectEdge keeps the edge's id in memory, so update the same DB row
+    // instead of delete+insert (which left the two ids out of sync).
+    try {
+      const { db } = await initDb();
+      await db.update(edgesTable)
+        .set({ source_id: newConnection.source, target_id: newConnection.target })
+        .where(eq(edgesTable.id, oldEdge.id));
+    } catch (e) {
+      get().reportSaveError('save reconnected edge', e);
+    }
   },
 
   addNode: async (node: AppNode) => {
@@ -159,7 +209,7 @@ export const useStore = create<AppState>((set, get) => ({
         node_type: node.type || 'default'
       });
     } catch (e) {
-      console.error("DB Error in addNode:", e);
+      get().reportSaveError('save new node', e);
     }
   },
 
@@ -182,7 +232,7 @@ export const useStore = create<AppState>((set, get) => ({
         if (otherTitle && otherTitle.length > 2) { // Only auto-link words longer than 2 chars
           // Strip HTML tags for a clean regex search
           const plainText = newText.replace(/<[^>]+>/g, '');
-          const regex = new RegExp(`\\b${otherTitle}\\b`, 'i');
+          const regex = new RegExp(`\\b${escapeRegExp(otherTitle)}\\b`, 'i');
           if (regex.test(plainText)) {
             // Found a match! Check if edge already exists
             const exists = currentEdges.some(e => e.source === id && e.target === otherNode.id);
@@ -214,9 +264,10 @@ export const useStore = create<AppState>((set, get) => ({
                 project_id: get().activeProjectId,
                 source_id: edge.source,
                 target_id: edge.target,
-                updated_at: Date.now()
               });
-            } catch(e) {}
+            } catch (e) {
+              get().reportSaveError('save auto-link', e);
+            }
           }
         });
       }
@@ -228,16 +279,20 @@ export const useStore = create<AppState>((set, get) => ({
     updateTimeouts[id] = setTimeout(async () => {
       const latestNode = get().nodes.find(n => n.id === id);
       if (!latestNode) return;
-      
-      const { db } = await initDb();
-      await db.update(nodesTable).set({
-        title: latestNode.data.label,
-        content: latestNode.data.content || '',
-        manuscript: latestNode.data.manuscript || '',
-        notes: latestNode.data.notes || '',
-        metadata: latestNode.data.metadata || null,
-        updated_at: latestNode.data.updated_at || Date.now()
-      }).where(eq(nodesTable.id, id));
+
+      try {
+        const { db } = await initDb();
+        await db.update(nodesTable).set({
+          title: latestNode.data.label,
+          content: latestNode.data.content || '',
+          manuscript: latestNode.data.manuscript || '',
+          notes: latestNode.data.notes || '',
+          metadata: latestNode.data.metadata || null,
+          updated_at: latestNode.data.updated_at || Date.now()
+        }).where(eq(nodesTable.id, id));
+      } catch (e) {
+        get().reportSaveError('save node content', e);
+      }
     }, 500);
   },
 
@@ -245,48 +300,69 @@ export const useStore = create<AppState>((set, get) => ({
     set({
       nodes: get().nodes.map(n => n.id === id ? { ...n, type } : n)
     });
-    const { db } = await initDb();
-    await db.update(nodesTable).set({ node_type: type }).where(eq(nodesTable.id, id));
+    try {
+      const { db } = await initDb();
+      await db.update(nodesTable).set({ node_type: type }).where(eq(nodesTable.id, id));
+    } catch (e) {
+      get().reportSaveError('save node type', e);
+    }
   },
 
   updateNodeParent: async (id: string, parentId: string | null) => {
-    const { db } = await initDb();
-    await db.update(nodesTable).set({ parent_id: parentId }).where(eq(nodesTable.id, id));
+    try {
+      const { db } = await initDb();
+      await db.update(nodesTable).set({ parent_id: parentId }).where(eq(nodesTable.id, id));
+    } catch (e) {
+      get().reportSaveError('save node grouping', e);
+    }
   },
 
   deleteNode: async (id: string) => {
+    // onNodesChange handles both the in-memory removal (into trashedNodes)
+    // and the soft delete in the DB.
     get().onNodesChange([{ type: 'remove', id }]);
-    const { db } = await initDb();
-    await db.update(nodesTable).set({ deleted_at: Date.now() }).where(eq(nodesTable.id, id));
   },
 
   restoreNode: async (id: string) => {
-    const { db } = await initDb();
-    await db.update(nodesTable).set({ deleted_at: null }).where(eq(nodesTable.id, id));
-    // Reload active project to fetch the restored node
-    await get().setActiveProject(get().activeProjectId!);
+    try {
+      const { db } = await initDb();
+      await db.update(nodesTable).set({ deleted_at: null }).where(eq(nodesTable.id, id));
+      // Reload active project to fetch the restored node
+      await get().setActiveProject(get().activeProjectId!);
+    } catch (e) {
+      get().reportSaveError('restore node', e);
+    }
   },
 
   deleteProject: async (id: string) => {
     set({ projects: get().projects.map(p => p.id === id ? { ...p, deleted_at: Date.now() } : p) });
-    const { db } = await initDb();
-    await db.update(projectsTable).set({ deleted_at: Date.now() }).where(eq(projectsTable.id, id));
+    try {
+      const { db } = await initDb();
+      await db.update(projectsTable).set({ deleted_at: Date.now() }).where(eq(projectsTable.id, id));
+    } catch (e) {
+      get().reportSaveError('move project to trash', e);
+    }
   },
 
   restoreProject: async (id: string) => {
     set({ projects: get().projects.map(p => p.id === id ? { ...p, deleted_at: undefined } : p) });
-    const { db } = await initDb();
-    await db.update(projectsTable).set({ deleted_at: null }).where(eq(projectsTable.id, id));
+    try {
+      const { db } = await initDb();
+      await db.update(projectsTable).set({ deleted_at: null }).where(eq(projectsTable.id, id));
+    } catch (e) {
+      get().reportSaveError('restore project', e);
+    }
   },
 
   createSnapshot: async () => {
     const currentId = get().activeProjectId;
     if (!currentId) return;
-    
+
     const newId = crypto.randomUUID();
     const currentProject = get().projects.find(p => p.id === currentId);
     const title = currentProject ? `${currentProject.title} - Snapshot` : 'Snapshot';
-    
+
+    try {
     const { db } = await initDb();
     
     // Insert new project
@@ -330,6 +406,9 @@ export const useStore = create<AppState>((set, get) => ({
     
     set({ projects: [...get().projects, { id: newId, title, updated_at: Date.now(), snapshot_of: currentId }] });
     await get().setActiveProject(newId);
+    } catch (e) {
+      get().reportSaveError('create snapshot', e);
+    }
   },
 
   duplicateNode: async (id: string) => {
@@ -355,8 +434,11 @@ export const useStore = create<AppState>((set, get) => ({
       // Wait, let's just do standard queries.
       const dbProjects = await db.select().from(projectsTable);
       
+      // Never auto-select a trashed project
+      const livingProjects = dbProjects.filter((p: any) => !p.deleted_at);
+
       let initialProjectId = localStorage.getItem('activeProjectId');
-      if (dbProjects.length === 0) {
+      if (livingProjects.length === 0) {
         // Create Default Project
         initialProjectId = crypto.randomUUID();
         await db.insert(projectsTable).values({
@@ -366,8 +448,8 @@ export const useStore = create<AppState>((set, get) => ({
         });
         dbProjects.push({ id: initialProjectId, title: 'Main Workspace', updated_at: Date.now() });
         localStorage.setItem('activeProjectId', initialProjectId);
-      } else if (!initialProjectId || !dbProjects.find((p: any) => p.id === initialProjectId)) {
-        initialProjectId = dbProjects[0].id;
+      } else if (!initialProjectId || !livingProjects.find((p: any) => p.id === initialProjectId)) {
+        initialProjectId = livingProjects[0].id;
         localStorage.setItem('activeProjectId', initialProjectId as string);
       }
 

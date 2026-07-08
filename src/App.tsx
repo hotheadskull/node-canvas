@@ -200,6 +200,7 @@ const nodeTypes = {
 
 const edgeTypes = {
   default: ElasticEdge,
+  elastic: ElasticEdge, // auto-link edges are created with type 'elastic'
 };
 
 function FlowCanvas() {
@@ -263,8 +264,15 @@ function FlowCanvas() {
     const collapsedHubIds = new Set(
       nodes.filter(n => n.type === 'hub' && (n.data as any)?.metadata?.isCollapsed).map(n => n.id)
     );
+    // Edges whose endpoint is trashed stay in the store (so restoring the node
+    // brings its connections back) but must not be handed to React Flow.
+    const nodeIds = new Set(nodes.map(n => n.id));
     return edges.map(edge => {
-      const isHidden = collapsedHubIds.has(edge.source) || collapsedHubIds.has(edge.target);
+      const isHidden =
+        collapsedHubIds.has(edge.source) ||
+        collapsedHubIds.has(edge.target) ||
+        !nodeIds.has(edge.source) ||
+        !nodeIds.has(edge.target);
       return {
         ...edge,
         hidden: isHidden
@@ -299,18 +307,18 @@ function FlowCanvas() {
       // DROPPING INTO DECK
       if (targetNode.type === 'deck') {
         const cardData = { label: node.data.label, content: node.data.content };
-        
-        const deckCards: any[] = Array.isArray(targetNode.data.cards) ? targetNode.data.cards : [];
-        useStore.getState().updateNodeData(targetNode.id, { 
-          cards: [...deckCards, cardData],
-          activeIndex: deckCards.length
+
+        // Cards live in metadata so they survive restarts -- metadata is the
+        // only free-form field updateNodeData persists to the DB.
+        const meta = (targetNode.data.metadata as any) || {};
+        const deckCards: any[] = Array.isArray(meta.cards) ? meta.cards : [];
+        useStore.getState().updateNodeData(targetNode.id, {
+          metadata: { ...meta, cards: [...deckCards, cardData], activeIndex: deckCards.length }
         });
 
-        // Delete the original node
-        useStore.setState(state => ({
-          nodes: state.nodes.filter(n => n.id !== node.id),
-          edges: state.edges.filter(e => e.source !== node.id && e.target !== node.id)
-        }));
+        // Soft-delete the absorbed node so it lands in the trash instead of
+        // silently reappearing on next launch.
+        useStore.getState().deleteNode(node.id);
         return;
       }
     }
@@ -564,7 +572,28 @@ function FlowCanvas() {
 
         {/* Old Compile Mode UI has been replaced by the Master Print Node */}
       </div>
-      
+
+      <SaveErrorBanner />
+    </div>
+  );
+}
+
+// Non-fatal banner for failed DB writes: the canvas keeps working, but the
+// user needs to know their last change may not have been saved.
+function SaveErrorBanner() {
+  const saveError = useStore(state => state.saveError);
+  const clearSaveError = useStore(state => state.clearSaveError);
+  if (!saveError) return null;
+  return (
+    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-3 bg-[#3f1119] border border-red-700 text-red-200 text-sm rounded-lg px-4 py-2 shadow-2xl max-w-xl">
+      <span className="whitespace-pre-wrap">⚠ {saveError}</span>
+      <button
+        onClick={clearSaveError}
+        className="text-red-400 hover:text-white shrink-0 font-bold"
+        title="Dismiss"
+      >
+        ✕
+      </button>
     </div>
   );
 }

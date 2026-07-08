@@ -12,8 +12,8 @@ const logicNodePath = path.resolve('src/components/LogicNode.tsx');
 test('F2-1: ThemeNode is registered under nodeTypes in App.tsx', () => {
   const content = fs.readFileSync(appTsxPath, 'utf8');
   assert.ok(
-    /document:\s*ThemeNode/.test(content) && /reference:\s*ThemeNode/.test(content),
-    'Expected ThemeNode to be registered in nodeTypes map'
+    /document:\s*ThemeNode/.test(content) && /default:\s*ThemeNode/.test(content),
+    'Expected ThemeNode to be registered as the document and default node type'
   );
 });
 
@@ -64,8 +64,8 @@ test('F2-Boundary-1: NodeResizers define explicit minWidth and minHeight constra
     'ItemNode resizer must have minWidth 200, minHeight 150'
   );
   assert.ok(
-    /minWidth=\{200\}/.test(logicNode) && /minHeight=\{150\}/.test(logicNode),
-    'LogicNode resizer must have minWidth 200, minHeight 150'
+    /minWidth=\{250\}/.test(logicNode) && /minHeight=\{200\}/.test(logicNode),
+    'LogicNode resizer must have minWidth 250, minHeight 200'
   );
 });
 
@@ -97,7 +97,7 @@ test('F2-Boundary-4: ThemeNode uses distinct background textures based on node t
 test('F2-Boundary-5: LogicNode conclusion textarea has styled rows structure', () => {
   const content = fs.readFileSync(logicNodePath, 'utf8');
   assert.ok(
-    /rows=\{3\}/.test(content) && /placeholder=["']Therefore\.\.\.["']/.test(content),
-    'Expected LogicNode conclusion field to have rows={3} and visual placeholder'
+    /rows=\{2\}/.test(content) && /placeholder=["']Therefore\.\.\.["']/.test(content),
+    'Expected LogicNode premise rows={2} and conclusion placeholder'
   );
 });

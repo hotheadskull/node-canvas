@@ -19,10 +19,16 @@ function getIntersection(nodeA: InternalNode, nodeB: InternalNode) {
   
   const absDx = Math.abs(dx);
   const absDy = Math.abs(dy);
-  
+
   let intersectionX = x;
   let intersectionY = y;
   let position: Position;
+
+  // Guard against a zero-length vector (self-loop or perfectly overlapping
+  // nodes) which would otherwise divide by zero and produce NaN coordinates.
+  if (absDx === 0 && absDy === 0) {
+    return { x, y, position: Position.Top };
+  }
 
   if (absDx * h > absDy * w) {
     // Intersects left or right

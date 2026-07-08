@@ -42,16 +42,16 @@ test('Scenario-3: Dropping a node onto a DeckNode nests it as a card and deletes
     'Expected intersection check for deck type'
   );
   
-  // Check for cards copying
+  // Check for cards copying (persisted inside metadata so it survives restarts)
   assert.ok(
-    /cards:\s*\[\.\.\.deckCards,\s*cardData\]/.test(appTsx),
-    'Expected deck node data to be updated with card data'
+    /metadata:\s*\{\s*\.\.\.meta,\s*cards:\s*\[\.\.\.deckCards,\s*cardData\]/.test(appTsx),
+    'Expected deck node metadata to be updated with card data'
   );
-  
-  // Check for deletion of original node from state
+
+  // Check that the original node is soft-deleted (goes to trash + DB)
   assert.ok(
-    /nodes:\s*state\.nodes\.filter\(n\s*=>\s*n\.id\s*!==\s*node\.id\)/.test(appTsx),
-    'Expected original node to be deleted after dropping into deck'
+    /deleteNode\(node\.id\)/.test(appTsx),
+    'Expected original node to be soft-deleted after dropping into deck'
   );
 });
 
@@ -71,24 +71,19 @@ test('Scenario-4: Dropping a node onto a GroupNode sets it as a child with exten
   );
 });
 
-test('Scenario-5: Reconnecting an edge deletes the old edge from the database and inserts the new connection', () => {
+test('Scenario-5: Reconnecting an edge updates the same edge row in the database', () => {
   const useStore = fs.readFileSync(useStorePath, 'utf8');
-  
+
   // Check that onReconnect is defined
   assert.ok(
     /onReconnect:\s*async\s*\(oldEdge:\s*Edge,\s*newConnection:\s*Connection\)/.test(useStore),
     'Expected onReconnect function signature'
   );
-  
-  // Check that old edge is deleted from DB
+
+  // reconnectEdge keeps the edge id in memory, so the DB row must be updated
+  // in place (delete+insert with a new id desynced memory and DB ids)
   assert.ok(
-    /db\.delete\(edgesTable\)\.where\(eq\(edgesTable\.id,\s*oldEdge\.id\)\)/.test(useStore),
-    'Expected old edge deletion query in database'
-  );
-  
-  // Check that new edge is inserted in DB
-  assert.ok(
-    /db\.insert\(edgesTable\)\.values\(\{/.test(useStore),
-    'Expected new edge insertion query in database'
+    /db\.update\(edgesTable\)[\s\S]*?source_id:\s*newConnection\.source[\s\S]*?\.where\(eq\(edgesTable\.id,\s*oldEdge\.id\)\)/.test(useStore),
+    'Expected reconnect to update the existing edge row by its original id'
   );
 });
