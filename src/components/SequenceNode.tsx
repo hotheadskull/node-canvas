@@ -113,7 +113,7 @@ export const SequenceNode = memo(({ id, data, selected }: any) => {
           </div>
 
           {/* Horizontal Axis & Beats */}
-          <div className="flex-1 relative flex items-center px-6 py-8 overflow-x-auto bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9IiMzMzMiLz48L3N2Zz4=')]">
+          <div className="flex-1 relative flex items-center px-6 py-8 overflow-hidden bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9IiMzMzMiLz48L3N2Zz4=')]">
             {/* The Central Line */}
             <div className="absolute left-0 right-0 h-1 bg-[#2a2a35] top-1/2 -translate-y-1/2 z-0" style={{ width: Math.max(800, beats.length * 160 + 100) + 'px' }} />
 

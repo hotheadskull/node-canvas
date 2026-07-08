@@ -468,41 +468,41 @@ function FlowCanvas() {
                 x: window.innerWidth / 2 + (Math.random() * 50 - 25), 
                 y: window.innerHeight / 2 + (Math.random() * 50 - 25) 
               });
-              let width: number | undefined = 250;
-              let height: number | undefined = 150;
+              let width: number | undefined = 400; // Default (e.g. document/chapter)
+              let height: number | undefined = 300;
               let zIndex = 1;
               
               if (type === 'hub') {
                 width = 120;
                 height = 120;
               } else if (type === 'sequence') {
-                width = 600;
+                width = 500;
                 height = 200;
               } else if (type === 'group') {
                 width = 400;
                 height = 400;
                 zIndex = -1;
               } else if (type === 'lore') {
-                width = 320;
+                width = 300;
                 height = 200;
-              } else if (type === 'snippet') {
-                width = 200;
-                height = 100;
+              } else if (type === 'snippet' || type === 'reference') { // Idea node
+                width = 300;
+                height = 150;
               } else if (type === 'master') {
-                width = 500;
-                height = 350;
+                width = 400;
+                height = 300;
               } else if (type === 'logic') {
-                width = 320;
+                width = 300;
                 height = 200;
               } else if (type === 'item') {
-                width = 320;
-                height = 300;
+                width = 300;
+                height = 250;
               } else if (type === 'deck') {
-                width = 288;
-                height = 200;
+                width = 250;
+                height = 300;
               } else if (type === 'print') {
-                width = 200;
-                height = 500;
+                width = 300;
+                height = 250;
               }
 
               addNode({

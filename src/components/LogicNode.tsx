@@ -27,8 +27,8 @@ export const LogicNode = memo(({ id, data, selected }: any) => {
 
   return (
     <>
-      <NodeResizer minWidth={200} minHeight={150} isVisible={selected} handleClassName="w-3 h-3 bg-[#151518] border-2 border-white rounded transition-transform hover:scale-125" />
-      <div style={{ width: '100%', height: '100%' }} className={`relative bg-[#0f1115] rounded-lg border-2 transition-colors shadow-lg duration-300 shadow-2xl flex flex-col
+      <NodeResizer minWidth={250} minHeight={200} isVisible={selected} handleClassName="w-3 h-3 bg-[#151518] border-2 border-white rounded transition-transform hover:scale-125" />
+      <div className={`relative bg-[#0f1115] rounded-lg border-2 transition-colors shadow-lg duration-300 w-full h-full shadow-2xl flex flex-col
       ${selected ? 'border-[#3b82f6] shadow-[0_0_20px_rgba(59,130,246,0.3)]' : 'border-[#1e3a8a]'}
     `}>
       <Handle type="target" position={Position.Top} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#3b82f6] -top-2" />
@@ -46,7 +46,7 @@ export const LogicNode = memo(({ id, data, selected }: any) => {
       </div>
 
       {/* Body */}
-      <div className="p-4 bg-[#0a0c0f] rounded-b-lg flex flex-col gap-3">
+      <div className="p-4 bg-[#0a0c0f] rounded-b-lg flex-1 flex flex-col gap-3 overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         
         {/* Premises */}
         <div className="flex flex-col gap-2">
@@ -92,8 +92,7 @@ export const LogicNode = memo(({ id, data, selected }: any) => {
             Conclusion
           </div>
           <textarea
-            className="w-full bg-[#151518] border border-[#3b82f6]/50 rounded p-3 text-sm font-bold text-white resize-none focus:outline-none focus:border-[#3b82f6] transition-colors shadow-[inset_0_0_10px_rgba(59,130,246,0.1)]"
-            rows={3}
+            className="w-full bg-[#151518] border border-[#3b82f6]/50 rounded p-3 text-sm font-bold text-white resize-none focus:outline-none focus:border-[#3b82f6] transition-colors shadow-[inset_0_0_10px_rgba(59,130,246,0.1)] flex-1 min-h-[80px]"
             value={conclusion}
             onChange={(e) => updateNodeData(id, { conclusion: e.target.value })}
             placeholder="Therefore..."
