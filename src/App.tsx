@@ -154,6 +154,14 @@ const DynamicCanvasBackground = () => {
       />
 
       <ShootingStars x={x} y={y} zoom={zoom} />
+
+      {/* Fade out the grid smoothly as the user zooms out */}
+      <Background 
+        color={`rgba(240, 192, 80, ${Math.max(0, Math.min(0.3, (zoom - 0.2) * 0.5)).toFixed(2)})`} 
+        variant={BackgroundVariant.Cross} 
+        gap={24} 
+        size={6} 
+      />
     </>
   );
 };
@@ -383,7 +391,6 @@ function FlowCanvas() {
           }}
         >
           <DynamicCanvasBackground />
-          <Background color="rgba(240, 192, 80, 0.3)" variant={BackgroundVariant.Cross} gap={24} size={6} />
           <Controls>
             <ControlButton 
               onClick={() => {
