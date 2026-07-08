@@ -36,6 +36,8 @@ body {
   border-radius: 0px !important;
   border: 1px solid var(--art-deco-gold-dark) !important;
   background-color: #151518 !important;
+  background-image: url('/dark_stone.jpg') !important;
+  background-blend-mode: multiply !important;
 }
 .react-flow__controls-button {
   background-color: transparent !important;
@@ -125,9 +127,15 @@ body {
   --font-serif: Georgia, Cambria, "Times New Roman", Times, serif;
 }
 
-/* 1. Clean Dark Background — no galaxy, just dark with visible dots */
+/* 1. Clean Dark Background — Matte Stone Deco */
 .cosmic-canvas {
-  background: #0a0a0c !important;
+  background-color: #0a0a0c !important;
+  background-image: 
+    url('/dark_stone.jpg'),
+    linear-gradient(rgba(240, 192, 80, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(240, 192, 80, 0.03) 1px, transparent 1px) !important;
+  background-size: cover, 100px 100px, 100px 100px !important;
+  background-blend-mode: multiply, normal, normal !important;
 }
 
 /* Remove the teamwork agents' starfield overlays */
@@ -143,6 +151,8 @@ body {
   border-radius: 0px !important;
   border: 1px solid var(--art-deco-gold-dark) !important;
   background-color: #1a1a1e !important;
+  background-image: url('/dark_stone.jpg') !important;
+  background-blend-mode: multiply !important;
   text-transform: uppercase !important;
   letter-spacing: 0.1em !important;
   font-size: 12px !important;
@@ -161,6 +171,8 @@ body {
   border-radius: 0px !important;
   border: 1px solid var(--art-deco-gold-dark) !important;
   background-color: #151518 !important;
+  background-image: url('/dark_stone.jpg') !important;
+  background-blend-mode: multiply !important;
   box-shadow: 
     0 0 0 1px var(--art-deco-gold-dark),
     inset 0 0 20px rgba(0,0,0,0.9),
@@ -203,6 +215,8 @@ body {
 /* 4. CreateNodeMenu panel (+ Add Node button and dropdown list) */
 .art-deco-node-panel-wrapper > div > button {
   background-color: #151518 !important;
+  background-image: url('/dark_stone.jpg') !important;
+  background-blend-mode: multiply !important;
   color: var(--art-deco-gold) !important;
   border: 1px solid var(--art-deco-gold-dark) !important;
   border-radius: 0px !important;
@@ -221,6 +235,8 @@ body {
 
 .art-deco-node-panel-wrapper div.absolute {
   background-color: #131316 !important;
+  background-image: url('/dark_stone.jpg') !important;
+  background-blend-mode: multiply !important;
   border: 1px solid var(--art-deco-gold-dark) !important;
   border-radius: 0px !important;
   box-shadow: 
@@ -271,6 +287,8 @@ body {
 /* 5. CanvasSearch bar (search input and result list) */
 .art-deco-search-wrapper input {
   background-color: #151518 !important;
+  background-image: url('/dark_stone.jpg') !important;
+  background-blend-mode: multiply !important;
   color: var(--foreground) !important;
   border: 1px solid var(--art-deco-gold-dark) !important;
   border-radius: 0px !important;
@@ -291,6 +309,8 @@ body {
 
 .art-deco-search-wrapper .absolute.top-full {
   background-color: #131316 !important;
+  background-image: url('/dark_stone.jpg') !important;
+  background-blend-mode: multiply !important;
   border: 1px solid var(--art-deco-gold-dark) !important;
   border-radius: 0px !important;
   box-shadow: 
@@ -320,15 +340,8 @@ body {
    6. ART DECO NODE STYLING
    ======================================= */
 
-/* All nodes: chamfered corners via clip-path, stone bg, gold trim */
+/* All nodes: outer container must NOT have clip-path so resizers don't get cut off */
 .react-flow__node {
-  /* Chamfered octagonal shape — subtle Art Deco geometry */
-  clip-path: polygon(
-    12px 0%, calc(100% - 12px) 0%,
-    100% 12px, 100% calc(100% - 12px),
-    calc(100% - 12px) 100%, 12px 100%,
-    0% calc(100% - 12px), 0% 12px
-  );
   transition: filter 0.3s ease, transform 0.2s ease !important;
 }
 
@@ -338,40 +351,42 @@ body {
 }
 
 .react-flow__node.selected {
-  filter: brightness(1.12) drop-shadow(0 0 12px var(--art-deco-gold-glow));
+  filter: brightness(1.15) drop-shadow(0 0 15px var(--art-deco-gold-glow));
 }
 
-/* Inner container styling — apply to all node root divs */
-.react-flow__node > div > div,
-.react-flow__node > div > div > div:first-child {
+/* Inner container styling — apply Matte Stone Deco to the visual box */
+/* Exclude NodeResizer controls and Handles from this clipping */
+.react-flow__node > div:not(.react-flow__resize-control):not(.react-flow__handle) {
+  /* Matte stone background with intricate gold line pattern (SVG data URI) */
+  background-color: var(--art-deco-stone) !important;
+  background-image: 
+    url('/dark_stone.jpg'),
+    linear-gradient(45deg, transparent 48%, var(--art-deco-gold-dark) 49%, var(--art-deco-gold-dark) 51%, transparent 52%),
+    linear-gradient(-45deg, transparent 48%, var(--art-deco-gold-dark) 49%, var(--art-deco-gold-dark) 51%, transparent 52%) !important;
+  background-size: cover, 40px 40px, 40px 40px !important;
+  background-blend-mode: multiply, color-dodge, color-dodge !important;
+  border-radius: 0px !important;
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8), 0 10px 20px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Ensure inner contents like headers don't have rounded corners */
+.react-flow__node > div:not(.react-flow__resize-control) > div,
+.react-flow__node > div:not(.react-flow__resize-control) .rounded-t-lg,
+.react-flow__node > div:not(.react-flow__resize-control) .rounded-b-lg,
+.react-flow__node > div:not(.react-flow__resize-control) .rounded-xl,
+.react-flow__node > div:not(.react-flow__resize-control) .rounded-lg {
   border-radius: 0px !important;
 }
 
-/* Override rounded-lg on all nodes */
-.react-flow__node .rounded-lg {
-  border-radius: 2px !important;
-}
-
-/* Art Deco double-border effect on node containers */
-.react-flow__node > div {
-  position: relative;
-}
-
 /* Gold corner accents on selected nodes */
-.react-flow__node.selected::before {
+.react-flow__node.selected > div:not(.react-flow__resize-control)::before {
   content: "";
   position: absolute;
-  inset: -2px;
-  clip-path: polygon(
-    12px 0%, calc(100% - 12px) 0%,
-    100% 12px, 100% calc(100% - 12px),
-    calc(100% - 12px) 100%, 12px 100%,
-    0% calc(100% - 12px), 0% 12px
-  );
+  inset: -1px;
+  background: transparent;
   border: 2px solid var(--art-deco-gold);
   pointer-events: none;
   z-index: 50;
-  opacity: 0.6;
 }
 
 /* =======================================

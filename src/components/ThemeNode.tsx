@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Handle, Position, NodeProps, NodeResizer, NodeToolbar } from '@xyflow/react';
+import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
 import { useStore, AppNode } from '../store/useStore';
 import { RichTextEditor } from './RichTextEditor';
 
@@ -61,13 +61,6 @@ export function ThemeNode({ id, data, selected, type }: NodeProps<AppNode>) {
   return (
     <div style={{ perspective: '1000px', width: '100%', height: '100%' }} className={data.isFusing ? 'animate-alchemy' : ''}>
       <NodeResizer minWidth={220} minHeight={120} isVisible={selected} handleClassName="w-3 h-3 bg-white border-2 border-black rounded" />
-      
-      <NodeToolbar isVisible={selected} position={Position.Top} offset={20}>
-        <div className="flex gap-2 bg-[#1a1a24] p-1.5 rounded-lg border border-[#3f3f46] shadow-2xl">
-          <button className="px-3 py-1 text-xs text-white hover:bg-[#3f3f46] rounded font-bold" onClick={() => duplicateNode(id)}>Copy</button>
-          <button className="px-3 py-1 text-xs text-white hover:bg-red-900 rounded font-bold" onClick={() => deleteNode(id)}>Delete</button>
-        </div>
-      </NodeToolbar>
 
       {/* Header Badges */}
       {nodeType === 'book' && (
