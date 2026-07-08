@@ -30,14 +30,12 @@ body {
 /* Fix React Flow Controls & Tailwind Preflight Conflicts */
 .react-flow__controls {
   box-shadow: 
-    0 0 0 1px var(--art-deco-gold),
+    0 0 0 1px var(--art-deco-gold-dark),
     inset 0 0 10px rgba(0,0,0,0.8),
     0 6px 15px rgba(0,0,0,0.6) !important;
   border-radius: 0px !important;
   border: 1px solid var(--art-deco-gold-dark) !important;
-  background-color: var(--art-deco-stone) !important;
-  background-image: url('/dark_stone.jpg') !important;
-  background-blend-mode: multiply !important;
+  background-color: #151518 !important;
 }
 .react-flow__controls-button {
   background-color: transparent !important;
@@ -51,7 +49,7 @@ body {
   align-items: center;
 }
 .react-flow__controls-button:hover {
-  background-color: rgba(212, 185, 140, 0.15) !important;
+  background-color: rgba(240, 192, 80, 0.15) !important;
   fill: var(--art-deco-gold-bright) !important;
 }
 
@@ -115,65 +113,27 @@ body {
 }
 
 /* =======================================
-   ART DECO & COSMIC THEME OVERHAUL
+   ART DECO & DEADLOCK THEME
    ======================================= */
 
 :root {
-  --cosmic-nebula-purple: #130a2a;
-  --cosmic-void-black: #020107;
-  
-  --art-deco-stone: #222227;
-  --art-deco-gold: #d4b98c;
-  --art-deco-gold-bright: #e6c89c;
-  --art-deco-gold-dark: #8c734b;
+  --art-deco-stone: #18181c;
+  --art-deco-gold: #f0c050;
+  --art-deco-gold-bright: #ffd666;
+  --art-deco-gold-dark: #a88530;
+  --art-deco-gold-glow: rgba(240, 192, 80, 0.4);
   --font-serif: Georgia, Cambria, "Times New Roman", Times, serif;
 }
 
-/* 1. Cosmic Deep Space Background & Starfield */
+/* 1. Clean Dark Background — no galaxy, just dark with visible dots */
 .cosmic-canvas {
-  background: radial-gradient(ellipse at center, #110926 0%, #060312 65%, #010005 100%) !important;
+  background: #0a0a0c !important;
 }
 
-.react-flow__bg {
-  position: relative;
-}
-
-/* Cosmic Nebula Glow & Background Micro-Stars */
-.react-flow__bg::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: 
-    /* Nebulae glows */
-    radial-gradient(ellipse 400px 300px at 20% 30%, rgba(147, 51, 234, 0.07), transparent),
-    radial-gradient(ellipse 500px 400px at 80% 70%, rgba(236, 72, 153, 0.04), transparent),
-    /* Tiled star grid clusters (400px tile) */
-    radial-gradient(1px 1px at 30px 40px, rgba(255, 255, 255, 0.6) 100%, transparent),
-    radial-gradient(1px 1px at 120px 90px, rgba(255, 255, 255, 0.4) 100%, transparent),
-    radial-gradient(1.5px 1.5px at 230px 150px, rgba(212, 185, 140, 0.5) 100%, transparent),
-    radial-gradient(1px 1px at 310px 60px, rgba(255, 255, 255, 0.6) 100%, transparent),
-    radial-gradient(1px 1px at 70px 220px, rgba(255, 255, 255, 0.5) 100%, transparent),
-    radial-gradient(1.5px 1.5px at 180px 280px, rgba(255, 255, 255, 0.7) 100%, transparent),
-    radial-gradient(1px 1px at 290px 320px, rgba(212, 185, 140, 0.4) 100%, transparent),
-    radial-gradient(1px 1px at 370px 190px, rgba(255, 255, 255, 0.5) 100%, transparent);
-  background-size: 100% 100%, 100% 100%, 400px 400px, 400px 400px, 400px 400px, 400px 400px, 400px 400px, 400px 400px, 400px 400px, 400px 400px;
-  opacity: 0.8;
-  pointer-events: none;
-}
-
-/* Foreground Sparkling Stars (500px tile) */
+/* Remove the teamwork agents' starfield overlays */
+.react-flow__bg::before,
 .react-flow__bg::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: 
-    radial-gradient(2px 2px at 150px 80px, #ffffff 100%, transparent),
-    radial-gradient(2px 2px at 280px 260px, #ffffff 100%, transparent),
-    radial-gradient(2.5px 2.5px at 50px 330px, #e9d5ff 100%, transparent),
-    radial-gradient(2px 2px at 320px 120px, #fbbf24 100%, transparent);
-  background-size: 500px 500px;
-  opacity: 0.6;
-  pointer-events: none;
+  display: none !important;
 }
 
 /* 2. Art Deco Matte Stone Panels - General Layout styles */
@@ -181,35 +141,30 @@ body {
 /* Project Manager Overlay Styling */
 .react-flow__panel.top-center button {
   border-radius: 0px !important;
-  border: 1px solid var(--art-deco-gold) !important;
+  border: 1px solid var(--art-deco-gold-dark) !important;
   background-color: #1a1a1e !important;
-  background-image: url('/dark_stone.jpg') !important;
-  background-blend-mode: multiply !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.15em !important;
+  letter-spacing: 0.1em !important;
+  font-size: 12px !important;
+  padding: 6px 14px !important;
   color: var(--art-deco-gold) !important;
-  box-shadow: 
-    0 0 0 1px var(--art-deco-gold),
-    0 4px 10px rgba(0,0,0,0.5) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
 }
 
 .react-flow__panel.top-center button:hover {
-  background-color: #2a2a30 !important;
+  background-color: #252528 !important;
   color: var(--art-deco-gold-bright) !important;
+  box-shadow: 0 0 12px var(--art-deco-gold-glow) !important;
 }
 
 .react-flow__panel.top-center .texture-stone {
   border-radius: 0px !important;
-  border: 1px solid var(--art-deco-gold) !important;
-  background-color: var(--art-deco-stone) !important;
-  background-image: url('/dark_stone.jpg') !important;
-  background-size: cover !important;
-  background-blend-mode: multiply !important;
+  border: 1px solid var(--art-deco-gold-dark) !important;
+  background-color: #151518 !important;
   box-shadow: 
-    0 0 0 1px var(--art-deco-gold),
-    inset 0 0 0 1px var(--art-deco-gold-dark),
-    inset 0 0 30px rgba(0,0,0,0.95),
-    0 20px 40px rgba(0,0,0,0.85) !important;
+    0 0 0 1px var(--art-deco-gold-dark),
+    inset 0 0 20px rgba(0,0,0,0.9),
+    0 12px 30px rgba(0,0,0,0.7) !important;
 }
 
 .react-flow__panel.top-center .texture-stone .flex.border-b {
@@ -225,7 +180,7 @@ body {
 }
 
 .react-flow__panel.top-center .texture-stone .flex.border-b button:hover {
-  background-color: rgba(212, 185, 140, 0.1) !important;
+  background-color: rgba(240, 192, 80, 0.1) !important;
   color: var(--art-deco-gold) !important;
 }
 
@@ -242,46 +197,35 @@ body {
 }
 
 .react-flow__panel.top-center .texture-stone input::placeholder {
-  color: rgba(212, 185, 140, 0.4) !important;
+  color: rgba(240, 192, 80, 0.3) !important;
 }
 
 /* 4. CreateNodeMenu panel (+ Add Node button and dropdown list) */
 .art-deco-node-panel-wrapper > div > button {
-  background-color: var(--art-deco-stone) !important;
-  background-image: url('/dark_stone.jpg') !important;
-  background-blend-mode: multiply !important;
+  background-color: #151518 !important;
   color: var(--art-deco-gold) !important;
-  border: 1px solid var(--art-deco-gold) !important;
+  border: 1px solid var(--art-deco-gold-dark) !important;
   border-radius: 0px !important;
-  font-family: var(--font-serif) !important;
+  font-size: 12px !important;
+  padding: 6px 12px !important;
   text-transform: uppercase !important;
   letter-spacing: 0.1em !important;
-  box-shadow: 
-    0 0 0 1px var(--art-deco-gold),
-    0 4px 12px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
 }
 
 .art-deco-node-panel-wrapper > div > button:hover {
-  background-color: #2e2e35 !important;
+  background-color: #1e1e22 !important;
   color: var(--art-deco-gold-bright) !important;
-  box-shadow: 
-    0 0 0 1px var(--art-deco-gold-bright),
-    0 0 10px rgba(212, 185, 140, 0.4),
-    0 4px 12px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 0 12px var(--art-deco-gold-glow) !important;
 }
 
 .art-deco-node-panel-wrapper div.absolute {
-  background-color: var(--art-deco-stone) !important;
-  background-image: url('/dark_stone.jpg') !important;
-  background-size: cover !important;
-  background-blend-mode: multiply !important;
-  border: 1px solid var(--art-deco-gold) !important;
+  background-color: #131316 !important;
+  border: 1px solid var(--art-deco-gold-dark) !important;
   border-radius: 0px !important;
   box-shadow: 
-    0 0 0 1px var(--art-deco-gold),
-    inset 0 0 0 1px var(--art-deco-gold-dark),
-    inset 0 0 20px rgba(0, 0, 0, 0.95),
-    0 15px 30px rgba(0, 0, 0, 0.8) !important;
+    inset 0 0 15px rgba(0, 0, 0, 0.8),
+    0 10px 25px rgba(0, 0, 0, 0.7) !important;
 }
 
 .art-deco-node-panel-wrapper div.absolute .flex {
@@ -320,23 +264,18 @@ body {
 }
 
 .art-deco-node-panel-wrapper div.absolute button.text-left:hover {
-  background-color: rgba(212, 185, 140, 0.08) !important;
+  background-color: rgba(240, 192, 80, 0.06) !important;
   border-left-color: var(--art-deco-gold) !important;
 }
 
 /* 5. CanvasSearch bar (search input and result list) */
 .art-deco-search-wrapper input {
-  background-color: var(--art-deco-stone) !important;
-  background-image: url('/dark_stone.jpg') !important;
-  background-blend-mode: multiply !important;
+  background-color: #151518 !important;
   color: var(--foreground) !important;
-  border: 1px solid var(--art-deco-gold) !important;
+  border: 1px solid var(--art-deco-gold-dark) !important;
   border-radius: 0px !important;
-  box-shadow: 
-    0 0 0 1px var(--art-deco-gold),
-    inset 0 0 10px rgba(0,0,0,0.8),
-    0 4px 12px rgba(0,0,0,0.5) !important;
-  font-family: var(--font-serif) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
+  font-size: 12px !important;
   letter-spacing: 0.05em !important;
   transition: all 0.2s ease !important;
 }
@@ -351,17 +290,12 @@ body {
 }
 
 .art-deco-search-wrapper .absolute.top-full {
-  background-color: var(--art-deco-stone) !important;
-  background-image: url('/dark_stone.jpg') !important;
-  background-size: cover !important;
-  background-blend-mode: multiply !important;
-  border: 1px solid var(--art-deco-gold) !important;
+  background-color: #131316 !important;
+  border: 1px solid var(--art-deco-gold-dark) !important;
   border-radius: 0px !important;
   box-shadow: 
-    0 0 0 1px var(--art-deco-gold),
-    inset 0 0 0 1px var(--art-deco-gold-dark),
-    inset 0 0 20px rgba(0,0,0,0.95),
-    0 15px 30px rgba(0,0,0,0.8) !important;
+    inset 0 0 15px rgba(0, 0, 0, 0.8),
+    0 10px 25px rgba(0, 0, 0, 0.7) !important;
 }
 
 .art-deco-search-wrapper .absolute.top-full button {
@@ -375,7 +309,7 @@ body {
 }
 
 .art-deco-search-wrapper .absolute.top-full button:hover {
-  background-color: rgba(212, 185, 140, 0.08) !important;
+  background-color: rgba(240, 192, 80, 0.06) !important;
 }
 
 .art-deco-search-wrapper .absolute.top-full button .text-\[\#a78bfa\] {
@@ -404,7 +338,7 @@ body {
 }
 
 .react-flow__node.selected {
-  filter: brightness(1.12) drop-shadow(0 0 12px rgba(212, 185, 140, 0.3));
+  filter: brightness(1.12) drop-shadow(0 0 12px var(--art-deco-gold-glow));
 }
 
 /* Inner container styling — apply to all node root divs */
@@ -453,8 +387,8 @@ body {
 
 .react-flow__handle:hover {
   transform: scale(1.4) !important;
-  box-shadow: 0 0 10px rgba(212, 185, 140, 0.6),
-              0 0 20px rgba(212, 185, 140, 0.2) !important;
+  box-shadow: 0 0 10px var(--art-deco-gold-glow),
+              0 0 20px rgba(240, 192, 80, 0.15) !important;
 }
 
 /* Connecting state — pulsing glow on valid targets */
@@ -464,8 +398,8 @@ body {
 }
 
 @keyframes handle-pulse {
-  0%, 100% { box-shadow: 0 0 4px rgba(212, 185, 140, 0.3); }
-  50% { box-shadow: 0 0 16px rgba(212, 185, 140, 0.8), 0 0 30px rgba(212, 185, 140, 0.3); }
+  0%, 100% { box-shadow: 0 0 4px rgba(240, 192, 80, 0.3); }
+  50% { box-shadow: 0 0 16px rgba(240, 192, 80, 0.7), 0 0 30px rgba(240, 192, 80, 0.2); }
 }
 
 /* =======================================
@@ -474,13 +408,13 @@ body {
 
 /* Default edge glow */
 .react-flow__edge-path {
-  filter: drop-shadow(0 0 3px rgba(147, 51, 234, 0.4));
+  filter: drop-shadow(0 0 3px rgba(168, 133, 48, 0.4));
   transition: stroke 0.2s ease, filter 0.2s ease;
 }
 
 .react-flow__edge:hover .react-flow__edge-path {
-  filter: drop-shadow(0 0 6px rgba(212, 185, 140, 0.6))
-          drop-shadow(0 0 12px rgba(212, 185, 140, 0.2));
+  filter: drop-shadow(0 0 6px var(--art-deco-gold-glow))
+          drop-shadow(0 0 12px rgba(240, 192, 80, 0.15));
   stroke: var(--art-deco-gold) !important;
 }
 
@@ -490,7 +424,7 @@ body {
   stroke-width: 2.5;
   stroke-dasharray: 8 4;
   animation: connection-flow 0.4s linear infinite;
-  filter: drop-shadow(0 0 6px rgba(212, 185, 140, 0.6));
+  filter: drop-shadow(0 0 6px var(--art-deco-gold-glow));
 }
 
 @keyframes connection-flow {
@@ -507,12 +441,10 @@ body {
 }
 
 .react-flow__node-toolbar > div {
-  background-color: var(--art-deco-stone) !important;
-  background-image: url('/dark_stone.jpg') !important;
-  background-blend-mode: multiply !important;
-  border: 1px solid var(--art-deco-gold) !important;
+  background-color: #151518 !important;
+  border: 1px solid var(--art-deco-gold-dark) !important;
   border-radius: 0px !important;
-  box-shadow: 0 0 0 1px var(--art-deco-gold),
+  box-shadow: 0 0 0 1px var(--art-deco-gold-dark),
               0 8px 20px rgba(0, 0, 0, 0.7) !important;
 }
 
@@ -524,7 +456,7 @@ body {
 }
 
 .react-flow__node-toolbar button:hover {
-  background-color: rgba(212, 185, 140, 0.15) !important;
+  background-color: rgba(240, 192, 80, 0.12) !important;
   color: var(--art-deco-gold-bright) !important;
 }
 
@@ -588,15 +520,4 @@ body {
   background: var(--art-deco-gold);
 }
 
-/* =======================================
-   14. STARFIELD TWINKLE ANIMATION
-   ======================================= */
 
-@keyframes twinkle {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 1; }
-}
-
-.react-flow__bg::after {
-  animation: twinkle 4s ease-in-out infinite;
-}

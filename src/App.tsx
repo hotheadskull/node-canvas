@@ -258,10 +258,10 @@ function FlowCanvas() {
           fitView
           className="cosmic-canvas"
           defaultEdgeOptions={{ 
-            style: { stroke: '#8c734b', strokeWidth: 2 } 
+            style: { stroke: '#a88530', strokeWidth: 2 } 
           }}
         >
-          <Background color="rgba(212, 185, 140, 0.08)" variant={BackgroundVariant.Dots} gap={24} size={1.5} />
+          <Background color="rgba(240, 192, 80, 0.15)" variant={BackgroundVariant.Dots} gap={24} size={1.5} />
           <Controls>
             <ControlButton 
               onClick={() => {
