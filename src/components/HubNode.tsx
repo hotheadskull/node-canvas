@@ -50,10 +50,10 @@ export const HubNode = memo(({ id, data, selected }: any) => {
       />
       
       {/* 4-way Handles on the very edges */}
-      <Handle id="top" type="target" position={Position.Top} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#a855f7] -top-2" />
-      <Handle id="bottom" type="source" position={Position.Bottom} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#a855f7] -bottom-2" />
-      <Handle id="left" type="target" position={Position.Left} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#a855f7] -left-2" />
-      <Handle id="right" type="source" position={Position.Right} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#a855f7] -right-2" />
+      <Handle id="top" type="target" position={Position.Top} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#a855f7]" />
+      <Handle id="bottom" type="source" position={Position.Bottom} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#a855f7]" />
+      <Handle id="left" type="target" position={Position.Left} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#a855f7]" />
+      <Handle id="right" type="source" position={Position.Right} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#a855f7]" />
 
       {/* 4-way Diagonal Handles to prevent edges from clipping through the corners */}
       <Handle id="top-left" type="target" position={Position.Top} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#a855f7]" style={{ left: '18px', top: '12px' }} />

@@ -1,4 +1,5 @@
 import { BaseEdge, EdgeLabelRenderer, EdgeProps, useInternalNode } from '@xyflow/react';
+import { Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { getEdgeParams } from '../utils/edgeUtils';
 import { useStore } from '../store/useStore';
@@ -13,12 +14,12 @@ const Sparks = ({ x, y }: { x: number; y: number }) => {
 
   if (!active) return null;
 
-  const particles = Array.from({ length: 14 }).map((_, i) => {
-    const angle = (Math.PI * 2 * i) / 14 + (Math.random() * 0.4);
-    const distance = 25 + Math.random() * 40;
+  const particles = Array.from({ length: 30 }).map((_, i) => {
+    const angle = (Math.PI * 2 * i) / 30 + (Math.random() * 0.2);
+    const distance = 40 + Math.random() * 80;
     const tx = Math.cos(angle) * distance;
     const ty = Math.sin(angle) * distance;
-    const delay = Math.random() * 0.15;
+    const delay = Math.random() * 0.1;
     return (
       <div
         key={i}
@@ -34,7 +35,12 @@ const Sparks = ({ x, y }: { x: number; y: number }) => {
     );
   });
 
-  return <>{particles}</>;
+  return (
+    <>
+      <div className="spark-flash" style={{ left: x, top: y }} />
+      {particles}
+    </>
+  );
 };
 
 export function ElasticEdge({
@@ -189,6 +195,9 @@ export function ElasticEdge({
             style={{
               position: 'absolute',
               transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+              display: 'flex',
+              gap: '4px',
+              alignItems: 'center'
             }}
           >
             <select
@@ -214,6 +223,17 @@ export function ElasticEdge({
                 if (v !== String(label || '')) updateEdgeLabel(id, v);
               }}
             />
+            <button
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                useStore.getState().onEdgesChange([{ type: 'remove', id }]);
+              }}
+              className="text-red-500 hover:text-red-400 bg-[#1a1a24] p-1 rounded border border-[#333] transition-colors flex items-center justify-center cursor-pointer"
+              title="Delete Connection"
+            >
+              <Trash2 size={14} />
+            </button>
           </div>
         </EdgeLabelRenderer>
       ) : label ? (

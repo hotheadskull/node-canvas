@@ -37,8 +37,10 @@ export const AliasNode = memo(({ id, data, selected }: any) => {
       style={{ boxShadow: selected ? '0 0 12px rgba(240,192,80,0.35)' : '0 4px 12px rgba(0,0,0,0.5)' }}
       title={target ? `Alias of "${target.data.label}" — double-click to jump there` : 'Pick a node to link'}
     >
-      <Handle id="top" type="target" position={Position.Top} className="w-2.5 h-2.5 rounded-full -top-1.5 border-2 border-[#151518] bg-[#f0c050] z-50" />
-      <Handle id="bottom" type="source" position={Position.Bottom} className="w-2.5 h-2.5 rounded-full -bottom-1.5 border-2 border-[#151518] bg-[#f0c050] z-50" />
+      <Handle id="top" type="target" position={Position.Top} className="w-2.5 h-2.5 rounded-full border-2 border-[#151518] bg-[#f0c050] z-50" />
+      <Handle id="bottom" type="source" position={Position.Bottom} className="w-2.5 h-2.5 rounded-full border-2 border-[#151518] bg-[#f0c050] z-50" />
+      <Handle id="left" type="target" position={Position.Left} className="w-2.5 h-2.5 rounded-full border-2 border-[#151518] bg-[#f0c050] z-50" />
+      <Handle id="right" type="source" position={Position.Right} className="w-2.5 h-2.5 rounded-full border-2 border-[#151518] bg-[#f0c050] z-50" />
 
       <Link2 size={12} className="text-[#f0c050] flex-shrink-0" />
       <select

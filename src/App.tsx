@@ -36,6 +36,7 @@ import { MasterNode } from './components/MasterNode';
 import { LogicNode } from './components/LogicNode';
 import { DeckNode } from './components/DeckNode';
 import { PrintNode } from './components/PrintNode';
+import { LiveConnectionLine } from './components/LiveConnectionLine';
 
 // Generate a random starfield SVG as a data URI for seamless background tiling
 const generateStarSVG = (density: number, maxSize: number, color: string) => {
@@ -605,6 +606,7 @@ function FlowCanvas() {
           onNodeDoubleClick={onNodeDoubleClick}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          connectionLineComponent={LiveConnectionLine}
           connectionMode={ConnectionMode.Loose}
           connectionRadius={100}
           onConnectEnd={onConnectEnd}

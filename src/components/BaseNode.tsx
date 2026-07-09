@@ -77,10 +77,10 @@ export const BaseNode = memo(({
       )}
       <div className="relative w-full h-full">
         {/* Handles */}
-        {hasTopHandle && <Handle id="top" type="target" position={Position.Top} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 -top-2" style={{ backgroundColor: accentColor }} />}
-        {hasBottomHandle && <Handle id="bottom" type="source" position={Position.Bottom} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 -bottom-2" style={{ backgroundColor: accentColor }} />}
-        {hasLeftHandle && <Handle id="left" type="target" position={Position.Left} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 -left-2" style={{ backgroundColor: accentColor }} />}
-        {hasRightHandle && <Handle id="right" type="source" position={Position.Right} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 -right-2" style={{ backgroundColor: accentColor }} />}
+        {hasTopHandle && <Handle id="top" type="target" position={Position.Top} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125" style={{ backgroundColor: accentColor }} />}
+        {hasBottomHandle && <Handle id="bottom" type="source" position={Position.Bottom} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125" style={{ backgroundColor: accentColor }} />}
+        {hasLeftHandle && <Handle id="left" type="target" position={Position.Left} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125" style={{ backgroundColor: accentColor }} />}
+        {hasRightHandle && <Handle id="right" type="source" position={Position.Right} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125" style={{ backgroundColor: accentColor }} />}
 
         {/* Main Container */}
         <div 
