@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { NodeProps } from '@xyflow/react';
 import { useStore, AppNode } from '../store/useStore';
 import { RichTextEditor } from './RichTextEditor';

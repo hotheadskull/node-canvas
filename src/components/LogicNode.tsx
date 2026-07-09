@@ -7,8 +7,8 @@ import { BaseNode } from './BaseNode';
 export const LogicNode = memo(({ id, data, selected }: NodeProps<AppNode>) => {
   const updateNodeData = useStore(state => state.updateNodeData);
 
-  const premises = data.premises || [''];
-  const conclusion = data.conclusion || '';
+  const premises: string[] = Array.isArray(data.premises) ? data.premises : [''];
+  const conclusion: string = typeof data.conclusion === 'string' ? data.conclusion : '';
 
   const addPremise = () => {
     updateNodeData(id, { premises: [...premises, ''] });

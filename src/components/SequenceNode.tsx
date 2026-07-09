@@ -1,4 +1,4 @@
-import { memo, useRef, useState, useCallback } from 'react';
+import { memo, useRef, useState } from 'react';
 import { Handle, Position, NodeProps, useReactFlow } from '@xyflow/react';
 import { Plus, Trash2, GripHorizontal, ListOrdered } from 'lucide-react';
 import { useStore, AppNode } from '../store/useStore';

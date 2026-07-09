@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { NodeProps } from '@xyflow/react';
 import { useStore, AppNode } from '../store/useStore';
 import { RichTextEditor } from './RichTextEditor';

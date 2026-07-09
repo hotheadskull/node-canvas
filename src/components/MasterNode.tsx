@@ -7,6 +7,10 @@ import { BaseNode } from './BaseNode';
 export const MasterNode = memo(({ id, data, selected }: NodeProps<AppNode>) => {
   const updateNodeData = useStore(state => state.updateNodeData);
 
+  const logline: string = typeof data.logline === 'string' ? data.logline : '';
+  const theme: string = typeof data.theme === 'string' ? data.theme : '';
+  const audience: string = typeof data.audience === 'string' ? data.audience : '';
+
   return (
     <BaseNode
       id={id}
@@ -29,7 +33,7 @@ export const MasterNode = memo(({ id, data, selected }: NodeProps<AppNode>) => {
           <textarea
             className="w-full bg-[#151518] border border-[#2a2a35] rounded p-3 text-sm text-amber-100/90 resize-none focus:outline-none focus:border-[#fbbf24] font-serif transition-colors shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]"
             rows={2}
-            value={data.logline || ''}
+            value={logline}
             onChange={(e) => updateNodeData(id, { logline: e.target.value })}
             placeholder="One sentence summary of the entire work..."
           />
@@ -41,7 +45,7 @@ export const MasterNode = memo(({ id, data, selected }: NodeProps<AppNode>) => {
             <input
               type="text"
               className="w-full bg-[#151518] border border-[#2a2a35] rounded p-2 text-sm text-amber-100/90 focus:outline-none focus:border-[#fbbf24] transition-colors shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]"
-              value={data.theme || ''}
+              value={theme}
               onChange={(e) => updateNodeData(id, { theme: e.target.value })}
               placeholder="e.g. Redemption"
             />
@@ -51,7 +55,7 @@ export const MasterNode = memo(({ id, data, selected }: NodeProps<AppNode>) => {
             <input
               type="text"
               className="w-full bg-[#151518] border border-[#2a2a35] rounded p-2 text-sm text-amber-100/90 focus:outline-none focus:border-[#fbbf24] transition-colors shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]"
-              value={data.audience || ''}
+              value={audience}
               onChange={(e) => updateNodeData(id, { audience: e.target.value })}
               placeholder="e.g. Young Adult Fantasy"
             />

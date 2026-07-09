@@ -11,8 +11,8 @@ export const PrintNode = memo(({ id, data, selected }: NodeProps<AppNode>) => {
   const nodes = useStore(state => state.nodes);
 
   // Dynamic number of ordered slots (default 3)
-  const slotCount = data.slotCount || 3;
-  const slots = Array.from({ length: slotCount }, (_, i) => i + 1);
+  const slotCount: number = typeof data.slotCount === 'number' ? data.slotCount : 3;
+  const slots: number[] = Array.from({ length: slotCount }, (_, i) => i + 1);
 
   const handleAddSlot = () => {
     updateNodeData(id, { slotCount: slotCount + 1 });
