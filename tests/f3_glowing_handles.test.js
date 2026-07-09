@@ -5,7 +5,7 @@ import path from 'node:path';
 
 const appTsxPath = path.resolve('src/App.tsx');
 const themeNodePath = path.resolve('src/components/ThemeNode.tsx');
-const itemNodePath = path.resolve('src/components/ItemNode.tsx');
+const knowledgeCardPath = path.resolve('src/components/KnowledgeCard.tsx');
 const logicNodePath = path.resolve('src/components/LogicNode.tsx');
 
 // Tier 1: Feature Coverage (F3)
@@ -44,11 +44,11 @@ test('F3-4: ThemeNode handles use dynamic colors matching node theme progressCol
   );
 });
 
-test('F3-5: ItemNode handles are styled with emerald background color', () => {
-  const content = fs.readFileSync(itemNodePath, 'utf8');
+test('F3-5: KnowledgeCard handles take their color from the card kind', () => {
+  const content = fs.readFileSync(knowledgeCardPath, 'utf8');
   assert.ok(
-    /bg-\[\s*#10b981\s*\]/.test(content),
-    'Expected ItemNode handles to have bg-[#10b981]'
+    /style=\{\{\s*backgroundColor:\s*kind\.color\s*\}\}/.test(content),
+    'Expected KnowledgeCard handles to use the kind accent color'
   );
 });
 

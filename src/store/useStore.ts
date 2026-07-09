@@ -449,10 +449,23 @@ export const useStore = create<AppState>((set, get) => ({
 
       allNodes.forEach(otherNode => {
         if (otherNode.id === id) return;
+        // Alias pins mirror their target's title; linking to them would
+        // duplicate the real connection
+        if (otherNode.type === 'alias') return;
         const otherTitle = otherNode.data.label?.toLowerCase().trim();
         if (otherTitle && otherTitle.length > 2) { // Only auto-link words longer than 2 chars
-          const regex = new RegExp(`\\b${escapeRegExp(otherTitle)}\\b`, 'gi');
-          const occurrences = (plainText.match(regex) || []).length;
+          // Knowledge cards can declare aliases ("The Iron King, Aldric") --
+          // the spiderweb matches those alternate names too
+          const aliasNames = String((otherNode.data as any).metadata?.aliases || '')
+            .split(',')
+            .map(s => s.trim().toLowerCase())
+            .filter(s => s.length > 2);
+          const names = [otherTitle, ...aliasNames];
+          let occurrences = 0;
+          for (const name of names) {
+            const regex = new RegExp(`\\b${escapeRegExp(name)}\\b`, 'gi');
+            occurrences += (plainText.match(regex) || []).length;
+          }
           if (occurrences > 0) {
             // Found a match! Check if edge already exists
             const exists = currentEdges.some(e => e.source === id && e.target === otherNode.id);

@@ -28,11 +28,10 @@ import { TaskNode } from './components/TaskNode';
 import { SequenceNode } from './components/SequenceNode';
 import { HubNode } from './components/HubNode';
 import { GroupNode } from './components/GroupNode';
-import { LoreNode } from './components/LoreNode';
-import { SnippetNode } from './components/SnippetNode';
+import { KnowledgeCard } from './components/KnowledgeCard';
+import { AliasNode } from './components/AliasNode';
 import { MasterNode } from './components/MasterNode';
 import { LogicNode } from './components/LogicNode';
-import { ItemNode } from './components/ItemNode';
 import { DeckNode } from './components/DeckNode';
 import { PrintNode } from './components/PrintNode';
 
@@ -167,35 +166,42 @@ const DynamicCanvasBackground = () => {
   );
 };
 
+// Three tiers: writing surfaces (ThemeNode), knowledge cards (KnowledgeCard),
+// and structure tools. Legacy type names stay registered so old canvases load.
 const nodeTypes = {
+  // Tier 1: writing surfaces
   document: ThemeNode,
-  reference: SnippetNode,
+  book: ThemeNode,
+  chapter: ThemeNode,
+  scene: ThemeNode,
+  story: ThemeNode,
+  directory: ThemeNode,
+  master: MasterNode,
+
+  // Tier 2: knowledge cards (one component, kind = node type)
+  character: KnowledgeCard,
+  location: KnowledgeCard,
+  faction: KnowledgeCard,
+  event: KnowledgeCard,
+  lore: KnowledgeCard,
+  item: KnowledgeCard,
+  reference: KnowledgeCard,
+  snippet: KnowledgeCard,
+  idea: KnowledgeCard,
+  citation: KnowledgeCard,
   quote: QuoteNode,
+
+  // Tier 3: structure & flow
   stat: StatNode,
   task: TaskNode,
   sequence: SequenceNode,
   hub: HubNode,
   group: GroupNode,
-  lore: LoreNode,
-  snippet: SnippetNode,
-  master: MasterNode,
   logic: LogicNode,
-  item: ItemNode,
   deck: DeckNode,
   print: PrintNode,
-  
-  // Backwards compatibility for existing nodes
-  book: ThemeNode,
-  chapter: ThemeNode,
-  scene: ThemeNode,
-  character: ThemeNode,
-  location: ThemeNode,
-  faction: ThemeNode,
-  event: ThemeNode,
-  idea: ThemeNode,
-  story: ThemeNode,
-  directory: ThemeNode,
-  
+  alias: AliasNode,
+
   default: ThemeNode,
 };
 
@@ -209,7 +215,7 @@ function FlowCanvas() {
   const addNode = useStore(state => state.addNode);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
-  const { screenToFlowPosition, getIntersectingNodes } = useReactFlow();
+  const { screenToFlowPosition, getIntersectingNodes, setCenter } = useReactFlow();
   const dragStartPos = useRef<Record<string, { x: number; y: number }>>({});
 
   const previewMarkdown = useStore(state => state.previewMarkdown);
@@ -242,9 +248,14 @@ function FlowCanvas() {
   }, []);
 
   // CONSTELLATION HOVER: while hovering a node, its entire connected web
-  // stays lit and everything else fades back into the starfield.
+  // stays lit and everything else fades back into the starfield. Alias pins
+  // act as bridges: the pin and its real target count as connected, so a web
+  // wired through a pin lights up the target's web too.
   const constellation = useMemo(() => {
     if (!hoveredNodeId) return null;
+    const aliasLinks = nodes
+      .filter(n => n.type === 'alias' && (n.data as any)?.metadata?.targetId)
+      .map(n => ({ a: n.id, b: (n.data as any).metadata.targetId as string }));
     const member = new Set<string>([hoveredNodeId]);
     const queue = [hoveredNodeId];
     while (queue.length > 0) {
@@ -253,9 +264,13 @@ function FlowCanvas() {
         if (e.source === current && !member.has(e.target)) { member.add(e.target); queue.push(e.target); }
         if (e.target === current && !member.has(e.source)) { member.add(e.source); queue.push(e.source); }
       });
+      aliasLinks.forEach(l => {
+        if (l.a === current && !member.has(l.b)) { member.add(l.b); queue.push(l.b); }
+        if (l.b === current && !member.has(l.a)) { member.add(l.a); queue.push(l.a); }
+      });
     }
     return member;
-  }, [hoveredNodeId, edges]);
+  }, [hoveredNodeId, edges, nodes]);
 
   // ORBITS: satellites (group children and nodes tethered to a hub) drift
   // gently around their anchor so clusters feel alive. Purely cosmetic --
@@ -368,6 +383,18 @@ function FlowCanvas() {
   const onNodeDragStart = useCallback((_: any, node: any) => {
     dragStartPos.current[node.id] = { ...node.position };
   }, []);
+
+  // Double-clicking an alias pin warps the camera to its real node
+  const onNodeDoubleClick = useCallback((_: React.MouseEvent, node: any) => {
+    if (node.type !== 'alias') return;
+    const targetId = node.data?.metadata?.targetId;
+    if (!targetId) return;
+    const target = useStore.getState().nodes.find(n => n.id === targetId);
+    if (!target) return;
+    const w = (target.measured?.width ?? (target.style as any)?.width ?? 300) as number;
+    const h = (target.measured?.height ?? (target.style as any)?.height ?? 200) as number;
+    setCenter(target.position.x + w / 2, target.position.y + h / 2, { zoom: 1, duration: 800 });
+  }, [setCenter]);
 
   const onEdgeDoubleClick = useCallback((_: React.MouseEvent, edge: any) => {
     const name = window.prompt(
@@ -531,6 +558,7 @@ function FlowCanvas() {
           onNodeDragStop={onNodeDragStop}
           onNodeMouseEnter={onNodeMouseEnter}
           onNodeMouseLeave={onNodeMouseLeave}
+          onNodeDoubleClick={onNodeDoubleClick}
           onEdgeDoubleClick={onEdgeDoubleClick}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
@@ -610,9 +638,20 @@ function FlowCanvas() {
               let zIndex = 1;
 
               if (['document', 'book', 'chapter', 'scene'].includes(type)) {
-                // Main writing surfaces get more room than reference nodes
+                // Tier 1: main writing surfaces get the most room
                 width = 480;
                 height = 380;
+              } else if (['character', 'location', 'faction', 'event'].includes(type)) {
+                // Tier 2: knowledge cards sit between writing surfaces and sparks
+                width = 320;
+                height = 260;
+              } else if (type === 'quote') {
+                width = 320;
+                height = 220;
+              } else if (type === 'alias') {
+                width = undefined; // pill sizes itself
+                height = undefined;
+                zIndex = 2;
               } else if (type === 'hub') {
                 width = 120;
                 height = 120;

@@ -5,7 +5,7 @@ import path from 'node:path';
 
 const appTsxPath = path.resolve('src/App.tsx');
 const themeNodePath = path.resolve('src/components/ThemeNode.tsx');
-const itemNodePath = path.resolve('src/components/ItemNode.tsx');
+const knowledgeCardPath = path.resolve('src/components/KnowledgeCard.tsx');
 const logicNodePath = path.resolve('src/components/LogicNode.tsx');
 
 // Tier 1: Feature Coverage (F2)
@@ -17,11 +17,14 @@ test('F2-1: ThemeNode is registered under nodeTypes in App.tsx', () => {
   );
 });
 
-test('F2-2: ItemNode is registered under nodeTypes in App.tsx', () => {
+test('F2-2: KnowledgeCard covers the consolidated knowledge types in App.tsx', () => {
   const content = fs.readFileSync(appTsxPath, 'utf8');
   assert.ok(
-    /item:\s*ItemNode/.test(content),
-    'Expected ItemNode to be registered in nodeTypes map'
+    /item:\s*KnowledgeCard/.test(content) &&
+    /character:\s*KnowledgeCard/.test(content) &&
+    /lore:\s*KnowledgeCard/.test(content) &&
+    /alias:\s*AliasNode/.test(content),
+    'Expected knowledge types to map to KnowledgeCard and alias to AliasNode'
   );
 });
 
@@ -41,27 +44,27 @@ test('F2-4: ThemeNode uses polygon clipPath for book and chapter badges', () => 
   );
 });
 
-test('F2-5: ItemNode renders container with emerald colors', () => {
-  const content = fs.readFileSync(itemNodePath, 'utf8');
+test('F2-5: KnowledgeCard defines distinct kind colors including emerald location', () => {
+  const content = fs.readFileSync(knowledgeCardPath, 'utf8');
   assert.ok(
-    /border-\[\s*#10b981\s*\]/.test(content) || /border-\[\s*#065f46\s*\]/.test(content),
-    'Expected ItemNode to render container with theme-compliant emerald border color'
+    /#10b981/.test(content) && /KINDS/.test(content) && /aliases/.test(content),
+    'Expected KnowledgeCard KINDS palette (emerald location) and alias support'
   );
 });
 
 // Tier 2: Boundary & Corner Cases (F2)
 test('F2-Boundary-1: NodeResizers define explicit minWidth and minHeight constraints', () => {
   const themeNode = fs.readFileSync(themeNodePath, 'utf8');
-  const itemNode = fs.readFileSync(itemNodePath, 'utf8');
+  const knowledgeCard = fs.readFileSync(knowledgeCardPath, 'utf8');
   const logicNode = fs.readFileSync(logicNodePath, 'utf8');
-  
+
   assert.ok(
     /minWidth=\{220\}/.test(themeNode) && /minHeight=\{120\}/.test(themeNode),
     'ThemeNode resizer must have minWidth 220, minHeight 120'
   );
   assert.ok(
-    /minWidth=\{200\}/.test(itemNode) && /minHeight=\{150\}/.test(itemNode),
-    'ItemNode resizer must have minWidth 200, minHeight 150'
+    /minWidth=\{200\}/.test(knowledgeCard) && /minHeight=\{150\}/.test(knowledgeCard),
+    'KnowledgeCard resizer must have minWidth 200, minHeight 150'
   );
   assert.ok(
     /minWidth=\{250\}/.test(logicNode) && /minHeight=\{200\}/.test(logicNode),

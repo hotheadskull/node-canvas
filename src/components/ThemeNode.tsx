@@ -32,7 +32,12 @@ const THEMES: Record<string, Theme> = {
 };
 
 // Knowledge-type nodes shown as "cast" chips on connected writing nodes
-const CAST_TYPES = ['character', 'location', 'faction', 'item', 'lore', 'event'];
+const CAST_TYPES = ['character', 'location', 'faction', 'item', 'lore', 'event', 'quote', 'reference', 'snippet', 'idea'];
+
+// ThemeNode is now purely the Tier-1 writing surface; knowledge kinds moved
+// to KnowledgeCard. The dropdown only offers writing types (legacy types stay
+// selectable on old nodes so nothing breaks).
+const WRITING_TYPES = ['document', 'book', 'chapter', 'scene'];
 
 export function ThemeNode({ id, data, selected, type }: NodeProps<AppNode>) {
   const nodeType = type || 'idea';
@@ -64,9 +69,16 @@ export function ThemeNode({ id, data, selected, type }: NodeProps<AppNode>) {
     ? edges
         .filter(e => e.source === id || e.target === id)
         .map(e => (e.source === id ? e.target : e.source))
-        .filter((nid, i, arr) => arr.indexOf(nid) === i)
-        .map(nid => allNodes.find(n => n.id === nid))
+        .map(nid => {
+          const n = allNodes.find(x => x.id === nid);
+          // Alias pins count as their real node
+          if (n?.type === 'alias' && (n.data as any)?.metadata?.targetId) {
+            return allNodes.find(x => x.id === (n.data as any).metadata.targetId);
+          }
+          return n;
+        })
         .filter((n): n is AppNode => !!n && CAST_TYPES.includes(n.type || ''))
+        .filter((n, i, arr) => arr.findIndex(x => x.id === n.id) === i)
         .slice(0, 6)
     : [];
 
@@ -135,7 +147,9 @@ export function ThemeNode({ id, data, selected, type }: NodeProps<AppNode>) {
               onChange={(e) => updateNodeType(id, e.target.value)}
               onPointerDown={(e) => e.stopPropagation()}
             >
-              {Object.keys(THEMES).map(t => <option key={t} value={t}>{THEMES[t].label}</option>)}
+              {(WRITING_TYPES.includes(nodeType) ? WRITING_TYPES : [nodeType, ...WRITING_TYPES]).map(t => (
+                <option key={t} value={t}>{THEMES[t]?.label || t}</option>
+              ))}
             </select>
           </div>
 
