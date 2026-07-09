@@ -108,6 +108,9 @@ const ShootingStars = ({ x, y, zoom }: ShootingStarsProps) => {
         <div className="shooting-star star-10"></div>
         <div className="shooting-star star-11"></div>
         <div className="shooting-star star-12"></div>
+        <div className="shooting-star-rare star-13"></div>
+        <div className="shooting-star-rare star-14"></div>
+        <div className="shooting-star-rare star-15"></div>
       </div>
     </div>
   );

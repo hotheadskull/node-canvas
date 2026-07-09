@@ -406,6 +406,37 @@ body {
   background: #ffffff;
   box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.9), 0 0 20px 6px rgba(184, 212, 255, 0.5);
 }
+
+.shooting-star-rare {
+  position: absolute;
+  width: 260px;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(240, 192, 80, 0.08) 30%,
+    rgba(240, 192, 80, 0.35) 65%,
+    rgba(255, 230, 150, 0.7) 90%,
+    #ffffff 100%
+  );
+  border-radius: 9999px;
+  opacity: 0;
+  filter: drop-shadow(0 0 6px rgba(240, 192, 80, 0.8));
+  pointer-events: none;
+}
+.shooting-star-rare::after {
+  content: '';
+  position: absolute;
+  right: -2px;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  transform: translateY(-50%);
+  border-radius: 9999px;
+  background: #ffffff;
+  box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.9), 0 0 20px 6px rgba(240, 192, 80, 0.6);
+}
+
 @keyframes shoot-1 {
   0%   { opacity: 0;    transform: translate(0, 0) rotate(28deg); }
   1.5% { opacity: 1; }
@@ -443,6 +474,27 @@ body {
 .star-10 { top: 88%; left: 50%; animation: shoot-1 11s linear infinite; animation-delay: 6s; }
 .star-11 { top: 45%; left: 80%; animation: shoot-2 12s linear infinite; animation-delay: 10s; }
 .star-12 { top: 75%; left: 25%; animation: shoot-3 14s linear infinite; animation-delay: 11s; }
+
+@keyframes shoot-4 {
+  0%   { opacity: 0;    transform: translate(0, 0) rotate(60deg); }
+  1.5% { opacity: 1; }
+  12%  { opacity: 0.85; }
+  22%  { opacity: 0.35; transform: translate(640px, 1108px) rotate(60deg); }
+  28%  { opacity: 0;    transform: translate(800px, 1385px) rotate(60deg); }
+  100% { opacity: 0;    transform: translate(800px, 1385px) rotate(60deg); }
+}
+@keyframes shoot-5 {
+  0%   { opacity: 0;    transform: translate(0, 0) rotate(5deg); }
+  1.5% { opacity: 1; }
+  12%  { opacity: 0.85; }
+  22%  { opacity: 0.35; transform: translate(1400px, 122px) rotate(5deg); }
+  28%  { opacity: 0;    transform: translate(1750px, 153px) rotate(5deg); }
+  100% { opacity: 0;    transform: translate(1750px, 153px) rotate(5deg); }
+}
+
+.star-13 { top: -5%; left: 40%; animation: shoot-4 18s linear infinite; animation-delay: 2s; }
+.star-14 { top: 60%; left: -10%; animation: shoot-5 22s linear infinite; animation-delay: 14s; }
+.star-15 { top: -10%; left: 70%; animation: shoot-4 25s linear infinite; animation-delay: 8s; }
 
 /* ============ Node Textures (previously referenced, never defined) ======= */
 .texture-leather {
