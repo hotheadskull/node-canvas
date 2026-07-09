@@ -8,11 +8,11 @@ const useStorePath = path.resolve('src/store/useStore.ts');
 const appTsxPath = path.resolve('src/App.tsx');
 
 // Tier 1: Feature Coverage (F5)
-test('F5-1: ThemeNode supports 3D flip using isFlipped local state', () => {
+test('F5-1: ThemeNode has no 3D flip (removed: broke pointer hit-testing)', () => {
   const content = fs.readFileSync(themeNodePath, 'utf8');
   assert.ok(
-    /const\s*\[isFlipped,\s*setIsFlipped\]\s*=\s*useState\(false\)/.test(content),
-    'Expected ThemeNode to have isFlipped state initialized to false'
+    !/isFlipped/.test(content) && !/preserve-3d/.test(content),
+    'Expected ThemeNode to have no flip state or preserve-3d transforms'
   );
 });
 
@@ -50,11 +50,11 @@ test('F5-5: Node transition CSS variable is dynamically defined based on hidden 
 });
 
 // Tier 2: Boundary & Corner Cases (F5)
-test('F5-Boundary-1: ThemeNode containers use backface-hidden class for 3D flip correctness', () => {
+test('F5-Boundary-1: ThemeNode writing nodes render connected cast chips', () => {
   const content = fs.readFileSync(themeNodePath, 'utf8');
   assert.ok(
-    /backface-hidden/.test(content),
-    'Expected backface-hidden styling class on front and back sides'
+    /CAST_TYPES/.test(content) && /castChips/.test(content),
+    'Expected ThemeNode to compute cast chips from connected knowledge nodes'
   );
 });
 

@@ -605,11 +605,15 @@ function FlowCanvas() {
                 x: window.innerWidth / 2 + (Math.random() * 50 - 25), 
                 y: window.innerHeight / 2 + (Math.random() * 50 - 25) 
               });
-              let width: number | undefined = 400; // Default (e.g. document/chapter)
+              let width: number | undefined = 400;
               let height: number | undefined = 300;
               let zIndex = 1;
-              
-              if (type === 'hub') {
+
+              if (['document', 'book', 'chapter', 'scene'].includes(type)) {
+                // Main writing surfaces get more room than reference nodes
+                width = 480;
+                height = 380;
+              } else if (type === 'hub') {
                 width = 120;
                 height = 120;
               } else if (type === 'sequence') {
