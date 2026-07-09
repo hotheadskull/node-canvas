@@ -42,11 +42,15 @@ test('F4-4: ElasticEdge decreases strokeWidth as tension increases', () => {
   );
 });
 
-test('F4-5: ElasticEdge triggers removal event when distance exceeds MAX_STRETCH', () => {
+test('F4-5: ElasticEdge never deletes itself on stretch (snap removal was a footgun)', () => {
   const content = fs.readFileSync(elasticEdgePath, 'utf8');
   assert.ok(
-    /onEdgesChange\(\[\{\s*type:\s*['"]remove['"],\s*id\s*\}\]\)/.test(content),
-    'Expected onEdgesChange remove action to snap the edge'
+    !/onEdgesChange\(\[\{\s*type:\s*['"]remove['"],\s*id\s*\}\]\)/.test(content) && !/isBroken/.test(content),
+    'Expected no auto-removal of edges at distance; tension visuals only'
+  );
+  assert.ok(
+    /EDGE_TYPES/.test(content) && /strokeDasharray/.test(content),
+    'Expected typed edges with per-type dash styling'
   );
 });
 

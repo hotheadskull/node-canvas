@@ -21,6 +21,7 @@ import { ProjectManager } from './components/ProjectManager';
 import './App.css';
 import { Trash2, Undo2, Redo2 } from 'lucide-react';
 import { RichTextEditor } from './components/RichTextEditor';
+import { EDGE_TYPES, edgeTypeOf } from './utils/edgeTypes';
 
 import { QuoteNode } from './components/QuoteNode';
 import { StatNode } from './components/StatNode';
@@ -215,6 +216,8 @@ function FlowCanvas() {
   const addNode = useStore(state => state.addNode);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  // Legend toggles: relationship types can be hidden to declutter the canvas
+  const [hiddenEdgeTypes, setHiddenEdgeTypes] = useState<Set<string>>(new Set());
   const { screenToFlowPosition, getIntersectingNodes, setCenter } = useReactFlow();
   const dragStartPos = useRef<Record<string, { x: number; y: number }>>({});
 
@@ -360,7 +363,8 @@ function FlowCanvas() {
         collapsedHubIds.has(edge.source) ||
         collapsedHubIds.has(edge.target) ||
         !nodeIds.has(edge.source) ||
-        !nodeIds.has(edge.target);
+        !nodeIds.has(edge.target) ||
+        hiddenEdgeTypes.has(edgeTypeOf(edge.data));
       const constellationMode = constellation
         ? (constellation.has(edge.source) && constellation.has(edge.target) ? 'lit' : 'dim')
         : undefined;
@@ -370,7 +374,7 @@ function FlowCanvas() {
         data: { ...edge.data, constellation: constellationMode },
       };
     });
-  }, [nodes, edges, constellation]);
+  }, [nodes, edges, constellation, hiddenEdgeTypes]);
 
   const onNodeMouseEnter = useCallback((_: React.MouseEvent, node: any) => {
     setHoveredNodeId(node.id);
@@ -396,14 +400,13 @@ function FlowCanvas() {
     setCenter(target.position.x + w / 2, target.position.y + h / 2, { zoom: 1, duration: 800 });
   }, [setCenter]);
 
-  const onEdgeDoubleClick = useCallback((_: React.MouseEvent, edge: any) => {
-    const name = window.prompt(
-      'Name this connection (e.g. "ally", "cause", "foreshadows"):',
-      String(edge.label || '')
-    );
-    if (name !== null) {
-      useStore.getState().updateEdgeLabel(edge.id, name.trim());
-    }
+  const toggleEdgeType = useCallback((key: string) => {
+    setHiddenEdgeTypes(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
   }, []);
 
   const onNodeDragStop = useCallback((_: any, draggedNode: any) => {
@@ -559,7 +562,6 @@ function FlowCanvas() {
           onNodeMouseEnter={onNodeMouseEnter}
           onNodeMouseLeave={onNodeMouseLeave}
           onNodeDoubleClick={onNodeDoubleClick}
-          onEdgeDoubleClick={onEdgeDoubleClick}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           connectionMode={ConnectionMode.Loose}
@@ -699,9 +701,24 @@ function FlowCanvas() {
             <CanvasSearch />
           </div>
           <ProjectManager />
-          <Panel position="bottom-right" className="m-4 flex flex-col items-end gap-1 pointer-events-none select-none">
+          <Panel position="bottom-right" className="m-4 flex flex-col items-end gap-1 select-none">
+            <div className="edge-legend pointer-events-auto">
+              {Object.entries(EDGE_TYPES).map(([key, def]) => (
+                <button
+                  key={key}
+                  className={`edge-legend-item ${hiddenEdgeTypes.has(key) ? 'is-hidden' : ''}`}
+                  onClick={() => toggleEdgeType(key)}
+                  title={hiddenEdgeTypes.has(key) ? `Show "${def.label}" connections` : `Hide "${def.label}" connections`}
+                >
+                  <svg width="18" height="6">
+                    <line x1="0" y1="3" x2="18" y2="3" stroke={def.color} strokeWidth="2" strokeDasharray={def.dash} />
+                  </svg>
+                  {def.label}
+                </button>
+              ))}
+            </div>
             <SaveIndicator />
-            <div className="canvas-hint">Type @ in any node to link another node</div>
+            <div className="canvas-hint">Type @ in any node to link · click a line to type it</div>
           </Panel>
         </ReactFlow>
 

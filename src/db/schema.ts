@@ -33,4 +33,7 @@ export const edges = sqliteTable('edges', {
   // How many times the target's title is mentioned in the source's text --
   // drives edge thickness/glow so well-trodden connections look load-bearing
   strength: integer('strength').default(1),
+  // Relationship category (references/causes/supports/contradicts/foreshadows)
+  // -- separate from label, which is freeform text on top
+  edge_type: text('edge_type').default('references'),
 });

@@ -16,6 +16,7 @@ import {
 import { initDb } from '../db';
 import { nodes as nodesTable, edges as edgesTable, projects as projectsTable } from '../db/schema';
 import { eq } from 'drizzle-orm';
+import { DEFAULT_EDGE_TYPE, EDGE_TYPES } from '../utils/edgeTypes';
 
 export type AppNode = Node & {
   data: { label: string; content?: string; manuscript?: string; notes?: string; metadata?: any; updated_at?: number };
@@ -64,6 +65,7 @@ export type AppState = {
   restoreEdge: (edge: Edge) => Promise<void>;
   linkNodes: (sourceId: string, targetId: string) => Promise<void>;
   updateEdgeLabel: (edgeId: string, label: string) => Promise<void>;
+  updateEdgeType: (edgeId: string, edgeType: string) => Promise<void>;
   previewMarkdown: string | null;
   setPreviewMarkdown: (md: string | null) => void;
   onNodesChange: OnNodesChange<AppNode>;
@@ -347,6 +349,7 @@ export const useStore = create<AppState>((set, get) => ({
         target_id: edge.target,
         label: (edge.label as string) || '',
         strength: (edge.data as any)?.strength || 1,
+        edge_type: (edge.data as any)?.edgeType || DEFAULT_EDGE_TYPE,
       }).onConflictDoNothing();
     } catch (e) {
       get().reportSaveError('restore connection', e);
@@ -395,6 +398,34 @@ export const useStore = create<AppState>((set, get) => ({
       await db.update(edgesTable).set({ label }).where(eq(edgesTable.id, edgeId));
     } catch (e) {
       get().reportSaveError('save connection name', e);
+    } finally {
+      get().endSave();
+    }
+  },
+
+  updateEdgeType: async (edgeId: string, edgeType: string) => {
+    if (!EDGE_TYPES[edgeType]) return;
+    const existing = get().edges.find(e => e.id === edgeId);
+    if (!existing) return;
+    const oldType = (existing.data as any)?.edgeType || DEFAULT_EDGE_TYPE;
+    if (oldType === edgeType) return;
+
+    set({
+      edges: get().edges.map(e =>
+        e.id === edgeId ? { ...e, data: { ...e.data, edgeType } } : e
+      )
+    });
+    get().pushHistory({
+      undo: () => get().updateEdgeType(edgeId, oldType),
+      redo: () => get().updateEdgeType(edgeId, edgeType),
+    });
+
+    get().beginSave();
+    try {
+      const { db } = await initDb();
+      await db.update(edgesTable).set({ edge_type: edgeType }).where(eq(edgesTable.id, edgeId));
+    } catch (e) {
+      get().reportSaveError('save connection type', e);
     } finally {
       get().endSave();
     }
@@ -780,7 +811,7 @@ export const useStore = create<AppState>((set, get) => ({
           source: e.source_id,
           target: e.target_id,
           label: e.label || undefined,
-          data: { strength: e.strength || 1 },
+          data: { strength: e.strength || 1, edgeType: e.edge_type || DEFAULT_EDGE_TYPE },
         })),
         isLoading: false,
       });
@@ -821,7 +852,7 @@ export const useStore = create<AppState>((set, get) => ({
         source: e.source_id,
         target: e.target_id,
         label: e.label || undefined,
-        data: { strength: e.strength || 1 },
+        data: { strength: e.strength || 1, edgeType: e.edge_type || DEFAULT_EDGE_TYPE },
       })),
       isLoading: false,
     });

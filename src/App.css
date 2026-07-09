@@ -104,6 +104,76 @@ body {
   animation-play-state: paused;
 }
 
+/* ============ Edge Legend & Inline Editor ============ */
+.edge-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: rgba(21, 21, 24, 0.85);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+.edge-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: #9ca3af;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 1px 2px;
+  transition: opacity 0.2s ease;
+}
+.edge-legend-item:hover { color: #e5e7eb; }
+.edge-legend-item.is-hidden { opacity: 0.3; text-decoration: line-through; }
+
+.edge-editor {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #151518;
+  border: 1px solid var(--art-deco-gold-dark);
+  border-radius: 8px;
+  padding: 3px 6px;
+  pointer-events: all;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+  z-index: 10;
+}
+.edge-editor select {
+  background: #1a1a1f;
+  border: 1px solid #2a2a35;
+  border-radius: 4px;
+  font-size: 10px;
+  padding: 2px 4px;
+  outline: none;
+  cursor: pointer;
+}
+.edge-editor input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #2a2a35;
+  color: #e5e7eb;
+  font-size: 11px;
+  width: 110px;
+  outline: none;
+}
+
+/* Traveling pulse: a short bright dash runs along lit constellation edges,
+   like light through a wire. Scoped to the hovered web only. */
+@keyframes edge-pulse-travel {
+  from { stroke-dashoffset: 0; }
+  to   { stroke-dashoffset: -220; }
+}
+.edge-pulse {
+  stroke-dasharray: 14 206;
+  stroke-linecap: round;
+  animation: edge-pulse-travel 1.6s linear infinite;
+  filter: drop-shadow(0 0 4px rgba(255, 214, 102, 0.9));
+}
+
 /* ============ Edge Labels (named relationships) ============ */
 .edge-label {
   background: #151518;
