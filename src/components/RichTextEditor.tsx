@@ -15,7 +15,7 @@ type RichTextEditorProps = {
   nodeId?: string;
 };
 
-type MentionItem = { id: string; label: string };
+type MentionItem = { id: string; label: string; isNew?: boolean; nodeType?: string; rawName?: string };
 
 // Builds the @-mention suggestion config: a lightweight DOM dropdown anchored
 // with tippy. Picking a node inserts the mention AND draws a spiderweb link
@@ -25,23 +25,57 @@ function buildSuggestion(nodeId?: string) {
     char: '@',
     items: ({ query }: { query: string }): MentionItem[] => {
       const { nodes } = useStore.getState();
-      return nodes
+      const existing = nodes
         .filter(n => n.id !== nodeId && (n.data.label || '').trim().length > 0)
         .filter(n => (n.data.label || '').toLowerCase().includes(query.toLowerCase()))
         .slice(0, 6)
         .map(n => ({ id: n.id, label: n.data.label }));
+
+      if (query.trim().length > 0) {
+        const rawName = query.trim();
+        return [
+          ...existing,
+          { id: `NEW_char_${rawName}`, label: `+ Create Character: "${rawName}"`, isNew: true, nodeType: 'character', rawName },
+          { id: `NEW_loc_${rawName}`, label: `+ Create Location: "${rawName}"`, isNew: true, nodeType: 'location', rawName },
+          { id: `NEW_item_${rawName}`, label: `+ Create Item: "${rawName}"`, isNew: true, nodeType: 'item', rawName },
+          { id: `NEW_lore_${rawName}`, label: `+ Create Lore: "${rawName}"`, isNew: true, nodeType: 'lore', rawName },
+        ];
+      }
+      return existing;
     },
     command: ({ editor, range, props }: any) => {
+      let finalId = props.id;
+      let finalLabel = props.label;
+
+      if (props.isNew) {
+        const store = useStore.getState();
+        finalId = crypto.randomUUID();
+        finalLabel = props.rawName;
+
+        const currentNode = store.nodes.find(n => n.id === nodeId);
+        const pos = currentNode 
+          ? { x: currentNode.position.x + 350 + Math.random() * 50, y: currentNode.position.y + Math.random() * 100 - 50 } 
+          : { x: 0, y: 0 };
+
+        store.addNode({
+          id: finalId,
+          type: props.nodeType,
+          position: pos,
+          data: { label: finalLabel, content: '' }
+        });
+      }
+
       editor
         .chain()
         .focus()
         .insertContentAt(range, [
-          { type: 'mention', attrs: { id: props.id, label: props.label } },
+          { type: 'mention', attrs: { id: finalId, label: finalLabel } },
           { type: 'text', text: ' ' },
         ])
         .run();
+        
       if (nodeId) {
-        useStore.getState().linkNodes(nodeId, props.id);
+        useStore.getState().linkNodes(nodeId, finalId);
       }
     },
     render: () => {
