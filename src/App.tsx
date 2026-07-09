@@ -399,6 +399,13 @@ function FlowCanvas() {
     const collapsedHubIds = new Set(
       nodes.filter(n => n.type === 'hub' && (n.data as any)?.metadata?.isCollapsed).map(n => n.id)
     );
+
+    const hiddenNodeIds = new Set();
+    edges.forEach(edge => {
+      if (collapsedHubIds.has(edge.source)) hiddenNodeIds.add(edge.target);
+      if (collapsedHubIds.has(edge.target)) hiddenNodeIds.add(edge.source);
+    });
+
     // Edges whose endpoint is trashed stay in the store (so restoring the node
     // brings its connections back) but must not be handed to React Flow.
     const nodeIds = new Set(nodes.map(n => n.id));
@@ -406,6 +413,8 @@ function FlowCanvas() {
       const isHidden =
         collapsedHubIds.has(edge.source) ||
         collapsedHubIds.has(edge.target) ||
+        hiddenNodeIds.has(edge.source) ||
+        hiddenNodeIds.has(edge.target) ||
         !nodeIds.has(edge.source) ||
         !nodeIds.has(edge.target) ||
         hiddenEdgeTypes.has(edgeTypeOf(edge.data));
