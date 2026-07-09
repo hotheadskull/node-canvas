@@ -1,9 +1,10 @@
 import { memo } from 'react';
-import { Handle, Position, NodeResizer } from '@xyflow/react';
+import { NodeProps } from '@xyflow/react';
 import { Plus, Trash2, CheckSquare } from 'lucide-react';
-import { useStore } from '../store/useStore';
+import { useStore, AppNode } from '../store/useStore';
+import { BaseNode } from './BaseNode';
 
-export const TaskNode = memo(({ id, data, selected }: any) => {
+export const TaskNode = memo(({ id, data, selected }: NodeProps<AppNode>) => {
   const updateNodeData = useStore(state => state.updateNodeData);
 
   const tasks: { label: string, completed: boolean }[] = data.metadata?.tasks || [];
@@ -34,43 +35,36 @@ export const TaskNode = memo(({ id, data, selected }: any) => {
   const progressPercent = tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0;
 
   return (
-    <>
-      <NodeResizer minWidth={250} minHeight={150} isVisible={selected} handleClassName="w-3 h-3 bg-[#151518] border-2 border-white rounded transition-transform hover:scale-125" />
-      <div className="relative w-full h-full">
-        <Handle id="top" type="target" position={Position.Top} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#fb923c] -top-2" />
-        
-        <div className={`relative w-full h-full flex flex-col bg-[#151518] text-white rounded-md shadow-2xl transition-colors shadow-lg duration-200 overflow-hidden border
-        ${selected ? 'border-[#fb923c] scale-[1.02]' : 'border-[#9a3412]'}
-      `} style={{ 
-        boxShadow: selected ? '0 20px 40px rgba(251,146,60,0.2)' : '0 10px 30px rgba(0,0,0,0.5)',
-        clipPath: 'polygon(0 0, 100% 0, 100% calc(50% - 10px), calc(100% - 6px) 50%, 100% calc(50% + 10px), 100% 100%, 0 100%, 0 calc(50% + 10px), 6px 50%, 0 calc(50% - 10px))'
-      }}>
-      
-      {/* Title Header */}
-      <div className="bg-[#16161c] px-4 py-3 border-b border-[#2a2a35] flex items-center justify-between">
-        <input
-          type="text"
-          className="bg-transparent text-sm font-bold text-[#fb923c] focus:outline-none w-full tracking-wide"
-          value={data.label}
-          onChange={(e) => updateNodeData(id, { label: e.target.value })}
-          placeholder="Task List Name..."
-        />
-        <span className="text-xs font-mono text-gray-500">{completedCount}/{tasks.length}</span>
-      </div>
-
+    <BaseNode
+      id={id}
+      data={data}
+      selected={selected}
+      minWidth={180}
+      minHeight={150}
+      icon={CheckSquare}
+      accentColor="#fb923c"
+      headerTitlePlaceholder="Task List..."
+      showFunction={true}
+      showTags={true}
+      headerRight={
+        <span className="text-[10px] font-mono font-bold tracking-wider text-gray-400 bg-black/20 px-1.5 py-0.5 rounded border border-[#333] ml-2">
+          {completedCount}/{tasks.length}
+        </span>
+      }
+    >
       {/* Task List */}
-      <div className="flex flex-col flex-1 bg-[#151518] py-2 overflow-y-auto">
+      <div className="flex flex-col flex-1 bg-[#1a1a24]/50 py-1 overflow-y-auto min-h-[80px]">
         {tasks.map((task, i) => (
-          <div key={i} className="flex items-center group px-3 py-1.5 hover:bg-[#1a1a24] transition-colors">
+          <div key={i} className="flex items-center group px-3 py-1 hover:bg-black/20 transition-colors">
             <button 
               onClick={() => handleTaskChange(i, 'completed', !task.completed)}
-              className={`flex-shrink-0 mr-3 transition-colors ${task.completed ? 'text-[#34d399]' : 'text-gray-500 hover:text-gray-300'}`}
+              className={`flex-shrink-0 mr-2 transition-colors ${task.completed ? 'text-[#34d399]' : 'text-gray-500 hover:text-gray-300'}`}
             >
-              {task.completed ? <CheckSquare size={16} /> : <div className="w-4 h-4 border border-gray-500 rounded-sm" />}
+              {task.completed ? <CheckSquare size={12} /> : <div className="w-3 h-3 border border-gray-500 rounded-sm" />}
             </button>
             <input
               type="text"
-              className={`w-full bg-transparent text-sm focus:outline-none transition-colors shadow-lg
+              className={`w-full bg-transparent text-xs focus:outline-none transition-colors
                 ${task.completed ? 'text-gray-500 line-through' : 'text-gray-200'}
               `}
               placeholder="Enter task..."
@@ -79,30 +73,29 @@ export const TaskNode = memo(({ id, data, selected }: any) => {
             />
             <button 
               onClick={() => removeTask(i)} 
-              className="flex-shrink-0 ml-2 text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="flex-shrink-0 ml-1 text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
             >
-              <Trash2 size={14} />
+              <Trash2 size={10} />
             </button>
           </div>
         ))}
-        <button 
-          onClick={addTask} 
-          className="mx-3 mt-2 py-1.5 flex items-center justify-center gap-1 text-[10px] uppercase font-bold tracking-wider text-[#9a3412] hover:text-[#fb923c] border border-dashed border-[#9a3412] hover:border-[#fb923c] rounded transition-colors"
-        >
-          <Plus size={12} /> Add Item
-        </button>
+        <div className="px-3 pb-1 mt-1">
+          <button 
+            onClick={addTask}
+            className="w-full py-1 border border-dashed border-[#fb923c] text-[#fb923c] rounded text-[9px] font-bold uppercase tracking-wider flex items-center justify-center gap-1 hover:bg-[#fb923c]/20 transition-colors"
+          >
+            <Plus size={10} /> Add Task
+          </button>
+        </div>
       </div>
 
       {/* Progress Bar Footer */}
-      <div className="h-1.5 w-full bg-[#1a1a24] relative">
+      <div className="h-1 w-full bg-[#1a1a24] relative mt-auto">
         <div 
-          className="absolute top-0 left-0 h-full bg-[#fb923c] transition-colors shadow-lg duration-300"
+          className="absolute top-0 left-0 h-full bg-[#fb923c] transition-all shadow-lg duration-300"
           style={{ width: `${progressPercent}%` }}
         />
       </div>
-      <Handle id="bottom" type="source" position={Position.Bottom} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#fb923c] -bottom-2" />
-      </div>
-    </div>
-    </>
+    </BaseNode>
   );
 });

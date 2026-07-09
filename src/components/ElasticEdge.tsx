@@ -1,7 +1,41 @@
 import { BaseEdge, EdgeLabelRenderer, EdgeProps, useInternalNode } from '@xyflow/react';
+import { useEffect, useState } from 'react';
 import { getEdgeParams } from '../utils/edgeUtils';
 import { useStore } from '../store/useStore';
 import { EDGE_TYPES, edgeTypeOf } from '../utils/edgeTypes';
+
+const Sparks = ({ x, y }: { x: number; y: number }) => {
+  const [active, setActive] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setActive(false), 1000);
+    return () => clearTimeout(t);
+  }, []);
+
+  if (!active) return null;
+
+  const particles = Array.from({ length: 14 }).map((_, i) => {
+    const angle = (Math.PI * 2 * i) / 14 + (Math.random() * 0.4);
+    const distance = 25 + Math.random() * 40;
+    const tx = Math.cos(angle) * distance;
+    const ty = Math.sin(angle) * distance;
+    const delay = Math.random() * 0.15;
+    return (
+      <div
+        key={i}
+        className="spark-particle"
+        style={{
+          left: x,
+          top: y,
+          '--tx': `${tx}px`,
+          '--ty': `${ty}px`,
+          animationDelay: `${delay}s`
+        } as any}
+      />
+    );
+  });
+
+  return <>{particles}</>;
+};
 
 export function ElasticEdge({
   id,
@@ -139,6 +173,15 @@ export function ElasticEdge({
 
       {/* Selected: inline editor for relationship type + freeform label.
           Otherwise: show the label pill if one is set. */}
+      {(data as any)?.isNew && (
+        <EdgeLabelRenderer>
+          <div className="nodrag nopan" style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+            <Sparks x={sx} y={sy} />
+            <Sparks x={tx} y={ty} />
+          </div>
+        </EdgeLabelRenderer>
+      )}
+
       {selected ? (
         <EdgeLabelRenderer>
           <div

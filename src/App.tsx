@@ -19,8 +19,9 @@ import { CreateNodeMenu } from './components/CreateNodeMenu';
 import { CanvasSearch } from './components/CanvasSearch';
 import { ProjectManager } from './components/ProjectManager';
 import './App.css';
-import { Trash2, Undo2, Redo2 } from 'lucide-react';
+import { Trash2, Undo2, Redo2, Anchor, Crosshair, CircleDashed } from 'lucide-react';
 import { RichTextEditor } from './components/RichTextEditor';
+import { CommandPalette } from './components/CommandPalette';
 import { EDGE_TYPES, edgeTypeOf } from './utils/edgeTypes';
 
 import { QuoteNode } from './components/QuoteNode';
@@ -218,6 +219,10 @@ function FlowCanvas() {
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   // Legend toggles: relationship types can be hidden to declutter the canvas
   const [hiddenEdgeTypes, setHiddenEdgeTypes] = useState<Set<string>>(new Set());
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [orphansOpen, setOrphansOpen] = useState(false);
+  // Anchor-check mode: dim everything that doesn't trace back to the anchor
+  const [anchorCheck, setAnchorCheck] = useState(false);
   const { screenToFlowPosition, getIntersectingNodes, setCenter } = useReactFlow();
   const dragStartPos = useRef<Record<string, { x: number; y: number }>>({});
 
@@ -226,14 +231,21 @@ function FlowCanvas() {
   const canUndo = useStore(state => state.canUndo);
   const canRedo = useStore(state => state.canRedo);
 
-  // Canvas-level undo/redo (Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y). Text fields and
-  // TipTap editors keep their own native undo, so skip when one is focused.
+  // Canvas-level undo/redo (Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y) and the Ctrl+K
+  // command palette. Text fields and TipTap editors keep their own native
+  // undo, so those shortcuts skip when one is focused; Ctrl+K works anywhere.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen(o => !o);
+        return;
+      }
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
       if (e.key === 'Escape') {
         useStore.getState().setFocusedNode(null);
+        setPaletteOpen(false);
         return;
       }
       if (!(e.ctrlKey || e.metaKey)) return;
@@ -250,17 +262,38 @@ function FlowCanvas() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  // CONSTELLATION HOVER: while hovering a node, its entire connected web
-  // stays lit and everything else fades back into the starfield. Alias pins
-  // act as bridges: the pin and its real target count as connected, so a web
-  // wired through a pin lights up the target's web too.
+  // The project's anchor (Big Idea) node, if one is pinned
+  const anchorId = useMemo(
+    () => nodes.find(n => (n.data as any).metadata?.isAnchor)?.id ?? null,
+    [nodes]
+  );
+
+  // Nodes with no connections at all -- Luhmann's rule: an unlinked note is
+  // a forgotten note. Surfaced in a quiet widget so they get linked or culled.
+  const orphanNodes = useMemo(() => {
+    const connected = new Set<string>();
+    edges.forEach(e => { connected.add(e.source); connected.add(e.target); });
+    nodes.forEach(n => {
+      const targetId = (n.data as any).metadata?.targetId;
+      if (n.type === 'alias' && targetId) { connected.add(n.id); connected.add(targetId); }
+      if (n.parentId) { connected.add(n.id); connected.add(n.parentId); }
+    });
+    return nodes.filter(n => !connected.has(n.id));
+  }, [nodes, edges]);
+
+  // CONSTELLATION: while hovering a node (or in anchor-check mode, from the
+  // anchor), the connected web stays lit and everything else fades back into
+  // the starfield. Alias pins act as bridges: the pin and its real target
+  // count as connected, so a web wired through a pin lights up the target's
+  // web too.
+  const focusRootId = anchorCheck && anchorId ? anchorId : hoveredNodeId;
   const constellation = useMemo(() => {
-    if (!hoveredNodeId) return null;
+    if (!focusRootId) return null;
     const aliasLinks = nodes
       .filter(n => n.type === 'alias' && (n.data as any)?.metadata?.targetId)
       .map(n => ({ a: n.id, b: (n.data as any).metadata.targetId as string }));
-    const member = new Set<string>([hoveredNodeId]);
-    const queue = [hoveredNodeId];
+    const member = new Set<string>([focusRootId]);
+    const queue = [focusRootId];
     while (queue.length > 0) {
       const current = queue.pop()!;
       edges.forEach(e => {
@@ -273,7 +306,7 @@ function FlowCanvas() {
       });
     }
     return member;
-  }, [hoveredNodeId, edges, nodes]);
+  }, [focusRootId, edges, nodes]);
 
   // ORBITS: satellites (group children and nodes tethered to a hub) drift
   // gently around their anchor so clusters feel alive. Purely cosmetic --
@@ -304,9 +337,11 @@ function FlowCanvas() {
       const constellationClass = constellation
         ? (constellation.has(node.id) ? ' constellation-lit' : ' constellation-dim')
         : '';
+      const anchorClass = (node.data as any).metadata?.isAnchor ? ' anchor-node' : '';
 
       if (node.type === 'hub') {
-        return constellationClass ? { ...node, className: constellationClass } : node;
+        const extra = constellationClass + anchorClass;
+        return extra ? { ...node, className: extra } : node;
       }
 
       const isHidden = hiddenNodeIds.has(node.id);
@@ -336,7 +371,7 @@ function FlowCanvas() {
         position: targetPosition,
         className: (isHidden
           ? 'opacity-0 pointer-events-none'
-          : 'opacity-100') + (orbits ? ' orbit-float' : '') + constellationClass,
+          : 'opacity-100') + (orbits ? ' orbit-float' : '') + constellationClass + anchorClass,
         style: {
           ...node.style,
           ...(orbits ? {
@@ -376,11 +411,17 @@ function FlowCanvas() {
     });
   }, [nodes, edges, constellation, hiddenEdgeTypes]);
 
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const onNodeMouseEnter = useCallback((_: React.MouseEvent, node: any) => {
-    setHoveredNodeId(node.id);
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoveredNodeId(node.id);
+    }, 3000);
   }, []);
 
   const onNodeMouseLeave = useCallback(() => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
     setHoveredNodeId(null);
   }, []);
 
@@ -590,6 +631,20 @@ function FlowCanvas() {
           <DynamicCanvasBackground />
           <Controls>
             <ControlButton
+              onClick={() => { if (selectedNodeId) useStore.getState().setAnchor(selectedNodeId); }}
+              title="Pin selected node as the Anchor (Big Idea)"
+              disabled={!selectedNodeId}
+            >
+              <Anchor size={14} className={selectedNodeId ? 'text-[#f0c050]' : 'text-gray-600'} />
+            </ControlButton>
+            <ControlButton
+              onClick={() => setAnchorCheck(c => !c)}
+              title={anchorCheck ? 'Exit anchor check' : 'Anchor check: dim everything that doesn\'t trace back to the Big Idea'}
+              disabled={!anchorId}
+            >
+              <Crosshair size={14} className={anchorCheck ? 'text-[#f0c050]' : (anchorId ? 'text-white' : 'text-gray-600')} />
+            </ControlButton>
+            <ControlButton
               onClick={() => useStore.getState().undo()}
               title="Undo (Ctrl+Z)"
               disabled={!canUndo}
@@ -702,6 +757,40 @@ function FlowCanvas() {
           </div>
           <ProjectManager />
           <Panel position="bottom-right" className="m-4 flex flex-col items-end gap-1 select-none">
+            {orphanNodes.length > 0 && (
+              <div className="relative pointer-events-auto">
+                {orphansOpen && (
+                  <div className="orphan-list">
+                    {orphanNodes.slice(0, 10).map(n => (
+                      <button
+                        key={n.id}
+                        className="orphan-item"
+                        onClick={() => {
+                          const w = ((n.measured as any)?.width ?? (n.style as any)?.width ?? 300) as number;
+                          const h = ((n.measured as any)?.height ?? (n.style as any)?.height ?? 200) as number;
+                          setCenter(n.position.x + w / 2, n.position.y + h / 2, { zoom: 1, duration: 700 });
+                          setOrphansOpen(false);
+                        }}
+                      >
+                        <span className="palette-type">{n.type || 'node'}</span>
+                        <span className="truncate">{n.data.label || 'Untitled'}</span>
+                      </button>
+                    ))}
+                    {orphanNodes.length > 10 && (
+                      <div className="px-3 py-1 text-[9px] text-gray-600">+{orphanNodes.length - 10} more</div>
+                    )}
+                  </div>
+                )}
+                <button
+                  className="orphan-widget"
+                  onClick={() => setOrphansOpen(o => !o)}
+                  title="Nodes with no connections — link them into the web or let them go"
+                >
+                  <CircleDashed size={11} />
+                  {orphanNodes.length} unlinked
+                </button>
+              </div>
+            )}
             <div className="edge-legend pointer-events-auto">
               {Object.entries(EDGE_TYPES).map(([key, def]) => (
                 <button
@@ -718,11 +807,12 @@ function FlowCanvas() {
               ))}
             </div>
             <SaveIndicator />
-            <div className="canvas-hint">Type @ in any node to link · click a line to type it</div>
+            <div className="canvas-hint">@ links nodes · click a line to type it · Ctrl+K jumps anywhere</div>
           </Panel>
         </ReactFlow>
 
         <WarpFocusOverlay />
+        <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
 
         {previewMarkdown !== null && (
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-12">

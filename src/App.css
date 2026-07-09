@@ -261,6 +261,107 @@ body {
   padding: 2px 10px;
 }
 
+/* ============ Command Palette ============ */
+.command-palette {
+  width: min(560px, 90vw);
+  background: #111114;
+  border: 1px solid var(--art-deco-gold-dark);
+  border-radius: 12px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8), 0 0 24px rgba(240, 192, 80, 0.08);
+  overflow: hidden;
+  animation: warp-in 0.18s cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+.palette-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 14px;
+  font-size: 12px;
+  color: #d1d5db;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.palette-item.is-selected {
+  background: rgba(240, 192, 80, 0.08);
+  color: #fff;
+}
+.palette-type {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--art-deco-gold-dark);
+  border: 1px solid #2a2a35;
+  border-radius: 4px;
+  padding: 1px 5px;
+  flex-shrink: 0;
+  min-width: 56px;
+  text-align: center;
+}
+.palette-snippet {
+  font-size: 10px;
+  color: #6b7280;
+  max-width: 180px;
+  flex-shrink: 0;
+}
+
+/* ============ Orphan Widget ============ */
+.orphan-widget {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: #9ca3af;
+  background: rgba(21, 21, 24, 0.85);
+  border: 1px dashed #4a4a55;
+  border-radius: 9999px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.orphan-widget:hover {
+  color: var(--art-deco-gold);
+  border-color: var(--art-deco-gold-dark);
+}
+.orphan-list {
+  position: absolute;
+  bottom: 110%;
+  right: 0;
+  width: 240px;
+  background: #151518;
+  border: 1px solid #2a2a35;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+  padding: 4px 0;
+}
+.orphan-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 10px;
+  font-size: 11px;
+  color: #d1d5db;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+.orphan-item:hover { background: rgba(240, 192, 80, 0.08); }
+
+/* ============ Anchor (Big Idea) Node ============ */
+@keyframes anchor-ring {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(240, 192, 80, 0.35), 0 0 18px rgba(240, 192, 80, 0.25); }
+  50% { box-shadow: 0 0 0 5px rgba(240, 192, 80, 0.5), 0 0 30px rgba(240, 192, 80, 0.4); }
+}
+.react-flow__node.anchor-node {
+  border-radius: 12px;
+  animation: anchor-ring 3.5s ease-in-out infinite;
+}
+
 /* ============ Warp Focus ============ */
 @keyframes warp-in {
   from { transform: scale(0.55); opacity: 0; filter: blur(10px); }
@@ -340,4 +441,20 @@ body {
 }
 .animate-alchemy {
   animation: alchemy-pulse 0.9s ease-in-out 3;
+}
+
+/* ============ Connection Sparks ============ */
+@keyframes spark-fly {
+  0% { transform: scale(1) translate(0, 0); opacity: 1; }
+  100% { transform: scale(0) translate(var(--tx), var(--ty)); opacity: 0; }
+}
+.spark-particle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 10px 3px var(--art-deco-gold-bright);
+  animation: spark-fly 0.8s cubic-bezier(0.2, 0.9, 0.2, 1) forwards;
+  pointer-events: none;
 }
