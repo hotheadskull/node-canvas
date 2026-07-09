@@ -1,18 +1,143 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react/menus';
 import StarterKit from '@tiptap/starter-kit';
-import { useEffect } from 'react';
+import Mention from '@tiptap/extension-mention';
+import tippy, { Instance as TippyInstance } from 'tippy.js';
+import { useEffect, useMemo } from 'react';
+import { useStore } from '../store/useStore';
 
 type RichTextEditorProps = {
   content: string;
   onChange: (html: string) => void;
   placeholder?: string;
   textColor?: string;
+  // The canvas node this editor lives in; enables @-mention linking
+  nodeId?: string;
 };
 
-export function RichTextEditor({ content, onChange, textColor = '#e5e7eb' }: RichTextEditorProps) {
+type MentionItem = { id: string; label: string };
+
+// Builds the @-mention suggestion config: a lightweight DOM dropdown anchored
+// with tippy. Picking a node inserts the mention AND draws a spiderweb link
+// from this node to the mentioned one.
+function buildSuggestion(nodeId?: string) {
+  return {
+    char: '@',
+    items: ({ query }: { query: string }): MentionItem[] => {
+      const { nodes } = useStore.getState();
+      return nodes
+        .filter(n => n.id !== nodeId && (n.data.label || '').trim().length > 0)
+        .filter(n => (n.data.label || '').toLowerCase().includes(query.toLowerCase()))
+        .slice(0, 6)
+        .map(n => ({ id: n.id, label: n.data.label }));
+    },
+    command: ({ editor, range, props }: any) => {
+      editor
+        .chain()
+        .focus()
+        .insertContentAt(range, [
+          { type: 'mention', attrs: { id: props.id, label: props.label } },
+          { type: 'text', text: ' ' },
+        ])
+        .run();
+      if (nodeId) {
+        useStore.getState().linkNodes(nodeId, props.id);
+      }
+    },
+    render: () => {
+      let popup: TippyInstance[] = [];
+      let el: HTMLDivElement;
+      let items: MentionItem[] = [];
+      let selectedIndex = 0;
+      let command: (item: MentionItem) => void = () => {};
+
+      const renderItems = () => {
+        el.innerHTML = '';
+        if (items.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'mention-empty';
+          empty.textContent = 'No matching nodes';
+          el.appendChild(empty);
+          return;
+        }
+        items.forEach((item, i) => {
+          const btn = document.createElement('button');
+          btn.className = 'mention-item' + (i === selectedIndex ? ' is-selected' : '');
+          btn.textContent = item.label;
+          btn.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            command(item);
+          });
+          el.appendChild(btn);
+        });
+      };
+
+      return {
+        onStart: (props: any) => {
+          el = document.createElement('div');
+          el.className = 'mention-dropdown';
+          items = props.items;
+          command = (item) => props.command(item);
+          selectedIndex = 0;
+          renderItems();
+          popup = tippy('body', {
+            getReferenceClientRect: props.clientRect,
+            appendTo: () => document.body,
+            content: el,
+            showOnCreate: true,
+            interactive: true,
+            trigger: 'manual',
+            placement: 'bottom-start',
+            arrow: false,
+          });
+        },
+        onUpdate: (props: any) => {
+          items = props.items;
+          command = (item) => props.command(item);
+          if (selectedIndex >= items.length) selectedIndex = 0;
+          renderItems();
+          popup[0]?.setProps({ getReferenceClientRect: props.clientRect });
+        },
+        onKeyDown: (props: any) => {
+          if (props.event.key === 'ArrowDown') {
+            selectedIndex = items.length ? (selectedIndex + 1) % items.length : 0;
+            renderItems();
+            return true;
+          }
+          if (props.event.key === 'ArrowUp') {
+            selectedIndex = items.length ? (selectedIndex - 1 + items.length) % items.length : 0;
+            renderItems();
+            return true;
+          }
+          if (props.event.key === 'Enter') {
+            if (items[selectedIndex]) command(items[selectedIndex]);
+            return true;
+          }
+          if (props.event.key === 'Escape') {
+            popup[0]?.hide();
+            return true;
+          }
+          return false;
+        },
+        onExit: () => {
+          popup[0]?.destroy();
+        },
+      };
+    },
+  };
+}
+
+export function RichTextEditor({ content, onChange, textColor = '#e5e7eb', nodeId }: RichTextEditorProps) {
+  const extensions = useMemo(() => [
+    StarterKit,
+    Mention.configure({
+      HTMLAttributes: { class: 'mention' },
+      suggestion: buildSuggestion(nodeId),
+    }),
+  ], [nodeId]);
+
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions,
     content,
     editorProps: {
       attributes: {

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   ReactFlow,
   Background,
@@ -19,7 +19,8 @@ import { CreateNodeMenu } from './components/CreateNodeMenu';
 import { CanvasSearch } from './components/CanvasSearch';
 import { ProjectManager } from './components/ProjectManager';
 import './App.css';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Undo2, Redo2 } from 'lucide-react';
+import { RichTextEditor } from './components/RichTextEditor';
 
 import { QuoteNode } from './components/QuoteNode';
 import { StatNode } from './components/StatNode';
@@ -207,16 +208,74 @@ function FlowCanvas() {
   const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onReconnect } = useStore();
   const addNode = useStore(state => state.addNode);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const { screenToFlowPosition, getIntersectingNodes } = useReactFlow();
-  
+  const dragStartPos = useRef<Record<string, { x: number; y: number }>>({});
+
   const previewMarkdown = useStore(state => state.previewMarkdown);
   const setPreviewMarkdown = useStore(state => state.setPreviewMarkdown);
+  const canUndo = useStore(state => state.canUndo);
+  const canRedo = useStore(state => state.canRedo);
+
+  // Canvas-level undo/redo (Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y). Text fields and
+  // TipTap editors keep their own native undo, so skip when one is focused.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+      if (e.key === 'Escape') {
+        useStore.getState().setFocusedNode(null);
+        return;
+      }
+      if (!(e.ctrlKey || e.metaKey)) return;
+      if (e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) useStore.getState().redo();
+        else useStore.getState().undo();
+      } else if (e.key.toLowerCase() === 'y') {
+        e.preventDefault();
+        useStore.getState().redo();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  // CONSTELLATION HOVER: while hovering a node, its entire connected web
+  // stays lit and everything else fades back into the starfield.
+  const constellation = useMemo(() => {
+    if (!hoveredNodeId) return null;
+    const member = new Set<string>([hoveredNodeId]);
+    const queue = [hoveredNodeId];
+    while (queue.length > 0) {
+      const current = queue.pop()!;
+      edges.forEach(e => {
+        if (e.source === current && !member.has(e.target)) { member.add(e.target); queue.push(e.target); }
+        if (e.target === current && !member.has(e.source)) { member.add(e.source); queue.push(e.source); }
+      });
+    }
+    return member;
+  }, [hoveredNodeId, edges]);
+
+  // ORBITS: satellites (group children and nodes tethered to a hub) drift
+  // gently around their anchor so clusters feel alive. Purely cosmetic --
+  // real positions never change.
+  const orbitingIds = useMemo(() => {
+    const hubIds = new Set(nodes.filter(n => n.type === 'hub').map(n => n.id));
+    const satellites = new Set<string>();
+    nodes.forEach(n => { if (n.parentId) satellites.add(n.id); });
+    edges.forEach(e => {
+      if (hubIds.has(e.source) && !hubIds.has(e.target)) satellites.add(e.target);
+      if (hubIds.has(e.target) && !hubIds.has(e.source)) satellites.add(e.source);
+    });
+    return satellites;
+  }, [nodes, edges]);
 
   const processedNodes = useMemo(() => {
     const collapsedHubIds = new Set(
       nodes.filter(n => n.type === 'hub' && (n.data as any)?.metadata?.isCollapsed).map(n => n.id)
     );
-    
+
     const hiddenNodeIds = new Set();
     edges.forEach(edge => {
       if (collapsedHubIds.has(edge.source)) hiddenNodeIds.add(edge.target);
@@ -224,15 +283,21 @@ function FlowCanvas() {
     });
 
     return nodes.map(node => {
-      if (node.type === 'hub') return node;
-      
+      const constellationClass = constellation
+        ? (constellation.has(node.id) ? ' constellation-lit' : ' constellation-dim')
+        : '';
+
+      if (node.type === 'hub') {
+        return constellationClass ? { ...node, className: constellationClass } : node;
+      }
+
       const isHidden = hiddenNodeIds.has(node.id);
       let targetPosition = node.position;
-      
+
       if (isHidden) {
         // Find the hub it's connected to
-        const connectedEdge = edges.find(e => 
-          (e.source === node.id || e.target === node.id) && 
+        const connectedEdge = edges.find(e =>
+          (e.source === node.id || e.target === node.id) &&
           (collapsedHubIds.has(e.source) || collapsedHubIds.has(e.target))
         );
         if (connectedEdge) {
@@ -243,22 +308,30 @@ function FlowCanvas() {
           }
         }
       }
-      
+
+      // Stagger orbit timing per node so satellites don't drift in lockstep
+      const idHash = node.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+      const orbits = !isHidden && orbitingIds.has(node.id);
+
       return {
         ...node,
         position: targetPosition,
-        className: isHidden 
+        className: (isHidden
           ? 'opacity-0 pointer-events-none'
-          : 'opacity-100',
+          : 'opacity-100') + (orbits ? ' orbit-float' : '') + constellationClass,
         style: {
           ...node.style,
-          '--node-transition': isHidden 
-            ? 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease' // Faster pull-in
-            : 'transform 3.5s cubic-bezier(0.05, 0.9, 0.1, 1.0), opacity 3.0s ease' // Extremely gentle float out
+          ...(orbits ? {
+            '--orbit-dur': `${14 + (idHash % 9)}s`,
+            animationDelay: `-${idHash % 14}s`,
+          } : {}),
+          '--node-transition': isHidden
+            ? 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease, filter 0.3s ease' // Faster pull-in
+            : 'transform 3.5s cubic-bezier(0.05, 0.9, 0.1, 1.0), opacity 3.0s ease, filter 0.3s ease' // Extremely gentle float out
         } as any
       };
     });
-  }, [nodes, edges]);
+  }, [nodes, edges, constellation, orbitingIds]);
 
   const processedEdges = useMemo(() => {
     const collapsedHubIds = new Set(
@@ -273,15 +346,53 @@ function FlowCanvas() {
         collapsedHubIds.has(edge.target) ||
         !nodeIds.has(edge.source) ||
         !nodeIds.has(edge.target);
+      const constellationMode = constellation
+        ? (constellation.has(edge.source) && constellation.has(edge.target) ? 'lit' : 'dim')
+        : undefined;
       return {
         ...edge,
-        hidden: isHidden
+        hidden: isHidden,
+        data: { ...edge.data, constellation: constellationMode },
       };
     });
-  }, [nodes, edges]);
+  }, [nodes, edges, constellation]);
+
+  const onNodeMouseEnter = useCallback((_: React.MouseEvent, node: any) => {
+    setHoveredNodeId(node.id);
+  }, []);
+
+  const onNodeMouseLeave = useCallback(() => {
+    setHoveredNodeId(null);
+  }, []);
+
+  const onNodeDragStart = useCallback((_: any, node: any) => {
+    dragStartPos.current[node.id] = { ...node.position };
+  }, []);
+
+  const onEdgeDoubleClick = useCallback((_: React.MouseEvent, edge: any) => {
+    const name = window.prompt(
+      'Name this connection (e.g. "ally", "cause", "foreshadows"):',
+      String(edge.label || '')
+    );
+    if (name !== null) {
+      useStore.getState().updateEdgeLabel(edge.id, name.trim());
+    }
+  }, []);
 
   const onNodeDragStop = useCallback((_: any, draggedNode: any) => {
     const node = draggedNode as AppNode;
+
+    // Record the move in undo history (positions persist via onNodesChange)
+    const start = dragStartPos.current[node.id];
+    delete dragStartPos.current[node.id];
+    if (start && (start.x !== node.position.x || start.y !== node.position.y)) {
+      const end = { ...node.position };
+      useStore.getState().pushHistory({
+        undo: () => useStore.getState().setNodePosition(node.id, start),
+        redo: () => useStore.getState().setNodePosition(node.id, end),
+      });
+    }
+
     const intersections = getIntersectingNodes(node);
     if (intersections.length > 0) {
       const targetNode = intersections[0] as AppNode;
@@ -416,7 +527,11 @@ function FlowCanvas() {
           nodes={processedNodes}
           edges={processedEdges}
           onNodesChange={onNodesChange}
+          onNodeDragStart={onNodeDragStart}
           onNodeDragStop={onNodeDragStop}
+          onNodeMouseEnter={onNodeMouseEnter}
+          onNodeMouseLeave={onNodeMouseLeave}
+          onEdgeDoubleClick={onEdgeDoubleClick}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           connectionMode={ConnectionMode.Loose}
@@ -444,7 +559,21 @@ function FlowCanvas() {
         >
           <DynamicCanvasBackground />
           <Controls>
-            <ControlButton 
+            <ControlButton
+              onClick={() => useStore.getState().undo()}
+              title="Undo (Ctrl+Z)"
+              disabled={!canUndo}
+            >
+              <Undo2 size={14} className={canUndo ? 'text-white' : 'text-gray-600'} />
+            </ControlButton>
+            <ControlButton
+              onClick={() => useStore.getState().redo()}
+              title="Redo (Ctrl+Shift+Z)"
+              disabled={!canRedo}
+            >
+              <Redo2 size={14} className={canRedo ? 'text-white' : 'text-gray-600'} />
+            </ControlButton>
+            <ControlButton
               onClick={() => {
                 if (selectedNodeId) {
                   useStore.getState().deleteNode(selectedNodeId);
@@ -527,7 +656,13 @@ function FlowCanvas() {
             <CanvasSearch />
           </div>
           <ProjectManager />
+          <Panel position="bottom-right" className="m-4 flex flex-col items-end gap-1 pointer-events-none select-none">
+            <SaveIndicator />
+            <div className="canvas-hint">Type @ in any node to link another node</div>
+          </Panel>
         </ReactFlow>
+
+        <WarpFocusOverlay />
 
         {previewMarkdown !== null && (
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-12">
@@ -574,6 +709,71 @@ function FlowCanvas() {
       </div>
 
       <SaveErrorBanner />
+    </div>
+  );
+}
+
+// Live save status so there's never any doubt whether work is persisted.
+function SaveIndicator() {
+  const pendingSaves = useStore(state => state.pendingSaves);
+  const lastSavedAt = useStore(state => state.lastSavedAt);
+  const saving = pendingSaves > 0;
+  return (
+    <div
+      className={`save-indicator ${saving ? 'is-saving' : ''}`}
+      title={lastSavedAt ? `Last saved ${new Date(lastSavedAt).toLocaleTimeString()}` : 'No changes yet this session'}
+    >
+      {saving ? '● Saving…' : '✓ All changes saved'}
+    </div>
+  );
+}
+
+// WARP FOCUS: fullscreen distraction-free writing mode for a single node,
+// opened via the ⤢ button on writing nodes. Esc or ✕ returns to the canvas.
+function WarpFocusOverlay() {
+  const focusedNodeId = useStore(state => state.focusedNodeId);
+  const setFocusedNode = useStore(state => state.setFocusedNode);
+  const updateNodeData = useStore(state => state.updateNodeData);
+  const node = useStore(state => state.nodes.find(n => n.id === state.focusedNodeId));
+
+  if (!focusedNodeId || !node) return null;
+
+  const nodeType = node.type || 'idea';
+  const usesManuscript = ['document', 'book', 'chapter', 'scene'].includes(nodeType);
+  const text = usesManuscript ? (node.data.manuscript || '') : (node.data.content || '');
+  const wordCount = text.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(w => w.length > 0).length;
+
+  return (
+    <div className="absolute inset-0 bg-black/85 backdrop-blur-md z-[100] flex items-center justify-center p-8">
+      <div className="warp-overlay-content bg-[#111114] border border-[#8c734b] w-full max-w-4xl h-full rounded-xl shadow-2xl flex flex-col overflow-hidden">
+        <div className="flex justify-between items-center gap-4 p-5 border-b border-[#8c734b]/40 bg-[#1a1a1f]">
+          <input
+            className="flex-1 min-w-0 bg-transparent outline-none text-xl font-serif text-[#d4b98c] border-b border-transparent focus:border-[#8c734b] uppercase tracking-wider"
+            value={node.data.label}
+            onChange={(e) => updateNodeData(node.id, { label: e.target.value })}
+            placeholder="Node Title"
+          />
+          <span className="text-xs text-gray-500 shrink-0">{wordCount} words</span>
+          <button
+            onClick={() => setFocusedNode(null)}
+            className="text-gray-500 hover:text-white px-3 py-1 uppercase tracking-widest text-sm shrink-0"
+            title="Return to canvas (Esc)"
+          >
+            ✕ Close
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-10 font-serif text-lg leading-loose">
+          <RichTextEditor
+            content={text}
+            onChange={(html) => {
+              if (usesManuscript) updateNodeData(node.id, { manuscript: html });
+              else updateNodeData(node.id, { content: html });
+            }}
+            textColor="#e5e7eb"
+            nodeId={node.id}
+          />
+        </div>
+      </div>
     </div>
   );
 }

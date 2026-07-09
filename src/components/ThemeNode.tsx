@@ -38,6 +38,7 @@ export function ThemeNode({ id, data, selected, type }: NodeProps<AppNode>) {
   const [isFlipped, setIsFlipped] = useState(false);
   const updateNodeData = useStore(state => state.updateNodeData);
   const updateNodeType = useStore(state => state.updateNodeType);
+  const setFocusedNode = useStore(state => state.setFocusedNode);
 
   // Word count milestone logic for chapters
   const textContent = nodeType === 'chapter' || nodeType === 'scene' ? (data.manuscript || '') : (data.content || '');
@@ -125,8 +126,8 @@ export function ThemeNode({ id, data, selected, type }: NodeProps<AppNode>) {
             </div>
             
             <div className={`flex-1 relative z-10 ${nodeType === 'region' ? 'opacity-0' : ''}`}>
-              <RichTextEditor 
-                content={textContent || ''} 
+              <RichTextEditor
+                content={textContent || ''}
                 onChange={(html) => {
                   if (['document', 'book', 'chapter', 'scene'].includes(nodeType)) {
                     updateNodeData(id, { manuscript: html });
@@ -135,6 +136,7 @@ export function ThemeNode({ id, data, selected, type }: NodeProps<AppNode>) {
                   }
                 }}
                 textColor={theme.textColor}
+                nodeId={id}
               />
             </div>
             
@@ -145,9 +147,21 @@ export function ThemeNode({ id, data, selected, type }: NodeProps<AppNode>) {
             </div>
           </div>
 
+          {/* Warp Focus Button - expand into fullscreen writing mode */}
+          {nodeType !== 'region' && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setFocusedNode(id); }}
+              className="absolute bottom-0 left-0 w-8 h-8 rounded-tr-lg bg-black/50 text-white flex items-center justify-center hover:bg-black/80 transition-colors z-20"
+              title="Expand (Warp Focus)"
+              style={{ borderTop: `1px solid ${theme.borderColor}`, borderRight: `1px solid ${theme.borderColor}` }}
+            >
+              ⤢
+            </button>
+          )}
+
           {/* Flip Button */}
           {nodeType !== 'region' && (
-            <button 
+            <button
               onClick={(e) => { e.stopPropagation(); setIsFlipped(true); }}
               className="absolute bottom-0 right-0 w-8 h-8 rounded-tl-lg bg-black/50 text-white flex items-center justify-center hover:bg-black/80 transition-colors z-20"
               title="Flip to Scratchpad"

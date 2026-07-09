@@ -29,6 +29,15 @@ export type Project = {
   snapshot_of?: string;
 };
 
+// A reversible canvas action. Text edits are NOT tracked here -- TipTap's own
+// history handles Ctrl+Z inside editors. This stack covers canvas operations
+// (moves, adds, deletes, connections); undo/redo re-run the normal persisting
+// actions so the DB stays in sync automatically.
+export type HistoryEntry = {
+  undo: () => void | Promise<void>;
+  redo: () => void | Promise<void>;
+};
+
 export type AppState = {
   projects: Project[];
   activeProjectId: string | null;
@@ -40,6 +49,21 @@ export type AppState = {
   saveError: string | null;
   clearSaveError: () => void;
   reportSaveError: (action: string, e: unknown) => void;
+  pendingSaves: number;
+  lastSavedAt: number | null;
+  beginSave: () => void;
+  endSave: () => void;
+  focusedNodeId: string | null;
+  setFocusedNode: (id: string | null) => void;
+  canUndo: boolean;
+  canRedo: boolean;
+  pushHistory: (entry: HistoryEntry) => void;
+  undo: () => Promise<void>;
+  redo: () => Promise<void>;
+  setNodePosition: (id: string, pos: { x: number; y: number }) => Promise<void>;
+  restoreEdge: (edge: Edge) => Promise<void>;
+  linkNodes: (sourceId: string, targetId: string) => Promise<void>;
+  updateEdgeLabel: (edgeId: string, label: string) => Promise<void>;
   previewMarkdown: string | null;
   setPreviewMarkdown: (md: string | null) => void;
   onNodesChange: OnNodesChange<AppNode>;
@@ -63,7 +87,17 @@ export type AppState = {
   importProjectJSON: (jsonString: string) => Promise<void>;
 };
 
+// Position saves and content saves get separate timer namespaces -- sharing one
+// map keyed by node id meant a drag could cancel a pending content save.
 const updateTimeouts: Record<string, ReturnType<typeof setTimeout>> = {};
+const contentTimeouts: Record<string, ReturnType<typeof setTimeout>> = {};
+
+const undoStack: HistoryEntry[] = [];
+const redoStack: HistoryEntry[] = [];
+const HISTORY_LIMIT = 100;
+// Suppresses pushHistory while an undo/redo is re-running store actions,
+// otherwise every undo would push itself back onto the stack.
+let isTimeTraveling = false;
 
 // Node titles are used to build auto-link regexes; escape them so titles
 // containing regex metacharacters (e.g. "Dr. Who (Clone)") don't throw.
@@ -84,6 +118,53 @@ export const useStore = create<AppState>((set, get) => ({
     const msg = e instanceof Error ? e.message : String(e);
     set({ saveError: `Failed to ${action}: ${msg}` });
   },
+  pendingSaves: 0,
+  lastSavedAt: null,
+  beginSave: () => set(s => ({ pendingSaves: s.pendingSaves + 1 })),
+  endSave: () => set(s => ({ pendingSaves: Math.max(0, s.pendingSaves - 1), lastSavedAt: Date.now() })),
+  focusedNodeId: null,
+  setFocusedNode: (id: string | null) => set({ focusedNodeId: id }),
+  canUndo: false,
+  canRedo: false,
+
+  pushHistory: (entry: HistoryEntry) => {
+    if (isTimeTraveling) return;
+    undoStack.push(entry);
+    if (undoStack.length > HISTORY_LIMIT) undoStack.shift();
+    redoStack.length = 0;
+    set({ canUndo: true, canRedo: false });
+  },
+
+  undo: async () => {
+    const entry = undoStack.pop();
+    if (!entry) return;
+    isTimeTraveling = true;
+    try {
+      await entry.undo();
+      redoStack.push(entry);
+    } catch (e) {
+      get().reportSaveError('undo', e);
+    } finally {
+      isTimeTraveling = false;
+      set({ canUndo: undoStack.length > 0, canRedo: redoStack.length > 0 });
+    }
+  },
+
+  redo: async () => {
+    const entry = redoStack.pop();
+    if (!entry) return;
+    isTimeTraveling = true;
+    try {
+      await entry.redo();
+      undoStack.push(entry);
+    } catch (e) {
+      get().reportSaveError('redo', e);
+    } finally {
+      isTimeTraveling = false;
+      set({ canUndo: undoStack.length > 0, canRedo: redoStack.length > 0 });
+    }
+  },
+
   previewMarkdown: null,
   setPreviewMarkdown: (md: string | null) => set({ previewMarkdown: md }),
 
@@ -103,11 +184,22 @@ export const useStore = create<AppState>((set, get) => ({
         : {}),
     });
 
+    if (removedNodes.length > 0) {
+      get().pushHistory({
+        undo: async () => {
+          for (const n of removedNodes) await get().restoreNode(n.id);
+        },
+        redo: () => get().onNodesChange(removedNodes.map(n => ({ type: 'remove' as const, id: n.id }))),
+      });
+    }
+
     changes.forEach(async (change) => {
       if (change.type === 'position' && change.position) {
         // Debounce position writes to avoid IPC flooding while dragging
         if (updateTimeouts[change.id]) clearTimeout(updateTimeouts[change.id]);
+        else get().beginSave();
         updateTimeouts[change.id] = setTimeout(async () => {
+          delete updateTimeouts[change.id];
           try {
             const { db } = await initDb();
             await db.update(nodesTable)
@@ -115,32 +207,55 @@ export const useStore = create<AppState>((set, get) => ({
               .where(eq(nodesTable.id, change.id));
           } catch (e) {
             get().reportSaveError('save node position', e);
+          } finally {
+            get().endSave();
           }
         }, 500);
       } else if (change.type === 'remove') {
+        get().beginSave();
         try {
           const { db } = await initDb();
           await db.update(nodesTable).set({ deleted_at: Date.now() }).where(eq(nodesTable.id, change.id));
         } catch (e) {
           get().reportSaveError('move node to trash', e);
+        } finally {
+          get().endSave();
         }
       }
     });
   },
 
   onEdgesChange: (changes: EdgeChange[]) => {
+    const prevEdges = get().edges;
+    const removedEdges = changes
+      .filter(c => c.type === 'remove')
+      .map(c => prevEdges.find(e => e.id === (c as { id: string }).id))
+      .filter((e): e is Edge => !!e);
+
     set({
-      edges: applyEdgeChanges(changes, get().edges),
+      edges: applyEdgeChanges(changes, prevEdges),
     });
+
+    if (removedEdges.length > 0) {
+      get().pushHistory({
+        undo: async () => {
+          for (const e of removedEdges) await get().restoreEdge(e);
+        },
+        redo: () => get().onEdgesChange(removedEdges.map(e => ({ type: 'remove' as const, id: e.id }))),
+      });
+    }
 
     // Handle edge removals
     changes.forEach(async (change) => {
       if (change.type === 'remove') {
+        get().beginSave();
         try {
           const { db } = await initDb();
           await db.delete(edgesTable).where(eq(edgesTable.id, change.id));
         } catch (e) {
           get().reportSaveError('delete connection', e);
+        } finally {
+          get().endSave();
         }
       }
     });
@@ -155,11 +270,17 @@ export const useStore = create<AppState>((set, get) => ({
     );
     if (alreadyConnected) return;
 
-    const edge = { ...connection, id: crypto.randomUUID() };
+    const edge = { ...connection, id: crypto.randomUUID(), data: { strength: 1 } };
     set({
       edges: addEdge(edge as any, get().edges),
     });
 
+    get().pushHistory({
+      undo: () => get().onEdgesChange([{ type: 'remove', id: edge.id }]),
+      redo: () => get().restoreEdge(edge as any),
+    });
+
+    get().beginSave();
     try {
       const { db } = await initDb();
       await db.insert(edgesTable).values({
@@ -171,6 +292,8 @@ export const useStore = create<AppState>((set, get) => ({
       });
     } catch (e) {
       get().reportSaveError('save connection', e);
+    } finally {
+      get().endSave();
     }
   },
 
@@ -181,6 +304,7 @@ export const useStore = create<AppState>((set, get) => ({
 
     // reconnectEdge keeps the edge's id in memory, so update the same DB row
     // instead of delete+insert (which left the two ids out of sync).
+    get().beginSave();
     try {
       const { db } = await initDb();
       await db.update(edgesTable)
@@ -188,11 +312,101 @@ export const useStore = create<AppState>((set, get) => ({
         .where(eq(edgesTable.id, oldEdge.id));
     } catch (e) {
       get().reportSaveError('save reconnected edge', e);
+    } finally {
+      get().endSave();
+    }
+  },
+
+  setNodePosition: async (id: string, pos: { x: number; y: number }) => {
+    set({ nodes: get().nodes.map(n => n.id === id ? { ...n, position: { ...pos } } : n) });
+    get().beginSave();
+    try {
+      const { db } = await initDb();
+      await db.update(nodesTable)
+        .set({ x_position: pos.x, y_position: pos.y })
+        .where(eq(nodesTable.id, id));
+    } catch (e) {
+      get().reportSaveError('save node position', e);
+    } finally {
+      get().endSave();
+    }
+  },
+
+  // Re-insert an edge that exists as a full object (undo of a deletion, or a
+  // programmatic link). Idempotent: skips if already present.
+  restoreEdge: async (edge: Edge) => {
+    if (get().edges.some(e => e.id === edge.id)) return;
+    set({ edges: [...get().edges, edge] });
+    get().beginSave();
+    try {
+      const { db } = await initDb();
+      await db.insert(edgesTable).values({
+        id: edge.id,
+        project_id: get().activeProjectId,
+        source_id: edge.source,
+        target_id: edge.target,
+        label: (edge.label as string) || '',
+        strength: (edge.data as any)?.strength || 1,
+      }).onConflictDoNothing();
+    } catch (e) {
+      get().reportSaveError('restore connection', e);
+    } finally {
+      get().endSave();
+    }
+  },
+
+  // Create a link between two nodes (used by @-mentions in the editor).
+  linkNodes: async (sourceId: string, targetId: string) => {
+    if (sourceId === targetId) return;
+    if (get().edges.some(e => e.source === sourceId && e.target === targetId)) return;
+    const edge = {
+      id: crypto.randomUUID(),
+      source: sourceId,
+      target: targetId,
+      sourceHandle: 'bottom',
+      targetHandle: 'top',
+      type: 'elastic',
+      animated: true,
+      data: { strength: 1 },
+      style: { stroke: '#fbbf24', strokeWidth: 2 },
+    } as unknown as Edge;
+    await get().restoreEdge(edge);
+    get().pushHistory({
+      undo: () => get().onEdgesChange([{ type: 'remove', id: edge.id }]),
+      redo: () => get().restoreEdge(edge),
+    });
+  },
+
+  updateEdgeLabel: async (edgeId: string, label: string) => {
+    const existing = get().edges.find(e => e.id === edgeId);
+    if (!existing) return;
+    const oldLabel = (existing.label as string) || '';
+    if (oldLabel === label) return;
+
+    set({ edges: get().edges.map(e => e.id === edgeId ? { ...e, label: label || undefined } : e) });
+    get().pushHistory({
+      undo: () => get().updateEdgeLabel(edgeId, oldLabel),
+      redo: () => get().updateEdgeLabel(edgeId, label),
+    });
+
+    get().beginSave();
+    try {
+      const { db } = await initDb();
+      await db.update(edgesTable).set({ label }).where(eq(edgesTable.id, edgeId));
+    } catch (e) {
+      get().reportSaveError('save connection name', e);
+    } finally {
+      get().endSave();
     }
   },
 
   addNode: async (node: AppNode) => {
     set({ nodes: [...get().nodes, node] });
+    get().pushHistory({
+      undo: () => get().deleteNode(node.id),
+      redo: () => get().restoreNode(node.id),
+    });
+    get().beginSave();
     try {
       const { db } = await initDb();
       await db.insert(nodesTable).values({
@@ -210,6 +424,8 @@ export const useStore = create<AppState>((set, get) => ({
       });
     } catch (e) {
       get().reportSaveError('save new node', e);
+    } finally {
+      get().endSave();
     }
   },
 
@@ -219,21 +435,25 @@ export const useStore = create<AppState>((set, get) => ({
       nodes: get().nodes.map(n => n.id === id ? { ...n, data: { ...n.data, ...data, updated_at: Date.now() } } : n)
     });
 
-    // 2. SPIDERWEB AUTO-LINKING: Check if they typed another node's name
+    // 2. SPIDERWEB AUTO-LINKING: Check if they typed another node's name.
+    // Mention count doubles as link strength: the more a title appears in this
+    // node's text, the thicker/brighter the edge renders.
     const newText = (data.content || data.manuscript || '').toLowerCase();
     if (newText.length > 5) {
       const allNodes = get().nodes;
       const currentEdges = get().edges;
       const newEdgesToCreate: any[] = [];
-      
+      const strengthUpdates: { id: string; strength: number }[] = [];
+      // Strip HTML tags for a clean regex search
+      const plainText = newText.replace(/<[^>]+>/g, '');
+
       allNodes.forEach(otherNode => {
         if (otherNode.id === id) return;
         const otherTitle = otherNode.data.label?.toLowerCase().trim();
         if (otherTitle && otherTitle.length > 2) { // Only auto-link words longer than 2 chars
-          // Strip HTML tags for a clean regex search
-          const plainText = newText.replace(/<[^>]+>/g, '');
-          const regex = new RegExp(`\\b${escapeRegExp(otherTitle)}\\b`, 'i');
-          if (regex.test(plainText)) {
+          const regex = new RegExp(`\\b${escapeRegExp(otherTitle)}\\b`, 'gi');
+          const occurrences = (plainText.match(regex) || []).length;
+          if (occurrences > 0) {
             // Found a match! Check if edge already exists
             const exists = currentEdges.some(e => e.source === id && e.target === otherNode.id);
             if (!exists) {
@@ -245,16 +465,23 @@ export const useStore = create<AppState>((set, get) => ({
                 targetHandle: 'top',
                 type: 'elastic',
                 animated: true,
+                data: { strength: occurrences },
                 style: { stroke: '#fbbf24', strokeWidth: 2 }
               };
               newEdgesToCreate.push(newEdge);
+            } else {
+              const existing = currentEdges.find(e => e.source === id && e.target === otherNode.id)!;
+              const currentStrength = (existing.data as any)?.strength || 1;
+              if (currentStrength !== occurrences) {
+                strengthUpdates.push({ id: existing.id, strength: occurrences });
+              }
             }
           }
         }
       });
 
       if (newEdgesToCreate.length > 0) {
-        set({ edges: [...currentEdges, ...newEdgesToCreate] });
+        set({ edges: [...get().edges, ...newEdgesToCreate] });
         // Save new edges to DB asynchronously
         initDb().then(async ({ db }) => {
           for (const edge of newEdgesToCreate) {
@@ -264,6 +491,7 @@ export const useStore = create<AppState>((set, get) => ({
                 project_id: get().activeProjectId,
                 source_id: edge.source,
                 target_id: edge.target,
+                strength: edge.data.strength,
               });
             } catch (e) {
               get().reportSaveError('save auto-link', e);
@@ -271,27 +499,51 @@ export const useStore = create<AppState>((set, get) => ({
           }
         });
       }
-    }
-    
-    // Debounce DB write to prevent IPC flooding on fast typing
-    if (updateTimeouts[id]) clearTimeout(updateTimeouts[id]);
-    
-    updateTimeouts[id] = setTimeout(async () => {
-      const latestNode = get().nodes.find(n => n.id === id);
-      if (!latestNode) return;
 
+      // Strength changes only fire when the count actually moved, so writing
+      // immediately doesn't flood the DB during normal typing.
+      if (strengthUpdates.length > 0) {
+        set({
+          edges: get().edges.map(e => {
+            const u = strengthUpdates.find(s => s.id === e.id);
+            return u ? { ...e, data: { ...e.data, strength: u.strength } } : e;
+          })
+        });
+        initDb().then(async ({ db }) => {
+          for (const u of strengthUpdates) {
+            try {
+              await db.update(edgesTable).set({ strength: u.strength }).where(eq(edgesTable.id, u.id));
+            } catch (e) {
+              get().reportSaveError('save link strength', e);
+            }
+          }
+        });
+      }
+    }
+
+    // Debounce DB write to prevent IPC flooding on fast typing
+    if (contentTimeouts[id]) clearTimeout(contentTimeouts[id]);
+    else get().beginSave();
+
+    contentTimeouts[id] = setTimeout(async () => {
+      delete contentTimeouts[id];
       try {
-        const { db } = await initDb();
-        await db.update(nodesTable).set({
-          title: latestNode.data.label,
-          content: latestNode.data.content || '',
-          manuscript: latestNode.data.manuscript || '',
-          notes: latestNode.data.notes || '',
-          metadata: latestNode.data.metadata || null,
-          updated_at: latestNode.data.updated_at || Date.now()
-        }).where(eq(nodesTable.id, id));
+        const latestNode = get().nodes.find(n => n.id === id);
+        if (latestNode) {
+          const { db } = await initDb();
+          await db.update(nodesTable).set({
+            title: latestNode.data.label,
+            content: latestNode.data.content || '',
+            manuscript: latestNode.data.manuscript || '',
+            notes: latestNode.data.notes || '',
+            metadata: latestNode.data.metadata || null,
+            updated_at: latestNode.data.updated_at || Date.now()
+          }).where(eq(nodesTable.id, id));
+        }
       } catch (e) {
         get().reportSaveError('save node content', e);
+      } finally {
+        get().endSave();
       }
     }, 500);
   },
@@ -300,30 +552,37 @@ export const useStore = create<AppState>((set, get) => ({
     set({
       nodes: get().nodes.map(n => n.id === id ? { ...n, type } : n)
     });
+    get().beginSave();
     try {
       const { db } = await initDb();
       await db.update(nodesTable).set({ node_type: type }).where(eq(nodesTable.id, id));
     } catch (e) {
       get().reportSaveError('save node type', e);
+    } finally {
+      get().endSave();
     }
   },
 
   updateNodeParent: async (id: string, parentId: string | null) => {
+    get().beginSave();
     try {
       const { db } = await initDb();
       await db.update(nodesTable).set({ parent_id: parentId }).where(eq(nodesTable.id, id));
     } catch (e) {
       get().reportSaveError('save node grouping', e);
+    } finally {
+      get().endSave();
     }
   },
 
   deleteNode: async (id: string) => {
-    // onNodesChange handles both the in-memory removal (into trashedNodes)
-    // and the soft delete in the DB.
+    // onNodesChange handles the in-memory removal (into trashedNodes), the
+    // soft delete in the DB, and the undo history entry.
     get().onNodesChange([{ type: 'remove', id }]);
   },
 
   restoreNode: async (id: string) => {
+    get().beginSave();
     try {
       const { db } = await initDb();
       await db.update(nodesTable).set({ deleted_at: null }).where(eq(nodesTable.id, id));
@@ -331,26 +590,45 @@ export const useStore = create<AppState>((set, get) => ({
       await get().setActiveProject(get().activeProjectId!);
     } catch (e) {
       get().reportSaveError('restore node', e);
+    } finally {
+      get().endSave();
     }
   },
 
   deleteProject: async (id: string) => {
     set({ projects: get().projects.map(p => p.id === id ? { ...p, deleted_at: Date.now() } : p) });
+    get().beginSave();
     try {
       const { db } = await initDb();
       await db.update(projectsTable).set({ deleted_at: Date.now() }).where(eq(projectsTable.id, id));
     } catch (e) {
       get().reportSaveError('move project to trash', e);
+    } finally {
+      get().endSave();
+    }
+
+    // Never leave the user staring at a trashed workspace: hop to another
+    // living project, or start a fresh one if none remain.
+    if (get().activeProjectId === id) {
+      const nextProject = get().projects.find(p => p.id !== id && !p.deleted_at);
+      if (nextProject) {
+        await get().setActiveProject(nextProject.id);
+      } else {
+        await get().createProject('Main Workspace');
+      }
     }
   },
 
   restoreProject: async (id: string) => {
     set({ projects: get().projects.map(p => p.id === id ? { ...p, deleted_at: undefined } : p) });
+    get().beginSave();
     try {
       const { db } = await initDb();
       await db.update(projectsTable).set({ deleted_at: null }).where(eq(projectsTable.id, id));
     } catch (e) {
       get().reportSaveError('restore project', e);
+    } finally {
+      get().endSave();
     }
   },
 
@@ -364,7 +642,7 @@ export const useStore = create<AppState>((set, get) => ({
 
     try {
     const { db } = await initDb();
-    
+
     // Insert new project
     await db.insert(projectsTable).values({
       id: newId,
@@ -372,7 +650,7 @@ export const useStore = create<AppState>((set, get) => ({
       updated_at: Date.now(),
       snapshot_of: currentId
     });
-    
+
     // Copy all nodes
     const allNodes = await db.select().from(nodesTable).where(eq(nodesTable.project_id, currentId));
     // Since IDs must be unique across the DB (or at least we want them to be), we need to map old node IDs to new ones
@@ -380,7 +658,7 @@ export const useStore = create<AppState>((set, get) => ({
     for (const node of allNodes) {
       idMap.set(node.id, crypto.randomUUID());
     }
-    
+
     for (const node of allNodes) {
       await db.insert(nodesTable).values({
         ...node,
@@ -389,7 +667,7 @@ export const useStore = create<AppState>((set, get) => ({
         parent_id: node.parent_id ? idMap.get(node.parent_id) : null,
       });
     }
-    
+
     // Copy all edges
     const allEdges = await db.select().from(edgesTable).where(eq(edgesTable.project_id, currentId));
     for (const edge of allEdges) {
@@ -403,7 +681,7 @@ export const useStore = create<AppState>((set, get) => ({
         });
       }
     }
-    
+
     set({ projects: [...get().projects, { id: newId, title, updated_at: Date.now(), snapshot_of: currentId }] });
     await get().setActiveProject(newId);
     } catch (e) {
@@ -428,12 +706,9 @@ export const useStore = create<AppState>((set, get) => ({
   loadInitialData: async () => {
     try {
       const { db } = await initDb();
-      
-      // Ensure migrations have run before loading data
-      // For this session, we assume runMigrations() was called in main.ts, but let's run it just in case
-      // Wait, let's just do standard queries.
+
       const dbProjects = await db.select().from(projectsTable);
-      
+
       // Never auto-select a trashed project
       const livingProjects = dbProjects.filter((p: any) => !p.deleted_at);
 
@@ -478,13 +753,13 @@ export const useStore = create<AppState>((set, get) => ({
           position: { x: n.x_position, y: n.y_position },
           parentId: n.parent_id || undefined,
           extent: n.parent_id ? 'parent' : undefined,
-          data: { 
-            label: n.title, 
-            content: n.content, 
-            manuscript: n.manuscript || '', 
-            notes: n.notes || '', 
+          data: {
+            label: n.title,
+            content: n.content,
+            manuscript: n.manuscript || '',
+            notes: n.notes || '',
             metadata: n.metadata,
-            updated_at: n.updated_at || Date.now() 
+            updated_at: n.updated_at || Date.now()
           },
         })),
         edges: dbEdges.map((e: any) => ({
@@ -492,6 +767,7 @@ export const useStore = create<AppState>((set, get) => ({
           source: e.source_id,
           target: e.target_id,
           label: e.label || undefined,
+          data: { strength: e.strength || 1 },
         })),
         isLoading: false,
       });
@@ -509,7 +785,7 @@ export const useStore = create<AppState>((set, get) => ({
     const activeNodes = dbNodes.filter((n: any) => !n.deleted_at);
     const trashedDbNodes = dbNodes.filter((n: any) => n.deleted_at);
     const dbEdges = await db.select().from(edgesTable).where(eq(edgesTable.project_id, id));
-    
+
     set({
       trashedNodes: trashedDbNodes.map((n: any) => ({
         id: n.id,
@@ -517,7 +793,7 @@ export const useStore = create<AppState>((set, get) => ({
         position: { x: n.x_position, y: n.y_position },
         parentId: n.parent_id || undefined,
         extent: n.parent_id ? 'parent' : undefined,
-        data: { label: n.title, content: n.content, manuscript: n.manuscript || '', notes: n.notes || '', updated_at: n.updated_at || Date.now() },
+        data: { label: n.title, content: n.content, manuscript: n.manuscript || '', notes: n.notes || '', metadata: n.metadata, updated_at: n.updated_at || Date.now() },
       })),
       nodes: activeNodes.map((n: any) => ({
         id: n.id,
@@ -525,13 +801,14 @@ export const useStore = create<AppState>((set, get) => ({
         position: { x: n.x_position, y: n.y_position },
         parentId: n.parent_id || undefined,
         extent: n.parent_id ? 'parent' : undefined,
-        data: { label: n.title, content: n.content, manuscript: n.manuscript || '', notes: n.notes || '', updated_at: n.updated_at || Date.now() },
+        data: { label: n.title, content: n.content, manuscript: n.manuscript || '', notes: n.notes || '', metadata: n.metadata, updated_at: n.updated_at || Date.now() },
       })),
       edges: dbEdges.map((e: any) => ({
         id: e.id,
         source: e.source_id,
         target: e.target_id,
         label: e.label || undefined,
+        data: { strength: e.strength || 1 },
       })),
       isLoading: false,
     });
@@ -561,25 +838,25 @@ export const useStore = create<AppState>((set, get) => ({
     try {
       const data = JSON.parse(jsonString);
       if (!data.project || !data.nodes || !data.edges) throw new Error('Invalid JSON structure');
-      
+
       const { db } = await initDb();
       const newProjectId = crypto.randomUUID();
-      
+
       // Insert new project
       await db.insert(projectsTable).values({
         id: newProjectId,
         title: `${data.project.title} (Imported)`,
         updated_at: Date.now()
       });
-      
+
       const idMap = new Map<string, string>();
-      
+
       // Insert all nodes with new IDs
       for (const node of data.nodes) {
         const newId = crypto.randomUUID();
         idMap.set(node.id, newId);
       }
-      
+
       for (const node of data.nodes) {
         const mappedParentId = node.parentId ? idMap.get(node.parentId) : null;
         await db.insert(nodesTable).values({
@@ -597,7 +874,7 @@ export const useStore = create<AppState>((set, get) => ({
           updated_at: Date.now()
         });
       }
-      
+
       // Insert edges mapped
       for (const edge of data.edges) {
         const mappedSource = idMap.get(edge.source);
@@ -608,11 +885,12 @@ export const useStore = create<AppState>((set, get) => ({
             project_id: newProjectId,
             source_id: mappedSource,
             target_id: mappedTarget,
-            label: edge.label || null
+            label: edge.label || null,
+            strength: edge.data?.strength || 1,
           });
         }
       }
-      
+
       // Load the imported project
       set({ projects: [...get().projects, { id: newProjectId, title: `${data.project.title} (Imported)`, updated_at: Date.now() }] });
       await get().setActiveProject(newProjectId);

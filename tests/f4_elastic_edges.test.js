@@ -34,9 +34,11 @@ test('F4-3: ElasticEdge defines MAX_STRETCH distance limit', () => {
 
 test('F4-4: ElasticEdge decreases strokeWidth as tension increases', () => {
   const content = fs.readFileSync(elasticEdgePath, 'utf8');
+  // Width starts from a strength-based base (thicker for stronger links) and
+  // thins under tension, never below 0.5px
   assert.ok(
-    /strokeWidth\s*=\s*Math\.max\(0\.5,\s*2\s*-\s*\(tension\s*\*\s*1\.5\)\)/.test(content),
-    'Expected strokeWidth to decrease dynamically from 2 to 0.5 based on tension'
+    /strokeWidth\s*=\s*Math\.max\(0\.5,\s*baseWidth\s*-\s*\(tension\s*\*\s*1\.5\)\)/.test(content),
+    'Expected strokeWidth to decrease dynamically from its strength base based on tension'
   );
 });
 

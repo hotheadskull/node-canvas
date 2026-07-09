@@ -30,4 +30,7 @@ export const edges = sqliteTable('edges', {
   source_id: text('source_id').notNull(),
   target_id: text('target_id').notNull(),
   label: text('label'),
+  // How many times the target's title is mentioned in the source's text --
+  // drives edge thickness/glow so well-trodden connections look load-bearing
+  strength: integer('strength').default(1),
 });
