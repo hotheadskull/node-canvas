@@ -75,8 +75,19 @@ export async function runMigrations() {
         .filter(s => s.length > 0);
         
       for (const statement of statements) {
-        // Also remove any lingering trailing semicolons or comments if needed
-        await tauriDb.execute(statement);
+        try {
+          await tauriDb.execute(statement);
+        } catch (e: any) {
+          // Self-heal partially-applied migrations: if a column/table already
+          // exists, that statement is already done -- skip it. Any other
+          // error is real and must abort the migration.
+          const msg = String(e).toLowerCase();
+          if (msg.includes('duplicate column name') || msg.includes('already exists')) {
+            console.warn(`Skipping already-applied statement in ${baseName}: ${msg}`);
+            continue;
+          }
+          throw e;
+        }
       }
       
       await tauriDb.execute('INSERT INTO __drizzle_migrations (filename) VALUES ($1)', [baseName]);
