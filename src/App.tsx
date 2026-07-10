@@ -35,7 +35,8 @@ import { AliasNode } from './components/AliasNode';
 import { MasterNode } from './components/MasterNode';
 import { LogicNode } from './components/LogicNode';
 import { DeckNode } from './components/DeckNode';
-import { PrintNode } from './components/PrintNode';
+import { CompileNode } from './components/CompileNode';
+import { CrucibleNode } from './components/CrucibleNode';
 import { LiveConnectionLine } from './components/LiveConnectionLine';
 
 // Generate a random starfield SVG as a data URI for seamless background tiling
@@ -210,7 +211,8 @@ const nodeTypes = {
   group: GroupNode,
   logic: LogicNode,
   deck: DeckNode,
-  print: PrintNode,
+  print: CompileNode,
+  crucible: CrucibleNode,
   alias: AliasNode,
 
   default: ThemeNode,

@@ -117,7 +117,8 @@ export function CreateNodeMenu({ onCreate }: CreateNodeMenuProps) {
           <MenuItem type="task" title="Progress Checklist" description="Check things off; tracks completion" colorClass="text-[#fb923c]" borderClass="hover:border-[#9a3412]" />
           <MenuItem type="group" title="Group Zone" description="A visual container to group nodes" colorClass="text-[#a855f7]" borderClass="hover:border-[#4c1d95]" />
           <MenuItem type="deck" title="The Deck" description="Drop idea nodes here to stack them" colorClass="text-[#f43f5e]" borderClass="hover:border-[#881337]" />
-          <MenuItem type="print" title="Master Print Node" description="Connect nodes in order to export" colorClass="text-[#6366f1]" borderClass="hover:border-[#3730a3]" />
+          <MenuItem type="crucible" title="Crucible Node" description="Combine characters & locations for conflict" colorClass="text-[#ef4444]" borderClass="hover:border-[#991b1b]" />
+          <MenuItem type="print" title="Compile & Export Node" description="Connect nodes in order to export" colorClass="text-[#6366f1]" borderClass="hover:border-[#3730a3]" />
 
         </div>
       )}

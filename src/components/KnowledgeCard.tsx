@@ -1,10 +1,10 @@
-import { memo } from 'react';
-import { NodeProps } from '@xyflow/react';
+import { memo, useState } from 'react';
+import { NodeProps, useReactFlow } from '@xyflow/react';
 import { useStore, AppNode } from '../store/useStore';
 import { RichTextEditor } from './RichTextEditor';
 import { BaseNode } from './BaseNode';
 import { 
-  User, 
+  User,  
   MapPin, 
   Shield, 
   CalendarClock, 
@@ -30,7 +30,6 @@ const KINDS: Record<string, any> = {
   citation: { label: 'Citation', icon: BookOpen, color: '#f59e0b' },
 };
 
-const WRITING_TYPES = ['document', 'book', 'chapter', 'scene', 'master'];
 
 export const KnowledgeCard = memo(({ id, data, selected, type }: NodeProps<AppNode>) => {
   const nodeType = type || 'reference';
@@ -41,30 +40,37 @@ export const KnowledgeCard = memo(({ id, data, selected, type }: NodeProps<AppNo
   const updateNodeType = useStore(state => state.updateNodeType);
   const edges = useStore(state => state.edges);
   const allNodes = useStore(state => state.nodes);
+  const { setCenter } = useReactFlow();
+
+  const [activeTab, setActiveTab] = useState<'notes'|'connections'|'arc'>('notes');
 
   const meta = data.metadata || {};
   const aliases: string = meta.aliases || '';
 
-  // APPEARS IN Logic
+  // GATHER ALL CONNECTIONS
   const aliasPinIds = allNodes
     .filter(n => n.type === 'alias' && n.data?.metadata?.targetId === id)
     .map(n => n.id);
   const myIds = new Set([id, ...aliasPinIds]);
-  const appearsInGroups: Record<string, AppNode[]> = {};
+  const connectedNodes: Record<string, AppNode[]> = {};
   
   for (const e of edges) {
     if (!myIds.has(e.source) && !myIds.has(e.target)) continue;
     const otherId = myIds.has(e.source) ? e.target : e.source;
     const node = allNodes.find(n => n.id === otherId);
-    if (!node || !WRITING_TYPES.includes(node.type || '')) continue;
+    if (!node) continue;
     
     const eType = (e.data as any)?.edgeType || 'references';
-    if (!appearsInGroups[eType]) appearsInGroups[eType] = [];
-    if (!appearsInGroups[eType].find(n => n.id === node.id)) {
-      appearsInGroups[eType].push(node);
+    if (!connectedNodes[eType]) connectedNodes[eType] = [];
+    if (!connectedNodes[eType].find(n => n.id === node.id)) {
+      connectedNodes[eType].push(node);
     }
   }
-  const hasAppearsIn = Object.keys(appearsInGroups).length > 0;
+
+  const handleJumpToNode = (targetNode: AppNode) => {
+    // Offset slightly so it's not hidden behind panels
+    setCenter(targetNode.position.x + 100, targetNode.position.y + 100, { zoom: 1.2, duration: 800 });
+  };
 
   return (
     <BaseNode
@@ -102,37 +108,103 @@ export const KnowledgeCard = memo(({ id, data, selected, type }: NodeProps<AppNo
         />
       </div>
 
-      {/* Body Content */}
-      <div className="flex-1 min-h-0 px-3 py-2 bg-[#1a1a24]/30">
-        <RichTextEditor
-          content={data.content || ''}
-          onChange={(html) => updateNodeData(id, { content: html })}
-          textColor="#d1d5db"
-          nodeId={id}
-        />
-      </div>
+      {/* Body Content based on Tab */}
+      {activeTab === 'notes' && (
+        <div className="flex-1 min-h-0 px-3 py-2 bg-[#1a1a24]/30">
+          <RichTextEditor
+            content={data.content || ''}
+            onChange={(html) => updateNodeData(id, { content: html })}
+            textColor="#d1d5db"
+            nodeId={id}
+          />
+        </div>
+      )}
 
-      {/* Appears in Footer */}
-      {hasAppearsIn && (
-        <div className="px-3 py-2 border-t border-[#2a2a35] bg-black/20 flex flex-col gap-1.5 pointer-events-none">
-          {Object.entries(appearsInGroups).map(([type, nodes]) => {
+      {activeTab === 'connections' && (
+        <div className="flex-1 min-h-0 p-3 bg-[#1a1a24]/30 overflow-y-auto flex flex-col gap-3" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          {Object.keys(connectedNodes).length === 0 && (
+            <div className="text-[10px] text-gray-500 italic text-center mt-4">No connections yet.</div>
+          )}
+          {Object.entries(connectedNodes).map(([type, nodes]) => {
             const def = EDGE_TYPES[type] || EDGE_TYPES['references'];
             return (
-              <div key={type} className="flex flex-wrap items-center gap-1">
-                <span className="text-[9px] uppercase tracking-widest mr-1" style={{ color: def.color }}>
+              <div key={type} className="flex flex-col gap-1">
+                <span className="text-[9px] uppercase tracking-widest font-bold" style={{ color: def.color }}>
                   {def.label}
                 </span>
-                {nodes.slice(0, 5).map(n => (
-                  <span key={n.id} className="text-[9px] px-1.5 py-0.5 rounded-full border bg-black/40 truncate max-w-[100px]" style={{ borderColor: def.color, color: '#e5e7eb' }}>
-                    {n.data.label || 'Untitled'}
-                  </span>
-                ))}
-                {nodes.length > 5 && <span className="text-[9px] text-gray-500">+{nodes.length - 5}</span>}
+                <div className="flex flex-col gap-1">
+                  {nodes.map(n => (
+                    <button 
+                      key={n.id} 
+                      onClick={(e) => { e.stopPropagation(); handleJumpToNode(n); }}
+                      className="text-[10px] px-2 py-1 rounded border bg-black/40 text-left hover:bg-white/10 transition-colors truncate" 
+                      style={{ borderColor: def.color, color: '#e5e7eb' }}
+                    >
+                      {n.data.label || 'Untitled'}
+                    </button>
+                  ))}
+                </div>
               </div>
             );
           })}
         </div>
       )}
+
+      {activeTab === 'arc' && (
+        <div className="flex-1 min-h-0 p-3 bg-[#1a1a24]/30 overflow-y-auto flex flex-col gap-3" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div>
+            <div className="text-[10px] font-bold text-[#ef4444] uppercase tracking-widest mb-1">The Lie (Flaw)</div>
+            <textarea
+              className="w-full bg-[#151518] border border-[#2a2a35] rounded p-2 text-xs text-red-100/90 resize-none focus:outline-none focus:border-red-500 font-serif transition-colors shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]"
+              rows={2}
+              value={meta.arcLie || ''}
+              onChange={(e) => updateNodeData(id, { metadata: { ...meta, arcLie: e.target.value } })}
+              placeholder="What false belief holds them back?"
+              onPointerDown={(e) => e.stopPropagation()}
+            />
+          </div>
+          <div>
+            <div className="text-[10px] font-bold text-[#10b981] uppercase tracking-widest mb-1">The Truth (Growth)</div>
+            <textarea
+              className="w-full bg-[#151518] border border-[#2a2a35] rounded p-2 text-xs text-green-100/90 resize-none focus:outline-none focus:border-green-500 font-serif transition-colors shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]"
+              rows={2}
+              value={meta.arcTruth || ''}
+              onChange={(e) => updateNodeData(id, { metadata: { ...meta, arcTruth: e.target.value } })}
+              placeholder="What must they realize to succeed?"
+              onPointerDown={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Tabs Footer */}
+      <div className="flex bg-black/40 border-t border-[#2a2a35] text-[9px] uppercase font-bold tracking-widest text-gray-500 shrink-0">
+        <button 
+          onClick={() => setActiveTab('notes')} 
+          className={`flex-1 py-1.5 hover:bg-white/5 transition-colors ${activeTab === 'notes' ? 'text-white bg-white/10' : ''}`}
+        >
+          Notes
+        </button>
+        <button 
+          onClick={() => setActiveTab('connections')} 
+          className={`flex-1 py-1.5 hover:bg-white/5 transition-colors flex items-center justify-center gap-1 ${activeTab === 'connections' ? 'text-white bg-white/10' : ''}`}
+        >
+          Links
+          {Object.keys(connectedNodes).length > 0 && (
+            <span className="bg-[#3b82f6] text-white px-1 rounded-full text-[8px] leading-tight">
+              {Object.values(connectedNodes).flat().length}
+            </span>
+          )}
+        </button>
+        {nodeType === 'character' && (
+          <button 
+            onClick={() => setActiveTab('arc')} 
+            className={`flex-1 py-1.5 hover:bg-white/5 transition-colors ${activeTab === 'arc' ? 'text-white bg-white/10' : ''}`}
+          >
+            Arc
+          </button>
+        )}
+      </div>
     </BaseNode>
   );
 });
