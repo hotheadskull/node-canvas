@@ -84,9 +84,7 @@ export const BaseNode = memo(({
 
         {/* Main Container */}
         <div 
-          className={`relative w-full h-full flex flex-col bg-[#151518] text-white rounded-md transition-colors duration-200 overflow-hidden border-2
-            ${selected ? 'scale-[1.01]' : ''}
-          `} 
+          className="relative w-full h-full flex flex-col bg-[#151518] text-white rounded-md transition-colors duration-200 overflow-hidden border-2"
           style={{ 
             borderColor: selected ? accentColor : `${accentColor}40`,
             boxShadow: selected ? `0 20px 40px ${accentColor}33` : '0 10px 30px rgba(0,0,0,0.5)'
