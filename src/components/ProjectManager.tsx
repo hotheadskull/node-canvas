@@ -261,6 +261,7 @@ export function ProjectManager() {
                     <span className="text-[10px] text-gray-400 font-sans normal-case tracking-normal">Start a completely fresh universe from scratch.</span>
                   </button>
                 )}
+                
               </div>
               <div className="mt-2 p-3 bg-indigo-900/20 border border-indigo-500/30 rounded text-center">
                 <span className="text-[11px] text-indigo-200/80 font-sans">

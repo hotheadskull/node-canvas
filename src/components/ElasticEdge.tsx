@@ -1,4 +1,4 @@
-import { BaseEdge, EdgeLabelRenderer, EdgeProps, useInternalNode } from '@xyflow/react';
+import { BaseEdge, EdgeLabelRenderer, EdgeProps, useInternalNode, getSmoothStepPath } from '@xyflow/react';
 import { Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { getEdgeParams } from '../utils/edgeUtils';
@@ -62,8 +62,7 @@ export function ElasticEdge({
     return null;
   }
 
-  // Floating edge dynamic coordinates
-  const { sx, sy, tx, ty } = getEdgeParams(sourceNode, targetNode);
+  const { sx, sy, tx, ty, sourcePos, targetPos } = getEdgeParams(sourceNode, targetNode);
 
   // Calculate Euclidean distance between source and target
   const distance = Math.hypot(tx - sx, ty - sy);
@@ -74,18 +73,15 @@ export function ElasticEdge({
   const MAX_STRETCH = 800;
   const TENSION_START = 400; // Distance where it starts turning red
 
-  // FAN-OUT: each edge bows by a small, stable offset derived from its id so
-  // several edges converging on a busy node separate instead of knotting.
-  const idHash = id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-  const bow = ((idHash % 7) - 3) * 9; // -27..27px perpendicular offset
-  const nx = distance > 0 ? -(ty - sy) / distance : 0; // unit perpendicular
-  const ny = distance > 0 ? (tx - sx) / distance : 0;
-  const cx = (sx + tx) / 2 + nx * bow;
-  const cy = (sy + ty) / 2 + ny * bow;
-  const edgePath = `M ${sx},${sy} Q ${cx},${cy} ${tx},${ty}`;
-  // Quadratic bezier midpoint (t = 0.5) for the label/editor position
-  const labelX = 0.25 * sx + 0.5 * cx + 0.25 * tx;
-  const labelY = 0.25 * sy + 0.5 * cy + 0.25 * ty;
+  const [edgePath, labelX, labelY] = getSmoothStepPath({
+    sourceX: sx,
+    sourceY: sy,
+    targetX: tx,
+    targetY: ty,
+    sourcePosition: sourcePos,
+    targetPosition: targetPos,
+    borderRadius: 15,
+  });
 
   // Calculate tension percentage (0 to 1)
   const tension = Math.max(0, Math.min(1, (distance - TENSION_START) / (MAX_STRETCH - TENSION_START)));

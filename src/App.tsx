@@ -13,13 +13,14 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useStore, AppNode } from './store/useStore';
+import { getLayoutedElements } from './utils/layout';
 import { ThemeNode } from './components/ThemeNode';
 import { ElasticEdge } from './components/ElasticEdge';
 import { CreateNodeMenu } from './components/CreateNodeMenu';
 import { CanvasSearch } from './components/CanvasSearch';
 import { ProjectManager } from './components/ProjectManager';
 import './App.css';
-import { Trash2, Undo2, Redo2, Anchor, Crosshair, CircleDashed } from 'lucide-react';
+import { Trash2, Undo2, Redo2, Anchor, Crosshair, CircleDashed, Wand } from 'lucide-react';
 import { RichTextEditor } from './components/RichTextEditor';
 import { CommandPalette } from './components/CommandPalette';
 import { EDGE_TYPES, edgeTypeOf } from './utils/edgeTypes';
@@ -651,6 +652,16 @@ function FlowCanvas() {
         >
           <DynamicCanvasBackground />
           <Controls>
+            <ControlButton
+              onClick={async () => {
+                const { nodes: layoutedNodes } = await getLayoutedElements(useStore.getState().nodes, useStore.getState().edges);
+                await useStore.getState().applyLayout(layoutedNodes as AppNode[]);
+                setCenter(0, 0, { zoom: 0.6, duration: 800 });
+              }}
+              title="Clean Up Board (Auto-Layout)"
+            >
+              <Wand size={14} className="text-[#f0c050]" />
+            </ControlButton>
             <ControlButton
               onClick={() => { if (selectedNodeId) useStore.getState().setAnchor(selectedNodeId); }}
               title="Pin selected node as the Anchor (Big Idea)"

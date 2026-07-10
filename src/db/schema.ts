@@ -29,6 +29,8 @@ export const edges = sqliteTable('edges', {
   project_id: text('project_id').references(() => projects.id, { onDelete: 'cascade' }),
   source_id: text('source_id').notNull(),
   target_id: text('target_id').notNull(),
+  source_handle: text('source_handle'),
+  target_handle: text('target_handle'),
   label: text('label'),
   // How many times the target's title is mentioned in the source's text --
   // drives edge thickness/glow so well-trodden connections look load-bearing

@@ -81,7 +81,21 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
       }
       scored.push({ node, score, snippet });
     }
-    return scored.sort((a, b) => b.score - a.score).slice(0, 8);
+    
+    let finalResults = scored.sort((a, b) => b.score - a.score).slice(0, 8);
+    
+    if (q === 'demo' || q === '> demo') {
+      finalResults = [
+        {
+          node: { id: 'demo-cmd', type: '✨ command', data: { label: 'Load Demo Universe' }, position: { x: 0, y: 0 } } as any,
+          score: 100,
+          snippet: 'Generates The Chronos Paradox demo project.'
+        },
+        ...finalResults
+      ];
+    }
+    
+    return finalResults;
   }, [query, nodes]);
 
   const jumpTo = (node: AppNode) => {
@@ -109,8 +123,10 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
               if (e.key === 'ArrowDown') { e.preventDefault(); setSelectedIndex(i => Math.min(i + 1, results.length - 1)); }
               else if (e.key === 'ArrowUp') { e.preventDefault(); setSelectedIndex(i => Math.max(i - 1, 0)); }
               else if (e.key === 'Enter') { 
-                if (query.trim() === '> demo') {
-                  generateDemoProject();
+                if (query.trim() === '> demo' || results[selectedIndex]?.node?.id === 'demo-cmd') {
+                  generateDemoProject().then(() => {
+                    setTimeout(() => setCenter(0, -400, { zoom: 0.6, duration: 800 }), 100);
+                  });
                   onClose();
                 } else if (results[selectedIndex]) { 
                   jumpTo(results[selectedIndex].node); 
@@ -122,18 +138,24 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
           <kbd className="text-[9px] text-gray-600 border border-[#2a2a35] rounded px-1.5 py-0.5">ESC</kbd>
         </div>
         <div className="max-h-[320px] overflow-y-auto py-1">
-          {results.length === 0 && query.trim() !== '> demo' && (
+          {results.length === 0 && (
             <div className="px-4 py-6 text-center text-xs text-gray-600">No matching nodes</div>
-          )}
-          {query.trim() === '> demo' && (
-            <div className="px-4 py-6 text-center text-xs text-yellow-500">Press ENTER to generate demo project</div>
           )}
           {results.map((r, i) => (
             <button
               key={r.node.id}
               className={`palette-item ${i === selectedIndex ? 'is-selected' : ''}`}
               onMouseEnter={() => setSelectedIndex(i)}
-              onClick={() => jumpTo(r.node)}
+              onClick={() => {
+                if (r.node.id === 'demo-cmd') {
+                  generateDemoProject().then(() => {
+                    setTimeout(() => setCenter(0, -400, { zoom: 0.6, duration: 800 }), 100);
+                  });
+                  onClose();
+                } else {
+                  jumpTo(r.node);
+                }
+              }}
             >
               <span className="palette-type">{r.node.type || 'node'}</span>
               <span className="flex-1 truncate text-left">{r.node.data.label || 'Untitled'}</span>

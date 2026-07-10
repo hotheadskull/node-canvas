@@ -3,6 +3,7 @@ import { Handle, Position, NodeProps } from '@xyflow/react';
 import { Printer, Download } from 'lucide-react';
 import { useStore, AppNode } from '../store/useStore';
 import { BaseNode } from './BaseNode';
+import { compileManuscript } from '../utils/compiler';
 
 export const CompileNode = memo(({ id, data, selected }: NodeProps<AppNode>) => {
   const updateNodeData = useStore(state => state.updateNodeData);
@@ -19,39 +20,7 @@ export const CompileNode = memo(({ id, data, selected }: NodeProps<AppNode>) => 
   };
 
   const generateMarkdown = () => {
-    const orderedNodes: any[] = [];
-    
-    slots.forEach(slotNumber => {
-      const connectingEdge = edges.find(e => e.target === id && e.targetHandle === `slot-${slotNumber}`);
-      if (connectingEdge) {
-        const sourceNode = nodes.find(n => n.id === connectingEdge.source);
-        if (sourceNode) {
-          orderedNodes.push(sourceNode);
-        }
-      }
-    });
-
-    if (orderedNodes.length === 0) {
-      alert("No nodes connected to the compile slots!");
-      return null;
-    }
-
-    let markdown = `# ${data.label || 'Exported Manuscript'}\n\n`;
-    
-    orderedNodes.forEach((node, index) => {
-      markdown += `## ${node.data.label || `Section ${index + 1}`}\n\n`;
-      let text = node.data.content || '';
-      text = text.replace(/<p>/g, '').replace(/<\/p>/g, '\n\n');
-      text = text.replace(/<br>/g, '\n');
-      text = text.replace(/<[^>]*>?/gm, ''); // Strip remaining HTML
-      markdown += `${text}\n\n`;
-      
-      if (node.data.manuscript) {
-        markdown += `${node.data.manuscript}\n\n`;
-      }
-    });
-    
-    return markdown;
+    return compileManuscript(id, nodes, edges);
   };
 
   const handlePreview = () => {

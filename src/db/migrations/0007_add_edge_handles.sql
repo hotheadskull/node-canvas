@@ -1,0 +1,2 @@
+ALTER TABLE `edges` ADD `source_handle` text;
+ALTER TABLE `edges` ADD `target_handle` text;

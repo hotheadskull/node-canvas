@@ -17,6 +17,7 @@ import { initDb } from '../db';
 import { nodes as nodesTable, edges as edgesTable, projects as projectsTable } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { DEFAULT_EDGE_TYPE, EDGE_TYPES } from '../utils/edgeTypes';
+import { getDemoData } from './demoData';
 
 export type AppNode = Node & {
   data: { label: string; content?: string; manuscript?: string; notes?: string; metadata?: any; updated_at?: number };
@@ -89,6 +90,7 @@ export type AppState = {
   exportProjectJSON: () => Promise<string>;
   importProjectJSON: (jsonString: string) => Promise<void>;
   generateDemoProject: () => Promise<void>;
+  applyLayout: (layoutedNodes: AppNode[]) => Promise<void>;
 };
 
 // Position saves and content saves get separate timer namespaces -- sharing one
@@ -571,7 +573,10 @@ export const useStore = create<AppState>((set, get) => ({
                 project_id: get().activeProjectId,
                 source_id: edge.source,
                 target_id: edge.target,
+                source_handle: edge.sourceHandle || null,
+                target_handle: edge.targetHandle || null,
                 strength: edge.data.strength,
+                edge_type: edge.data.edgeType || DEFAULT_EDGE_TYPE
               });
             } catch (e) {
               get().reportSaveError('save auto-link', e);
@@ -833,6 +838,7 @@ export const useStore = create<AppState>((set, get) => ({
           position: { x: n.x_position, y: n.y_position },
           parentId: n.parent_id || undefined,
           extent: n.parent_id ? 'parent' : undefined,
+          style: n.metadata?.width ? { width: n.metadata.width, height: n.metadata.height } : undefined,
           data: {
             label: n.title,
             content: n.content,
@@ -846,6 +852,8 @@ export const useStore = create<AppState>((set, get) => ({
           id: e.id,
           source: e.source_id,
           target: e.target_id,
+          sourceHandle: e.source_handle || undefined,
+          targetHandle: e.target_handle || undefined,
           label: e.label || undefined,
           data: { strength: e.strength || 1, edgeType: e.edge_type || DEFAULT_EDGE_TYPE },
         })),
@@ -881,12 +889,15 @@ export const useStore = create<AppState>((set, get) => ({
         position: { x: n.x_position, y: n.y_position },
         parentId: n.parent_id || undefined,
         extent: n.parent_id ? 'parent' : undefined,
+        style: n.metadata?.width ? { width: n.metadata.width, height: n.metadata.height } : undefined,
         data: { label: n.title, content: n.content, manuscript: n.manuscript || '', notes: n.notes || '', metadata: n.metadata, updated_at: n.updated_at || Date.now() },
       })),
       edges: dbEdges.map((e: any) => ({
         id: e.id,
         source: e.source_id,
         target: e.target_id,
+        sourceHandle: e.source_handle || undefined,
+        targetHandle: e.target_handle || undefined,
         label: e.label || undefined,
         data: { strength: e.strength || 1, edgeType: e.edge_type || DEFAULT_EDGE_TYPE },
       })),
@@ -985,102 +996,67 @@ export const useStore = create<AppState>((set, get) => ({
     try {
       const { db } = await initDb();
       const pId = crypto.randomUUID();
-      await db.insert(projectsTable).values({ id: pId, title: 'Demo: The Iron Saga', updated_at: Date.now() });
+      await db.insert(projectsTable).values({ id: pId, title: 'Demo: The Chronos Paradox', updated_at: Date.now() });
 
-      const n = Array.from({ length: 25 }).map(() => crypto.randomUUID());
-
-      const nodes = [
-        { id: n[0], type: 'master', label: 'The Iron Saga', x: 0, y: -800, logline: 'A kingdom falls to a usurper, and the heir must gather ancient relics to reclaim the throne.', theme: 'Betrayal', audience: 'Fantasy', content: 'Core concept mapping.' },
-        
-        { id: n[1], type: 'document', label: 'Book 1: The Fall', x: -400, y: -400, func: 'none', content: '<p>The kingdom fractures.</p>', tags: '#epic' },
-        { id: n[2], type: 'document', label: 'Chapter 1: Ash', x: -600, y: 0, func: 'action', content: '<p>The night the keep fell.</p>', tags: '#action' },
-        { id: n[3], type: 'scene', label: 'Scene: The King dies', x: -800, y: 400, func: 'climax', content: '<p>Aldric is betrayed by Kaelen.</p>', tags: '#climax' },
-        
-        { id: n[4], type: 'character', label: 'Aldric', aliases: 'Iron King', x: 400, y: -400, func: 'royal', content: '<p>The stern ruler.</p>', tags: '#royal', stats: [{key: 'Age', value: '45'}, {key: 'Weapon', value: 'Broadsword'}] },
-        { id: n[5], type: 'character', label: 'Kaelen', aliases: 'The Usurper', x: 800, y: -400, func: 'villain', content: '<p>Ambitious and ruthless.</p>', tags: '#villain', stats: [{key: 'Age', value: '38'}, {key: 'Motive', value: 'Jealousy'}] },
-        
-        { id: n[6], type: 'location', label: 'The Iron Keep', aliases: '', x: 600, y: -100, func: 'setting', content: '<p>Black stone fortress.</p>', tags: '#setting', stats: [{key: 'Region', value: 'The North'}, {key: 'Defense', value: 'High'}] },
-        
-        { id: n[7], type: 'lore', label: 'The Blood Oath', aliases: '', x: 1200, y: 0, func: 'magic', content: '<p>A magical contract.</p>', tags: '#magic' },
-        { id: n[8], type: 'item', label: 'The Ashen Crown', aliases: '', x: 1000, y: -200, func: 'artifact', content: '<p>The symbol of rule.</p>', tags: '#artifact', stats: [{key: 'Material', value: 'Meteoric Iron'}] },
-        
-        { id: n[9], type: 'quote', label: 'To hold power is to hold fire.', aliases: '', x: -800, y: 800, func: 'quote', content: '<p>To hold power is to hold fire. It warms the house, but if left unchecked, it burns it down.</p>', tags: '#theme', author: 'The First King', sourceUrl: 'Chronicles, p.14' },
-        
-        { id: n[10], type: 'task', label: 'Worldbuilding Tasks', aliases: '', x: -1200, y: -600, func: 'none', content: '', tags: '#todo', tasks: [{label: 'Map the Northern Reaches', completed: true}, {label: 'Detail the magic system', completed: false}] },
-        
-        { id: n[11], type: 'sequence', label: 'The Usurpers Path', aliases: '', x: 1400, y: 400, func: 'none', content: '', tags: '', beats: [{id: 'b1', title: 'The Betrayal', subtitle: 'At the feast'}, {id: 'b2', title: 'The Escape', subtitle: 'Through the crypts'}] },
-        
-        { id: n[12], type: 'hub', label: 'Character Connections', aliases: '', x: 600, y: -700, func: 'none', content: '', tags: '' },
-        
-        { id: n[13], type: 'logic', label: 'If Aldric dies -> Rebellion', aliases: '', x: 1200, y: 800, func: 'none', content: '', tags: '', premises: ['Aldric is loved by the peasants', 'Kaelen has no royal blood'], conclusion: 'The Northern Lords will immediately rebel against Kaelen' },
-        
-        { id: n[14], type: 'deck', label: 'Key Artifacts', aliases: '', x: 1400, y: -400, func: 'none', content: '', tags: '', cards: [{label: 'The Crown', content: 'Forged from stars'}, {label: 'The Blade', content: 'Lost in the sea'}] },
-        
-        { id: n[15], type: 'alias', label: 'Aldric', aliases: '', x: -1100, y: 400, func: 'none', content: '', tags: '', targetId: n[4] },
-        { id: n[16], type: 'print', label: 'Export Draft', aliases: '', x: -900, y: -800, func: 'none', content: '', tags: '', slotCount: 3 }
-      ];
+      const { nodes, edges } = getDemoData(pId);
 
       for (const node of nodes as any[]) {
         await db.insert(nodesTable).values({
           id: node.id,
           project_id: pId,
+          parent_id: node.parentId || null,
           title: node.label,
           node_type: node.type,
           x_position: node.x,
           y_position: node.y,
-          content: node.content,
-          metadata: { 
-            function: node.func, 
-            tags: node.tags, 
-            aliases: node.aliases || '', 
-            targetId: node.targetId || '',
-            stats: node.stats,
-            author: node.author,
-            sourceUrl: node.sourceUrl,
-            tasks: node.tasks,
-            beats: node.beats,
-            cards: node.cards,
-            premises: node.premises,
-            conclusion: node.conclusion,
-            logline: node.logline,
-            theme: node.theme,
-            audience: node.audience
+          content: node.content || '',
+          metadata: {
+            logline: node.logline, theme: node.theme, audience: node.audience, 
+            aliases: node.aliases, arcLie: node.arcLie, arcTruth: node.arcTruth,
+            beats: node.beats, tasks: node.tasks, cards: node.cards,
+            slotCount: node.slotCount, participantData: node.participantData, resolution: node.resolution,
+            premises: node.premises, conclusion: node.conclusion, targetId: node.targetId,
+            width: node.width, height: node.height
           },
           updated_at: Date.now()
         });
       }
-
-      const edges = [
-        { source: n[0], target: n[1], type: 'references', strength: 2 },
-        { source: n[1], target: n[2], type: 'references', strength: 2 },
-        { source: n[2], target: n[3], type: 'references', strength: 2 },
-        { source: n[12], target: n[4], type: 'references', strength: 1 },
-        { source: n[12], target: n[5], type: 'references', strength: 1 },
-        { source: n[4], target: n[6], type: 'references', strength: 2 },
-        { source: n[5], target: n[4], type: 'contradicts', strength: 3 },
-        { source: n[5], target: n[8], type: 'causes', strength: 2 },
-        { source: n[8], target: n[7], type: 'foreshadows', strength: 2 },
-        { source: n[3], target: n[15], type: 'references', strength: 1 },
-        { source: n[3], target: n[9], type: 'supports', strength: 1 },
-        { source: n[1], target: n[16], type: 'references', strength: 1, targetHandle: 'slot-1' },
-        { source: n[2], target: n[16], type: 'references', strength: 1, targetHandle: 'slot-2' },
-      ];
-
-      for (const e of edges) {
+      
+      for (const edge of edges) {
         await db.insert(edgesTable).values({
-          id: crypto.randomUUID(),
+          id: edge.id,
           project_id: pId,
-          source_id: e.source,
-          target_id: e.target,
-          edge_type: e.type,
-          strength: e.strength
+          source_id: edge.source,
+          target_id: edge.target,
+          source_handle: edge.sourceHandle || null,
+          target_handle: edge.targetHandle || null,
+          edge_type: edge.type || 'smoothstep',
+          label: edge.label || null
         });
       }
 
-      set({ projects: [...get().projects, { id: pId, title: 'Demo: The Iron Saga', updated_at: Date.now() }] });
+      set({ projects: [...get().projects, { id: pId, title: 'Demo: The Chronos Paradox', updated_at: Date.now() }] });
       await get().setActiveProject(pId);
     } catch (e) {
       console.error('generate demo failed', e);
+    } finally {
+      get().endSave();
+    }
+  },
+
+  applyLayout: async (layoutedNodes: AppNode[]) => {
+    set({ nodes: layoutedNodes });
+    get().beginSave();
+    try {
+      const { db } = await initDb();
+      // Batch update all node positions
+      for (const node of layoutedNodes) {
+        await db.update(nodesTable)
+          .set({ x_position: node.position.x, y_position: node.position.y })
+          .where(eq(nodesTable.id, node.id));
+      }
+    } catch (e) {
+      get().reportSaveError('apply layout', e);
     } finally {
       get().endSave();
     }
