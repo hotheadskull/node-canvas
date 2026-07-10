@@ -96,17 +96,20 @@ export const KnowledgeCard = memo(({ id, data, selected, type }: NodeProps<AppNo
         </select>
       }
     >
-      {/* Aliases Input */}
-      <div className="flex items-center gap-2 px-3 py-1.5 border-b border-[#2a2a35] bg-black/10">
-        <Tags size={11} className="text-gray-600 flex-shrink-0" />
-        <input
-          className="flex-1 min-w-0 bg-transparent text-[10px] text-gray-400 outline-none focus:text-white italic tracking-wide"
-          value={aliases}
-          onChange={(e) => updateNodeData(id, { metadata: { ...meta, aliases: e.target.value } })}
-          onPointerDown={(e) => e.stopPropagation()}
-          placeholder="Aliases (comma-separated)"
-        />
-      </div>
+      {/* Aliases Input -- hidden until selected (or filled) so small cards
+          keep their body space for actual content */}
+      {(selected || aliases.trim().length > 0) && (
+        <div className="flex items-center gap-2 px-3 py-1.5 border-b border-[#2a2a35] bg-black/10">
+          <Tags size={11} className="text-gray-600 flex-shrink-0" />
+          <input
+            className="flex-1 min-w-0 bg-transparent text-[10px] text-gray-400 outline-none focus:text-white italic tracking-wide"
+            value={aliases}
+            onChange={(e) => updateNodeData(id, { metadata: { ...meta, aliases: e.target.value } })}
+            onPointerDown={(e) => e.stopPropagation()}
+            placeholder="Aliases (comma-separated)"
+          />
+        </div>
+      )}
 
       {/* Body Content based on Tab */}
       {activeTab === 'notes' && (

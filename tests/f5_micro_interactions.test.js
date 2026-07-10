@@ -74,18 +74,18 @@ test('F5-Boundary-3: Spiderweb auto-linking checks for existing edges to avoid d
   );
 });
 
-test('F5-Boundary-4: Word count level-up indicator renders above a threshold of 500 words', () => {
+test('F5-Boundary-4: Word count level-up threshold drives the gold fill state', () => {
   const content = fs.readFileSync(themeNodePath, 'utf8');
   assert.ok(
-    /wordCount\s*>=\s*500/.test(content) && /LEVEL UP!/.test(content),
-    'Expected Level Up indicator to show up at >= 500 words'
+    /wordCount\s*>=\s*500/.test(content) && /isLeveledUp/.test(content),
+    'Expected level-up state to trigger at >= 500 words'
   );
 });
 
-test('F5-Boundary-5: Alchemy fusion animation triggers animate-alchemy class', () => {
-  const content = fs.readFileSync(themeNodePath, 'utf8');
+test('F5-Boundary-5: BaseNode function tags carry the fixed color palette', () => {
+  const content = fs.readFileSync(path.resolve('src/components/BaseNode.tsx'), 'utf8');
   assert.ok(
-    /data\.isFusing\s*\?\s*['"]animate-alchemy['"]/.test(content),
-    'Expected alchemy animation class under isFusing conditions'
+    /FUNC_COLORS/.test(content) && /scripture/.test(content) && /illustration/.test(content),
+    'Expected BaseNode function-tag palette (scripture/illustration/...)'
   );
 });

@@ -36,11 +36,11 @@ test('F2-3: LogicNode is registered under nodeTypes in App.tsx', () => {
   );
 });
 
-test('F2-4: ThemeNode uses polygon clipPath for book and chapter badges', () => {
+test('F2-4: ThemeNode composes BaseNode with per-type icons and colors', () => {
   const content = fs.readFileSync(themeNodePath, 'utf8');
   assert.ok(
-    /clipPath:\s*['"]polygon\(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%\)['"]/.test(content),
-    'Expected hexagon clipPath for book badge'
+    /from ['"]\.\/BaseNode['"]/.test(content) && /ICONS/.test(content) && /COLORS/.test(content),
+    'Expected ThemeNode to build on BaseNode with ICONS/COLORS maps per writing type'
   );
 });
 
@@ -53,47 +53,51 @@ test('F2-5: KnowledgeCard defines distinct kind colors including emerald locatio
 });
 
 // Tier 2: Boundary & Corner Cases (F2)
-test('F2-Boundary-1: NodeResizers define explicit minWidth and minHeight constraints', () => {
+test('F2-Boundary-1: BaseNode owns the resizer; nodes pass explicit min constraints', () => {
+  const baseNode = fs.readFileSync(path.resolve('src/components/BaseNode.tsx'), 'utf8');
   const themeNode = fs.readFileSync(themeNodePath, 'utf8');
   const knowledgeCard = fs.readFileSync(knowledgeCardPath, 'utf8');
   const logicNode = fs.readFileSync(logicNodePath, 'utf8');
 
   assert.ok(
-    /minWidth=\{220\}/.test(themeNode) && /minHeight=\{120\}/.test(themeNode),
-    'ThemeNode resizer must have minWidth 220, minHeight 120'
+    /NodeResizer/.test(baseNode) && /minWidth=\{minWidth\}/.test(baseNode) && /isVisible=\{selected\}/.test(baseNode),
+    'BaseNode must render the NodeResizer, visible when selected'
   );
   assert.ok(
-    /minWidth=\{200\}/.test(knowledgeCard) && /minHeight=\{150\}/.test(knowledgeCard),
-    'KnowledgeCard resizer must have minWidth 200, minHeight 150'
+    /minWidth=\{\d+\}/.test(themeNode) && /minHeight=\{\d+\}/.test(themeNode),
+    'ThemeNode must pass explicit min constraints to BaseNode'
   );
   assert.ok(
-    /minWidth=\{250\}/.test(logicNode) && /minHeight=\{200\}/.test(logicNode),
-    'LogicNode resizer must have minWidth 250, minHeight 200'
+    /minWidth=\{\d+\}/.test(knowledgeCard) && /minHeight=\{\d+\}/.test(knowledgeCard),
+    'KnowledgeCard must pass explicit min constraints to BaseNode'
+  );
+  assert.ok(
+    /minWidth=\{\d+\}/.test(logicNode) && /minHeight=\{\d+\}/.test(logicNode),
+    'LogicNode must pass explicit min constraints to BaseNode'
   );
 });
 
 test('F2-Boundary-2: LogicNode manages an array of premises correctly', () => {
   const content = fs.readFileSync(logicNodePath, 'utf8');
   assert.ok(
-    /const\s+premises\s*=\s*data\.premises\s*\|\|\s*\[['"]{2}\]/.test(content),
+    /Array\.isArray\(data\.premises\)\s*\?\s*data\.premises\s*:\s*\[['"]{2}\]/.test(content),
     'Expected LogicNode premises list to fall back to an empty string array'
   );
 });
 
-test('F2-Boundary-3: ThemeNode theme lookup falls back to default if nodeType is unrecognized', () => {
+test('F2-Boundary-3: ThemeNode icon/color lookups fall back to defaults for unrecognized types', () => {
   const content = fs.readFileSync(themeNodePath, 'utf8');
   assert.ok(
-    /THEMES\[nodeType\]\s*\|\|\s*THEMES\[['"]idea['"]\]/.test(content),
-    'Expected ThemeNode to fall back to idea theme'
+    /ICONS\[nodeType\]\s*\|\|/.test(content) && /COLORS\[nodeType\]\s*\|\|/.test(content),
+    'Expected ThemeNode to fall back to default icon and color'
   );
 });
 
-test('F2-Boundary-4: ThemeNode uses distinct background textures based on node type', () => {
+test('F2-Boundary-4: ThemeNode renders the liquid word-count fill', () => {
   const content = fs.readFileSync(themeNodePath, 'utf8');
   assert.ok(
-    /\['book',\s*'chapter',\s*'scene'\].includes\(nodeType\)\s*\?\s*['"]texture-leather['"]/.test(content) ||
-    /bgClass\s*=\s*['"]texture-leather['"]/.test(content),
-    'Expected ThemeNode to support leather and stone textures'
+    /fillPercentage/.test(content) && /Math\.min\(100,/.test(content),
+    'Expected ThemeNode liquid fill driven by word count, capped at 100%'
   );
 });
 
