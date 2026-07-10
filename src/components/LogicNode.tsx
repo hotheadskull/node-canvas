@@ -39,7 +39,7 @@ export const LogicNode = memo(({ id, data, selected }: NodeProps<AppNode>) => {
       showFunction={true}
       showTags={true}
     >
-      <div className="p-3 bg-[#1a1a24]/30 flex-1 flex flex-col gap-2 overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <div className="p-3 bg-[#1a1a24]/30 flex-1 min-h-0 flex flex-col gap-2 overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         
         {/* Premises */}
         <div className="flex flex-col gap-1">

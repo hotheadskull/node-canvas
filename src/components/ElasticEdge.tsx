@@ -1,4 +1,4 @@
-import { BaseEdge, EdgeLabelRenderer, EdgeProps, useInternalNode, getSmoothStepPath } from '@xyflow/react';
+import { BaseEdge, EdgeLabelRenderer, EdgeProps, useInternalNode, getBezierPath } from '@xyflow/react';
 import { Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { getEdgeParams } from '../utils/edgeUtils';
@@ -57,6 +57,7 @@ export function ElasticEdge({
   const targetNode = useInternalNode(target);
   const updateEdgeLabel = useStore(state => state.updateEdgeLabel);
   const updateEdgeType = useStore(state => state.updateEdgeType);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   if (!sourceNode || !targetNode) {
     return null;
@@ -73,14 +74,13 @@ export function ElasticEdge({
   const MAX_STRETCH = 800;
   const TENSION_START = 400; // Distance where it starts turning red
 
-  const [edgePath, labelX, labelY] = getSmoothStepPath({
+  const [edgePath, labelX, labelY] = getBezierPath({
     sourceX: sx,
     sourceY: sy,
     targetX: tx,
     targetY: ty,
     sourcePosition: sourcePos,
     targetPosition: targetPos,
-    borderRadius: 15,
   });
 
   // Calculate tension percentage (0 to 1)
@@ -114,19 +114,37 @@ export function ElasticEdge({
 
   return (
     <>
+      {/* Invisible thick path for much easier clicking */}
+      <path
+        d={edgePath}
+        fill="none"
+        stroke="transparent"
+        strokeWidth={30}
+        className="react-flow__edge-interaction"
+      />
+      {/* Visible edge */}
       <BaseEdge
         path={edgePath}
         markerEnd={markerEnd}
-        className="edge-energy"
+        className={`edge-energy ${typeDef.animation === 'pulse' ? 'edge-anim-pulse' : ''} ${typeDef.animation === 'dash' ? 'edge-anim-dash' : ''}`}
         style={{
           ...style,
           stroke,
           strokeWidth,
-          strokeDasharray: typeDef.dash,
-          opacity: dimOpacity,
-          transition: 'stroke 0.1s ease, stroke-width 0.1s ease, opacity 0.25s ease'
+          strokeDasharray: typeDef.dash || (typeDef.animation === 'dash' ? '8 4' : undefined),
+          opacity: selected ? 1 : dimOpacity,
+          transition: 'stroke 0.1s ease, stroke-width 0.1s ease, opacity 0.25s ease',
+          filter: selected ? `drop-shadow(0 0 4px ${stroke})` : 'none',
         }}
       />
+
+      {/* Particle Animation */}
+      {typeDef.animation === 'particles' && constellation !== 'dim' && (
+        <circle r={strokeWidth + 1} fill={stroke} filter={`drop-shadow(0 0 4px ${stroke})`}>
+          <animateMotion dur="2.5s" repeatCount="indefinite" path={edgePath} />
+        </circle>
+      )}
+
       {/* Strong links get a soft golden aura so heavily-referenced
           relationships visibly glow on the canvas */}
       {strength >= 3 && constellation !== 'dim' && (
@@ -196,16 +214,42 @@ export function ElasticEdge({
               alignItems: 'center'
             }}
           >
-            <select
-              value={edgeType}
-              onChange={(e) => updateEdgeType(id, e.target.value)}
-              onPointerDown={(e) => e.stopPropagation()}
-              style={{ color: typeDef.color }}
-            >
-              {Object.entries(EDGE_TYPES).map(([key, def]) => (
-                <option key={key} value={key}>{def.label}</option>
-              ))}
-            </select>
+            <div className="relative">
+              <button
+                onPointerDown={(e) => { e.stopPropagation(); setMenuOpen(!menuOpen); }}
+                className="flex items-center gap-2 bg-[#1a1a24] border border-[#333] px-2 py-1 rounded cursor-pointer hover:border-gray-500 transition-colors"
+                style={{ color: typeDef.color }}
+              >
+                <svg width="18" height="6" className="overflow-visible">
+                  <line x1="0" y1="3" x2="18" y2="3" stroke={typeDef.color} strokeWidth="2" strokeDasharray={typeDef.dash} />
+                </svg>
+                <span className="text-xs font-bold uppercase tracking-wider">{typeDef.label}</span>
+              </button>
+
+              {menuOpen && (
+                <div 
+                  className="absolute top-full left-0 mt-1 bg-[#1a1a24] border border-[#333] rounded shadow-xl flex flex-col z-50 min-w-[140px] max-h-[600px] overflow-y-auto"
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
+                  {Object.entries(EDGE_TYPES).map(([key, def]) => (
+                    <button
+                      key={key}
+                      className="flex items-center gap-3 px-3 py-2 hover:bg-black/40 text-left transition-colors w-full cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        updateEdgeType(id, key);
+                        setMenuOpen(false);
+                      }}
+                    >
+                      <svg width="24" height="6" className="flex-shrink-0 overflow-visible">
+                        <line x1="0" y1="3" x2="24" y2="3" stroke={def.color} strokeWidth="2" strokeDasharray={def.dash} />
+                      </svg>
+                      <span className="text-xs font-bold uppercase tracking-wider" style={{ color: def.color }}>{def.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <input
               defaultValue={String(label || '')}
               placeholder="label…"

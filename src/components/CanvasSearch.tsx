@@ -33,7 +33,7 @@ export function CanvasSearch() {
   };
 
   return (
-    <div className="absolute top-4 right-4 z-50 w-64">
+    <div className="absolute top-4 right-4 z-50 w-64" id="canvas-search-wrapper">
       <div className="relative">
         <input 
           type="text" 

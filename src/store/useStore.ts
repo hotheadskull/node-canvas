@@ -17,8 +17,6 @@ import { initDb } from '../db';
 import { nodes as nodesTable, edges as edgesTable, projects as projectsTable } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { DEFAULT_EDGE_TYPE, EDGE_TYPES } from '../utils/edgeTypes';
-import { getDemoData } from './demoData';
-
 export type AppNode = Node & {
   data: { label: string; content?: string; manuscript?: string; notes?: string; metadata?: any; updated_at?: number };
 };
@@ -43,6 +41,7 @@ export type HistoryEntry = {
 export type AppState = {
   projects: Project[];
   activeProjectId: string | null;
+  mode: 'universal' | 'novel' | 'sermon';
   nodes: AppNode[];
   trashedNodes: AppNode[];
   edges: Edge[];
@@ -89,7 +88,6 @@ export type AppState = {
   createSnapshot: () => Promise<void>;
   exportProjectJSON: () => Promise<string>;
   importProjectJSON: (jsonString: string) => Promise<void>;
-  generateDemoProject: () => Promise<void>;
   applyLayout: (layoutedNodes: AppNode[]) => Promise<void>;
 };
 
@@ -112,6 +110,7 @@ const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 export const useStore = create<AppState>((set, get) => ({
   projects: [],
   activeProjectId: null,
+  mode: 'universal',
   nodes: [],
   edges: [],
   trashedNodes: [],
@@ -652,7 +651,16 @@ export const useStore = create<AppState>((set, get) => ({
     get().beginSave();
     try {
       const { db } = await initDb();
-      await db.update(nodesTable).set({ parent_id: parentId }).where(eq(nodesTable.id, id));
+      const node = get().nodes.find(n => n.id === id);
+      if (node) {
+        await db.update(nodesTable).set({ 
+          parent_id: parentId,
+          position_x: Math.round(node.position.x),
+          position_y: Math.round(node.position.y)
+        }).where(eq(nodesTable.id, id));
+      } else {
+        await db.update(nodesTable).set({ parent_id: parentId }).where(eq(nodesTable.id, id));
+      }
     } catch (e) {
       get().reportSaveError('save node grouping', e);
     } finally {
@@ -991,58 +999,6 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
 
-  generateDemoProject: async () => {
-    get().beginSave();
-    try {
-      const { db } = await initDb();
-      const pId = crypto.randomUUID();
-      await db.insert(projectsTable).values({ id: pId, title: 'Demo: The Chronos Paradox', updated_at: Date.now() });
-
-      const { nodes, edges } = getDemoData(pId);
-
-      for (const node of nodes as any[]) {
-        await db.insert(nodesTable).values({
-          id: node.id,
-          project_id: pId,
-          parent_id: node.parentId || null,
-          title: node.label,
-          node_type: node.type,
-          x_position: node.x,
-          y_position: node.y,
-          content: node.content || '',
-          metadata: {
-            logline: node.logline, theme: node.theme, audience: node.audience, 
-            aliases: node.aliases, arcLie: node.arcLie, arcTruth: node.arcTruth,
-            beats: node.beats, tasks: node.tasks, cards: node.cards,
-            slotCount: node.slotCount, participantData: node.participantData, resolution: node.resolution,
-            premises: node.premises, conclusion: node.conclusion, targetId: node.targetId,
-            width: node.width, height: node.height
-          },
-          updated_at: Date.now()
-        });
-      }
-      
-      for (const edge of edges) {
-        await db.insert(edgesTable).values({
-          id: edge.id,
-          project_id: pId,
-          source_id: edge.source,
-          target_id: edge.target,
-          source_handle: edge.sourceHandle || null,
-          target_handle: edge.targetHandle || null,
-          edge_type: edge.type || 'smoothstep',
-          label: edge.label || null
-        });
-      }
-
-      set({ projects: [...get().projects, { id: pId, title: 'Demo: The Chronos Paradox', updated_at: Date.now() }] });
-      await get().setActiveProject(pId);
-    } catch (e) {
-      console.error('generate demo failed', e);
-    } finally {
-      get().endSave();
-    }
-  },
 
   applyLayout: async (layoutedNodes: AppNode[]) => {
     set({ nodes: layoutedNodes });

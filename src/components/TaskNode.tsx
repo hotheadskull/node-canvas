@@ -53,7 +53,7 @@ export const TaskNode = memo(({ id, data, selected }: NodeProps<AppNode>) => {
       }
     >
       {/* Task List */}
-      <div className="flex flex-col flex-1 bg-[#1a1a24]/50 py-1 overflow-y-auto min-h-[80px]">
+      <div className="flex flex-col flex-1 min-h-0 bg-[#1a1a24]/50 py-1 overflow-y-auto">
         {tasks.map((task, i) => (
           <div key={i} className="flex items-center group px-3 py-1 hover:bg-black/20 transition-colors">
             <button 

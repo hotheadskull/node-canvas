@@ -88,7 +88,7 @@ export const CrucibleNode = memo(({ id, data, selected }: NodeProps<AppNode>) =>
       headerTitlePlaceholder="CRUCIBLE CONFLICT"
       hasLeftHandle={false} // Disable default left handle, we use custom slots
     >
-      <div className="flex-1 flex flex-col p-3 relative gap-3 min-h-[100px] overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <div className="flex-1 min-h-0 flex flex-col p-3 relative gap-3 overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         
         <div className="text-[10px] uppercase font-bold text-red-500/80 tracking-widest text-center border-b border-red-900/30 pb-2 mb-1">
           Conflict Factors & Goals

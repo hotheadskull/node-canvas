@@ -109,7 +109,7 @@ export const CompileNode = memo(({ id, data, selected }: NodeProps<AppNode>) => 
       hasLeftHandle={false}
     >
       {/* Ordered Slots */}
-      <div className="flex-1 flex flex-col py-2 relative gap-1.5 min-h-[100px] overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <div className="flex-1 min-h-0 flex flex-col py-2 relative gap-1.5 overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <div className="absolute inset-y-0 left-6 w-0.5 bg-[#3730a3]/50"></div>
         {slots.map((slot) => {
           const isConnected = edges.some(e => e.target === id && e.targetHandle === `slot-${slot}`);

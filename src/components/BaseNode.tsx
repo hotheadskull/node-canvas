@@ -88,6 +88,8 @@ export const BaseNode = memo(({
             ${selected ? 'scale-[1.01]' : ''}
           `} 
           style={{ 
+            minWidth: `${minWidth}px`,
+            minHeight: `${minHeight}px`,
             borderColor: selected ? accentColor : `${accentColor}40`,
             boxShadow: selected ? `0 20px 40px ${accentColor}33` : '0 10px 30px rgba(0,0,0,0.5)'
           }}
@@ -100,7 +102,7 @@ export const BaseNode = memo(({
               borderColor: `${accentColor}40`
             }}
           >
-            <div className="flex items-center gap-2 w-full">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
               <Icon size={14} style={{ color: accentColor }} />
               <input
                 type="text"

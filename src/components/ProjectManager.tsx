@@ -1,8 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Panel } from '@xyflow/react';
 import { useStore } from '../store/useStore';
 import { useReactFlow } from '@xyflow/react';
-import { Camera, Trash2, RotateCcw, Download, Upload } from 'lucide-react';
+import { Camera, Trash2, RotateCcw, Download, Upload, HelpCircle, PlayCircle } from 'lucide-react';
 
 export function ProjectManager() {
   const { projects, activeProjectId, setActiveProject, createProject, createSnapshot, deleteProject, restoreProject, trashedNodes, restoreNode, exportProjectJSON, importProjectJSON } = useStore();
@@ -12,6 +12,20 @@ export function ProjectManager() {
   const [isCreating, setIsCreating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { fitView } = useReactFlow();
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('tutorial-action', { detail: { action: 'workspace-menu', isOpen } }));
+  }, [isOpen]);
+
+  const openTutorial = () => {
+    setIsOpen(false);
+    window.dispatchEvent(new CustomEvent('open-tutorial'));
+  };
+
+  const openReference = () => {
+    setIsOpen(false);
+    window.dispatchEvent(new CustomEvent('open-reference'));
+  };
 
   const handleExport = async () => {
     try {
@@ -68,8 +82,9 @@ export function ProjectManager() {
 
   return (
     <Panel position="top-center" className="z-50 pointer-events-auto">
-      <div className="relative">
+      <div className="relative" id="workspace-manager-wrapper">
         <button
+          id="workspace-manager-btn"
           onClick={() => setIsOpen(!isOpen)}
           className="px-6 py-2 bg-[#1a1a1e]/90 text-[#d4b98c] border border-[#d4b98c]/30 rounded backdrop-blur-md shadow-lg shadow-black/50 font-serif tracking-widest text-sm hover:bg-[#252529] transition-all flex items-center gap-2"
         >
@@ -78,7 +93,7 @@ export function ProjectManager() {
         </button>
 
         {isOpen && (
-          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[600px] bg-[#1a1a1e]/95 border border-[#d4b98c]/30 rounded-xl backdrop-blur-xl shadow-2xl shadow-black overflow-hidden texture-stone z-50">
+          <div id="workspace-dropdown" className="absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[600px] bg-[#1a1a1e]/95 border border-[#d4b98c]/30 rounded-xl backdrop-blur-xl shadow-2xl shadow-black overflow-hidden texture-stone z-[999999]">
             
             <div className="flex border-b border-[#d4b98c]/20">
               <button 
@@ -120,7 +135,7 @@ export function ProjectManager() {
                       </button>
                       <button 
                         onClick={() => deleteProject(p.id)}
-                        className="p-2 text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="p-2 text-gray-600 hover:text-red-400 opacity-50 group-hover:opacity-100 transition-opacity"
                         title="Delete Workspace"
                       >
                         <Trash2 size={14} />
@@ -145,7 +160,7 @@ export function ProjectManager() {
                         </button>
                         <button 
                           onClick={() => deleteProject(p.id)}
-                          className="p-2 text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="p-2 text-gray-600 hover:text-red-400 opacity-50 group-hover:opacity-100 transition-opacity"
                           title="Delete Snapshot"
                         >
                           <Trash2 size={14} />
@@ -232,6 +247,26 @@ export function ProjectManager() {
                     <Upload size={14} /> Import Workspace
                   </div>
                   <span className="text-[10px] text-gray-400 font-sans normal-case tracking-normal">Load a previously exported .json universe backup file.</span>
+                </button>
+
+                <button
+                  onClick={openTutorial}
+                  className="flex flex-col items-start p-3 bg-[#d4b98c]/5 hover:bg-[#d4b98c]/10 text-[#d4b98c] rounded border border-[#d4b98c]/20 transition-all text-left"
+                >
+                  <div className="flex items-center gap-2 font-bold uppercase tracking-widest text-[11px] mb-1">
+                    <PlayCircle size={14} /> Replay Tutorial
+                  </div>
+                  <span className="text-[10px] text-gray-400 font-sans normal-case tracking-normal">Start the guided walkthrough again.</span>
+                </button>
+
+                <button
+                  onClick={openReference}
+                  className="flex flex-col items-start p-3 bg-[#d4b98c]/5 hover:bg-[#d4b98c]/10 text-[#d4b98c] rounded border border-[#d4b98c]/20 transition-all text-left"
+                >
+                  <div className="flex items-center gap-2 font-bold uppercase tracking-widest text-[11px] mb-1">
+                    <HelpCircle size={14} /> Tips & Reference
+                  </div>
+                  <span className="text-[10px] text-gray-400 font-sans normal-case tracking-normal">Open the guide to node types and mechanics.</span>
                 </button>
                 <input type="file" accept=".json" className="hidden" ref={fileInputRef} onChange={handleImport} />
                 

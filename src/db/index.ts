@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/sqlite-proxy';
 import Database from '@tauri-apps/plugin-sql';
+import { invoke } from '@tauri-apps/api/core';
 import * as schema from './schema';
-
 // This acts as a singleton for the database connection
 let dbInstance: any = null;
 
@@ -45,6 +45,14 @@ export async function initDb() {
 export async function runMigrations() {
   const { tauriDb } = await initDb();
   
+  // Backup before doing anything
+  try {
+    const backupName = await invoke('backup_db');
+    console.log(`Database backed up to: ${backupName}`);
+  } catch (e) {
+    console.warn(`Failed to backup database before migrations:`, e);
+  }
+  
   // Use Vite's import.meta.glob to read raw SQL migration files at runtime
   const migrations = import.meta.glob('./migrations/*.sql', { query: '?raw', import: 'default' });
   
@@ -74,24 +82,32 @@ export async function runMigrations() {
         .map(s => s.trim())
         .filter(s => s.length > 0);
         
-      for (const statement of statements) {
-        try {
-          await tauriDb.execute(statement);
-        } catch (e: any) {
-          // Self-heal partially-applied migrations: if a column/table already
-          // exists, that statement is already done -- skip it. Any other
-          // error is real and must abort the migration.
-          const msg = String(e).toLowerCase();
-          if (msg.includes('duplicate column name') || msg.includes('already exists')) {
-            console.warn(`Skipping already-applied statement in ${baseName}: ${msg}`);
-            continue;
+      await tauriDb.execute('BEGIN');
+      try {
+        for (const statement of statements) {
+          try {
+            await tauriDb.execute(statement);
+          } catch (e: any) {
+            // Self-heal partially-applied migrations: if a column/table already
+            // exists, that statement is already done -- skip it. Any other
+            // error is real and must abort the migration.
+            const msg = String(e).toLowerCase();
+            if (msg.includes('duplicate column name') || msg.includes('already exists')) {
+              console.warn(`Skipping already-applied statement in ${baseName}: ${msg}`);
+              continue;
+            }
+            throw e;
           }
-          throw e;
         }
+        
+        await tauriDb.execute('INSERT INTO __drizzle_migrations (filename) VALUES ($1)', [baseName]);
+        await tauriDb.execute('COMMIT');
+        console.log(`Successfully applied: ${baseName}`);
+      } catch (e) {
+        await tauriDb.execute('ROLLBACK');
+        console.error(`Failed to apply migration ${baseName}:`, e);
+        throw e; // Stop further migrations
       }
-      
-      await tauriDb.execute('INSERT INTO __drizzle_migrations (filename) VALUES ($1)', [baseName]);
-      console.log(`Successfully applied: ${baseName}`);
     }
   }
 }

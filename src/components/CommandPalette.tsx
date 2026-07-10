@@ -15,7 +15,6 @@ type Result = {
 // Enter warps the camera to the picked node.
 export function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
   const nodes = useStore(state => state.nodes);
-  const generateDemoProject = useStore(state => state.generateDemoProject);
   const { setCenter } = useReactFlow();
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -84,17 +83,6 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
     
     let finalResults = scored.sort((a, b) => b.score - a.score).slice(0, 8);
     
-    if (q === 'demo' || q === '> demo') {
-      finalResults = [
-        {
-          node: { id: 'demo-cmd', type: '✨ command', data: { label: 'Load Demo Universe' }, position: { x: 0, y: 0 } } as any,
-          score: 100,
-          snippet: 'Generates The Chronos Paradox demo project.'
-        },
-        ...finalResults
-      ];
-    }
-    
     return finalResults;
   }, [query, nodes]);
 
@@ -123,12 +111,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
               if (e.key === 'ArrowDown') { e.preventDefault(); setSelectedIndex(i => Math.min(i + 1, results.length - 1)); }
               else if (e.key === 'ArrowUp') { e.preventDefault(); setSelectedIndex(i => Math.max(i - 1, 0)); }
               else if (e.key === 'Enter') { 
-                if (query.trim() === '> demo' || results[selectedIndex]?.node?.id === 'demo-cmd') {
-                  generateDemoProject().then(() => {
-                    setTimeout(() => setCenter(0, -400, { zoom: 0.6, duration: 800 }), 100);
-                  });
-                  onClose();
-                } else if (results[selectedIndex]) { 
+                if (results[selectedIndex]) { 
                   jumpTo(results[selectedIndex].node); 
                 }
               }
@@ -146,16 +129,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
               key={r.node.id}
               className={`palette-item ${i === selectedIndex ? 'is-selected' : ''}`}
               onMouseEnter={() => setSelectedIndex(i)}
-              onClick={() => {
-                if (r.node.id === 'demo-cmd') {
-                  generateDemoProject().then(() => {
-                    setTimeout(() => setCenter(0, -400, { zoom: 0.6, duration: 800 }), 100);
-                  });
-                  onClose();
-                } else {
-                  jumpTo(r.node);
-                }
-              }}
+              onClick={() => jumpTo(r.node)}
             >
               <span className="palette-type">{r.node.type || 'node'}</span>
               <span className="flex-1 truncate text-left">{r.node.data.label || 'Untitled'}</span>

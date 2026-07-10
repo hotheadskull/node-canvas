@@ -19,6 +19,8 @@ import { ElasticEdge } from './components/ElasticEdge';
 import { CreateNodeMenu } from './components/CreateNodeMenu';
 import { CanvasSearch } from './components/CanvasSearch';
 import { ProjectManager } from './components/ProjectManager';
+import { ReferencePanel } from './components/ReferencePanel';
+import { TutorialOverlay } from './components/TutorialOverlay';
 import './App.css';
 import { Trash2, Undo2, Redo2, Anchor, Crosshair, CircleDashed, Wand } from 'lucide-react';
 import { RichTextEditor } from './components/RichTextEditor';
@@ -486,29 +488,75 @@ function FlowCanvas() {
     }
 
     const intersections = getIntersectingNodes(node);
-    if (intersections.length > 0) {
-      const targetNode = intersections[0] as AppNode;
-      
-      // NESTING INTO INFO BOX
-      if (targetNode.type === 'group' && node.parentId !== targetNode.id) {
-        useStore.setState((state) => ({
-          nodes: state.nodes.map(n => 
-            n.id === node.id 
-              ? { 
-                  ...n, 
-                  parentId: targetNode.id, 
-                  extent: 'parent',
-                  position: { x: node.position.x - targetNode.position.x, y: node.position.y - targetNode.position.y }
-                } 
-              : n
-          )
-        }));
-        useStore.getState().updateNodeParent(node.id, targetNode.id);
-        return;
+      const targetGroup = intersections.find(n => n.type === 'group') as AppNode | undefined;
+
+      if (targetGroup) {
+        // NESTING INTO A GROUP
+        if (node.parentId !== targetGroup.id) {
+          useStore.setState((state) => {
+            let absX = 0; let absY = 0;
+            let current: AppNode | undefined = node;
+            while (current) {
+              absX += current.position.x; absY += current.position.y;
+              current = state.nodes.find(n => n.id === current?.parentId);
+            }
+            let targetAbsX = 0; let targetAbsY = 0;
+            let targetCurrent: AppNode | undefined = targetGroup;
+            while (targetCurrent) {
+              targetAbsX += targetCurrent.position.x; targetAbsY += targetCurrent.position.y;
+              targetCurrent = state.nodes.find(n => n.id === targetCurrent?.parentId);
+            }
+            
+            const otherNodes = state.nodes.filter(n => n.id !== node.id);
+            const draggedNode = state.nodes.find(n => n.id === node.id);
+            if (!draggedNode) return state;
+
+            const updatedNode = {
+              ...draggedNode,
+              parentId: targetGroup.id,
+              extent: undefined, // Remove extent so it doesn't trap or bug out
+              position: { x: absX - targetAbsX, y: absY - targetAbsY }
+            };
+
+            return { nodes: [...otherNodes, updatedNode] };
+          });
+          useStore.getState().updateNodeParent(node.id, targetGroup.id);
+          return;
+        }
+      } else if (node.parentId) {
+        // DRAGGING OUT OF A GROUP
+        // Check if the old parent was a group
+        const oldParent = useStore.getState().nodes.find(n => n.id === node.parentId);
+        if (oldParent && oldParent.type === 'group') {
+          useStore.setState((state) => {
+            let absX = 0; let absY = 0;
+            let current: AppNode | undefined = node;
+            while (current) {
+              absX += current.position.x; absY += current.position.y;
+              current = state.nodes.find(n => n.id === current?.parentId);
+            }
+
+            const otherNodes = state.nodes.filter(n => n.id !== node.id);
+            const draggedNode = state.nodes.find(n => n.id === node.id);
+            if (!draggedNode) return state;
+
+            const updatedNode = {
+              ...draggedNode,
+              parentId: undefined,
+              extent: undefined,
+              position: { x: absX, y: absY }
+            };
+
+            return { nodes: [...otherNodes, updatedNode] };
+          });
+          useStore.getState().updateNodeParent(node.id, null);
+          return;
+        }
       }
 
-      // DROPPING INTO DECK
-      if (targetNode.type === 'deck') {
+      // If we dropped onto a DECK
+      if (intersections.length > 0) {
+        const targetNode = intersections[0] as AppNode;
         const cardData = { label: node.data.label, content: node.data.content };
 
         // Cards live in metadata so they survive restarts -- metadata is the
@@ -524,7 +572,6 @@ function FlowCanvas() {
         useStore.getState().deleteNode(node.id);
         return;
       }
-    }
   }, [getIntersectingNodes]);
 
   // Phase 4: Gamified "Tech Tree" Progression
@@ -616,6 +663,7 @@ function FlowCanvas() {
         onDrop={onDrop}
       >
         <ReactFlow
+          id="canvas-area"
           nodes={processedNodes}
           edges={processedEdges}
           onNodesChange={onNodesChange}
@@ -779,7 +827,7 @@ function FlowCanvas() {
                 type,
                 position: centerPos,
                 data: { label, content: '', manuscript: '' },
-                style: { width, height, zIndex }
+                style: { minWidth: width, minHeight: height, zIndex }
               });
             }} />
             {/* Removed the old compile button here since we now use the Master Print Node */}
@@ -996,13 +1044,18 @@ export default function App() {
     );
   }
 
-  if (isLoading) {
-    return <div className="h-screen w-screen flex items-center justify-center bg-[#0a0a0c] text-[#fbbf24]">Loading Engine...</div>;
-  }
-
   return (
-    <ReactFlowProvider>
-      <FlowCanvas />
-    </ReactFlowProvider>
+    <>
+      {isLoading && (
+        <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-[#0a0a0c]/80 backdrop-blur-sm text-[#fbbf24]">
+          Loading Engine...
+        </div>
+      )}
+      <ReactFlowProvider>
+        <TutorialOverlay />
+        <ReferencePanel />
+        <FlowCanvas />
+      </ReactFlowProvider>
+    </>
   );
 }

@@ -90,7 +90,7 @@ export function ThemeNode({ id, data, selected, type }: NodeProps<AppNode>) {
         }}
       />
 
-      <div className="flex-1 flex flex-col relative z-10 overflow-hidden bg-black/20 p-2">
+      <div className="flex-1 min-h-0 flex flex-col relative z-10 overflow-hidden bg-black/20 p-2">
         <RichTextEditor
           content={textContent}
           onChange={(html) => {
