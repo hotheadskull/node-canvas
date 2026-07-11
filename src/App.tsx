@@ -700,6 +700,10 @@ function FlowCanvas() {
           panOnDrag={true}
           selectionOnDrag={false}
           fitView
+          /* Never zoom IN past 100% on auto-fit: on a fresh canvas fitView
+             fires when the first node appears and would zoom to ~2x, making
+             every later node spawn enormous with its controls off-screen */
+          fitViewOptions={{ padding: 0.2, maxZoom: 1 }}
           className="cosmic-canvas"
           defaultEdgeOptions={{ 
             style: { stroke: '#a88530', strokeWidth: 2 } 
@@ -784,7 +788,13 @@ function FlowCanvas() {
               addNode({
                 id: newNodeId,
                 type,
-                position: centerPos,
+                position: {
+                  // Center the NODE on screen-center, not its top-left corner
+                  // -- otherwise large nodes hang off the bottom-right with
+                  // their controls (like the Expand button) unreachable
+                  x: centerPos.x - (width ?? 300) / 2,
+                  y: centerPos.y - (height ?? 200) / 2,
+                },
                 data: { label, content: '', manuscript: '' },
                 // Fixed width/height, NOT minWidth/minHeight: with only a
                 // min-height the card renders smaller than the resizer frame

@@ -75,7 +75,8 @@ export function ProjectManager() {
   const handleSelect = async (id: string) => {
     await setActiveProject(id);
     setIsOpen(false);
-    setTimeout(() => fitView({ duration: 800 }), 100);
+    // maxZoom 1: fitting a workspace with few nodes must not zoom IN
+    setTimeout(() => fitView({ duration: 800, maxZoom: 1 }), 100);
   };
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -85,7 +86,7 @@ export function ProjectManager() {
       setNewTitle('');
       setIsCreating(false);
       setIsOpen(false);
-      setTimeout(() => fitView({ duration: 800 }), 100);
+      setTimeout(() => fitView({ duration: 800, maxZoom: 1 }), 100);
     }
   };
 

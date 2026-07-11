@@ -53,6 +53,14 @@ body {
   fill: var(--art-deco-gold-bright) !important;
 }
 
+/* Resize grab-lines must sit just OUTSIDE the card edge. On the edge they
+   cover the node's footer controls -- the Document's Expand button became
+   unclickable whenever the node was selected. */
+.react-flow__resize-control.line.bottom { bottom: -7px; height: 8px; }
+.react-flow__resize-control.line.top { top: -7px; height: 8px; }
+.react-flow__resize-control.line.left { left: -7px; width: 8px; }
+.react-flow__resize-control.line.right { right: -7px; width: 8px; }
+
 /* Instant, readable labels for every toolbar button. The bar sits bottom-left,
    so labels fly out to the right. Custom buttons carry data-tip; React Flow's
    built-in zoom/fit/lock buttons get fixed labels by class below. */
