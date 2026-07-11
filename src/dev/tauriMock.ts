@@ -107,6 +107,8 @@ export function installTauriMock() {
     }
   };
 
+  // Let verification scripts inspect what actually got persisted
+  (window as any).__mockTables = tables;
   (window as any).__TAURI_INTERNALS__ = {
     invoke,
     transformCallback: (cb: any) => cb,

@@ -22,6 +22,26 @@ import { nodeSpawnConfig } from '../nodes/registry';
 // Style for a node loaded from the DB: stored size wins, otherwise the
 // registry default for its type (so old nodes pick up new defaults), plus
 // the type's z-order (groups behind, alias pins in front).
+// React Flow requires parent nodes to appear BEFORE their children in the
+// nodes array. DB rows come back in insertion order, and a group is usually
+// created AFTER the nodes that get dropped into it -- without this sort,
+// nesting breaks on every reload (children ignore their group or render at
+// the wrong coordinates).
+const sortParentsFirst = <T extends { id: string; parentId?: string }>(list: T[]): T[] => {
+  const byId = new Map(list.map(n => [n.id, n]));
+  const placed = new Set<string>();
+  const out: T[] = [];
+  const place = (n: T) => {
+    if (placed.has(n.id)) return;
+    placed.add(n.id); // mark before recursing so a corrupt cycle can't loop
+    const parent = n.parentId ? byId.get(n.parentId) : undefined;
+    if (parent) place(parent);
+    out.push(n);
+  };
+  list.forEach(place);
+  return out;
+};
+
 const loadedNodeStyle = (n: any) => {
   const spawn = nodeSpawnConfig(n.node_type);
   return {
@@ -234,8 +254,14 @@ export const useStore = create<AppState>((set, get) => ({
           delete updateTimeouts[change.id];
           try {
             const { db } = await initDb();
+            // Read the CURRENT position at flush time, not the drag payload:
+            // dropping into/out of a group during the debounce window
+            // rewrites position to parent-relative coords, and saving the
+            // stale absolute payload would clobber that in the DB.
+            const current = get().nodes.find(n => n.id === change.id);
+            const pos = current?.position ?? change.position!;
             await db.update(nodesTable)
-              .set({ x_position: change.position!.x, y_position: change.position!.y })
+              .set({ x_position: pos.x, y_position: pos.y })
               .where(eq(nodesTable.id, change.id));
           } catch (e) {
             get().reportSaveError('save node position', e);
@@ -712,10 +738,14 @@ export const useStore = create<AppState>((set, get) => ({
       const { db } = await initDb();
       const node = get().nodes.find(n => n.id === id);
       if (node) {
-        await db.update(nodesTable).set({ 
+        // Persist parent AND the (parent-relative) position together. A
+        // previous version used reversed column names here, which Drizzle
+        // silently dropped -- the DB kept the old ABSOLUTE coords, reload
+        // treated them as RELATIVE to the group, and nodes teleported.
+        await db.update(nodesTable).set({
           parent_id: parentId,
-          position_x: Math.round(node.position.x),
-          position_y: Math.round(node.position.y)
+          x_position: node.position.x,
+          y_position: node.position.y
         }).where(eq(nodesTable.id, id));
       } else {
         await db.update(nodesTable).set({ parent_id: parentId }).where(eq(nodesTable.id, id));
@@ -896,16 +926,16 @@ export const useStore = create<AppState>((set, get) => ({
           type: n.node_type,
           position: { x: n.x_position, y: n.y_position },
           parentId: n.parent_id || undefined,
-          extent: n.parent_id ? 'parent' : undefined,
+          extent: undefined, // match live nesting: children are not clamped into the group
         style: loadedNodeStyle(n),
           data: { label: n.title, content: n.content, manuscript: n.manuscript || '', notes: n.notes || '', metadata: n.metadata, updated_at: n.updated_at || Date.now() },
         })),
-        nodes: activeNodes.map((n: any) => ({
+        nodes: sortParentsFirst(activeNodes.map((n: any) => ({
           id: n.id,
           type: n.node_type,
           position: { x: n.x_position, y: n.y_position },
           parentId: n.parent_id || undefined,
-          extent: n.parent_id ? 'parent' : undefined,
+          extent: undefined, // match live nesting: children are not clamped into the group
         style: loadedNodeStyle(n),
           data: {
             label: n.title,
@@ -915,7 +945,7 @@ export const useStore = create<AppState>((set, get) => ({
             metadata: n.metadata,
             updated_at: n.updated_at || Date.now()
           },
-        })),
+        }))),
         edges: dbEdges.map((e: any) => ({
           id: e.id,
           source: e.source_id,
@@ -948,19 +978,19 @@ export const useStore = create<AppState>((set, get) => ({
         type: n.node_type,
         position: { x: n.x_position, y: n.y_position },
         parentId: n.parent_id || undefined,
-        extent: n.parent_id ? 'parent' : undefined,
+        extent: undefined, // match live nesting: children are not clamped into the group
         style: loadedNodeStyle(n),
         data: { label: n.title, content: n.content, manuscript: n.manuscript || '', notes: n.notes || '', metadata: n.metadata, updated_at: n.updated_at || Date.now() },
       })),
-      nodes: activeNodes.map((n: any) => ({
+      nodes: sortParentsFirst(activeNodes.map((n: any) => ({
         id: n.id,
         type: n.node_type,
         position: { x: n.x_position, y: n.y_position },
         parentId: n.parent_id || undefined,
-        extent: n.parent_id ? 'parent' : undefined,
+        extent: undefined, // match live nesting: children are not clamped into the group
         style: loadedNodeStyle(n),
         data: { label: n.title, content: n.content, manuscript: n.manuscript || '', notes: n.notes || '', metadata: n.metadata, updated_at: n.updated_at || Date.now() },
-      })),
+      }))),
       edges: dbEdges.map((e: any) => ({
         id: e.id,
         source: e.source_id,

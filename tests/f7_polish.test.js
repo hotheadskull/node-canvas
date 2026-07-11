@@ -96,6 +96,35 @@ test('F7-8: hidden edge types are loud and self-healing', () => {
   );
 });
 
+// F7-9: group-nesting persistence -- the teleporting-nodes bug had three
+// heads and every one must stay dead:
+//   a) updateNodeParent must write the REAL columns (x_position, not the
+//      phantom position_x Drizzle silently dropped)
+//   b) the debounced position save must read the CURRENT store position at
+//      flush time, not the stale drag payload
+//   c) loaded nodes must be sorted parents-before-children or React Flow
+//      breaks nesting on reload
+test('F7-9: group nesting survives save and reload', () => {
+  const store = read('src/store/useStore.ts');
+  assert.ok(
+    !/position_x|position_y/.test(store),
+    'useStore must never reference position_x/position_y (schema columns are x_position/y_position)'
+  );
+  assert.ok(
+    /x_position: node\.position\.x/.test(store),
+    'updateNodeParent must persist the parent-relative position with the parent'
+  );
+  assert.ok(
+    /const current = get\(\)\.nodes\.find\(n => n\.id === change\.id\)/.test(store),
+    'Debounced position flush must read the current position, not the drag payload'
+  );
+  assert.ok(
+    /sortParentsFirst/.test(store) &&
+    (store.match(/sortParentsFirst\(activeNodes\.map/g) || []).length >= 2,
+    'Both load paths must sort parents before children'
+  );
+});
+
 // F7-6: the backup safety net must stay wired end to end.
 test('F7-6: backup commands exist in Rust and are surfaced in the UI', () => {
   const rust = read('src-tauri/src/lib.rs');

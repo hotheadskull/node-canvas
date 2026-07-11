@@ -16,9 +16,11 @@ test('Scenario-1: Dragging nodes updates position in Zustand store and db with d
     'Expected dragging position change to use debounced timeout'
   );
   
-  // Checks that x_position and y_position updates are written to DB
+  // Checks that x_position and y_position updates are written to DB, using
+  // the node's CURRENT position at flush time (not the stale drag payload,
+  // which re-parenting during the debounce window would make wrong)
   assert.ok(
-    /x_position:\s*change\.position!\.x/.test(useStore) && /y_position:\s*change\.position!\.y/.test(useStore),
+    /x_position:\s*pos\.x/.test(useStore) && /y_position:\s*pos\.y/.test(useStore),
     'Expected x_position and y_position to be saved to DB'
   );
 });
