@@ -66,6 +66,22 @@ test('F8-2b: smartPath guards endpoints, children coords, and merges stacks', ()
   );
 });
 
+// F8-2c: beat/slot edges pin INSIDE their host node, so they must stack
+// above the cards -- under default stacking the final segment hides behind
+// the node body and the connection looks like it stops at the border.
+test('F8-2c: anchored edges render above nodes', () => {
+  const app = read('src/App.tsx');
+  assert.ok(
+    /zIndex: hasAnchoredHandle\(edge\) \? 1001 : edge\.zIndex/.test(app),
+    'processedEdges must elevate beat/slot edges above the node layer'
+  );
+  const eu = read('src/utils/edgeUtils.ts');
+  assert.ok(
+    /export function hasAnchoredHandle/.test(eu) && /export const GENERIC_HANDLES/.test(eu),
+    'edgeUtils must own the single definition of generic vs anchored handles'
+  );
+});
+
 // F8-3: the Person/Entity card header must stay lean -- the type picker
 // lives in the icon, and the sermon Function dropdown is gone.
 test('F8-3: KnowledgeCard header has no dropdown chrome', () => {

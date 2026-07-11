@@ -1,7 +1,7 @@
 import { BaseEdge, EdgeLabelRenderer, EdgeProps, useInternalNode, getBezierPath } from '@xyflow/react';
 import { Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { getEdgeParams, getHandleAnchor, intersectToward } from '../utils/edgeUtils';
+import { GENERIC_HANDLES, getEdgeParams, getHandleAnchor, intersectToward } from '../utils/edgeUtils';
 import { absoluteNodeRects, getAvoidingPath } from '../utils/smartPath';
 import { useStore } from '../store/useStore';
 import { EDGE_TYPES, edgeTypeOf } from '../utils/edgeTypes';
@@ -44,11 +44,6 @@ const Sparks = ({ x, y }: { x: number; y: number }) => {
     </>
   );
 };
-
-// The four generic BaseNode handles float (the edge attaches wherever the
-// route actually leaves the card). Any OTHER handle id (compile slot,
-// sequence beat) pins the edge to that exact dot.
-const GENERIC_HANDLES = new Set(['top', 'bottom', 'left', 'right']);
 
 export function ElasticEdge({
   id,

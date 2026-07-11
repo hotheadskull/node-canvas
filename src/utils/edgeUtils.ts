@@ -1,5 +1,18 @@
 import { InternalNode, Position } from '@xyflow/react';
 
+// The four generic BaseNode handles float (the edge attaches wherever the
+// route actually leaves the card). Any OTHER handle id (compile slot,
+// sequence beat) pins the edge to that exact dot.
+export const GENERIC_HANDLES = new Set(['top', 'bottom', 'left', 'right']);
+
+// Does either end of this edge pin to a specific handle (beat/slot)?
+export function hasAnchoredHandle(edge: { sourceHandle?: string | null; targetHandle?: string | null }) {
+  return Boolean(
+    (edge.sourceHandle && !GENERIC_HANDLES.has(edge.sourceHandle)) ||
+    (edge.targetHandle && !GENERIC_HANDLES.has(edge.targetHandle))
+  );
+}
+
 function nodeGeometry(node: InternalNode) {
   const w = node.measured?.width || 250;
   const h = node.measured?.height || 150;

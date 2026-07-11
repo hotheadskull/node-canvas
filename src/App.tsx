@@ -28,6 +28,7 @@ import { Trash2, Undo2, Redo2, Anchor, Crosshair, CircleDashed, Wand } from 'luc
 import { RichTextEditor } from './components/RichTextEditor';
 import { CommandPalette } from './components/CommandPalette';
 import { EDGE_TYPES, edgeTypeOf } from './utils/edgeTypes';
+import { hasAnchoredHandle } from './utils/edgeUtils';
 import { nodeSpawnConfig } from './nodes/registry';
 
 import { QuoteNode } from './components/QuoteNode';
@@ -452,6 +453,10 @@ function FlowCanvas() {
       return {
         ...edge,
         hidden: isHidden,
+        // Beat/slot edges pin INSIDE their host node, so they must stack
+        // above the cards or the final segment hides behind the node body
+        // (it only peeked out while selection temporarily elevated the edge).
+        zIndex: hasAnchoredHandle(edge) ? 1001 : edge.zIndex,
         // hiddenNodeIds rides along so ElasticEdge's smart routing doesn't
         // detour around nodes that a collapsed hub has made invisible.
         data: { ...edge.data, constellation: constellationMode, hiddenNodeIds },
