@@ -137,6 +137,7 @@ export type AppState = {
   renameProject: (id: string, title: string) => Promise<void>;
   addNode: (node: AppNode) => Promise<void>;
   updateNodeData: (id: string, data: Partial<AppNode['data']>) => Promise<void>;
+  linkExistingMentionsOf: (targetId: string) => Promise<void>;
   updateNodeType: (id: string, type: string) => Promise<void>;
   updateNodeParent: (id: string, parentId: string | null) => Promise<void>;
   deleteNode: (id: string) => Promise<void>;
@@ -154,6 +155,10 @@ export type AppState = {
 // map keyed by node id meant a drag could cancel a pending content save.
 const updateTimeouts: Record<string, ReturnType<typeof setTimeout>> = {};
 const contentTimeouts: Record<string, ReturnType<typeof setTimeout>> = {};
+// Renaming a node / editing its aliases triggers a debounced re-scan of
+// OTHER nodes' text for the new names (the forward spiderweb only fires when
+// the mentioning document itself is edited).
+const reverseScanTimeouts: Record<string, ReturnType<typeof setTimeout>> = {};
 
 const undoStack: HistoryEntry[] = [];
 const redoStack: HistoryEntry[] = [];
@@ -620,10 +625,25 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   updateNodeData: async (id: string, data: Partial<AppNode['data']>) => {
+    const prevNode = get().nodes.find(n => n.id === id);
+
     // 1. Update the local state for the node
     set({
       nodes: get().nodes.map(n => n.id === id ? { ...n, data: { ...n.data, ...data, updated_at: Date.now() } } : n)
     });
+
+    // Renamed, or aliases changed? Re-scan existing text elsewhere for the
+    // new names, so "add the alias later" still forms the web.
+    const labelChanged = data.label !== undefined && data.label !== prevNode?.data.label;
+    const aliasesChanged = data.metadata !== undefined &&
+      String(data.metadata?.aliases ?? '') !== String(prevNode?.data.metadata?.aliases ?? '');
+    if (labelChanged || aliasesChanged) {
+      if (reverseScanTimeouts[id]) clearTimeout(reverseScanTimeouts[id]);
+      reverseScanTimeouts[id] = setTimeout(() => {
+        delete reverseScanTimeouts[id];
+        get().linkExistingMentionsOf(id);
+      }, 700);
+    }
 
     // 2. SPIDERWEB AUTO-LINKING: Check if they typed another node's name.
     // Mention count doubles as link strength: the more a title appears in this
@@ -657,9 +677,13 @@ export const useStore = create<AppState>((set, get) => ({
             occurrences += (plainText.match(regex) || []).length;
           }
           if (occurrences > 0) {
-            // Found a match! Check if edge already exists
-            const exists = currentEdges.some(e => e.source === id && e.target === otherNode.id);
-            if (!exists) {
+            // Found a match! Check if an edge already exists in EITHER
+            // direction -- a manual character->document edge must be
+            // strengthened, not shadowed by a duplicate reverse edge.
+            const existing = currentEdges.find(e =>
+              (e.source === id && e.target === otherNode.id) ||
+              (e.source === otherNode.id && e.target === id));
+            if (!existing) {
               const newEdge = {
                 id: crypto.randomUUID(),
                 source: id,
@@ -673,7 +697,6 @@ export const useStore = create<AppState>((set, get) => ({
               };
               newEdgesToCreate.push(newEdge);
             } else {
-              const existing = currentEdges.find(e => e.source === id && e.target === otherNode.id)!;
               const currentStrength = (existing.data as any)?.strength || 1;
               if (currentStrength !== occurrences) {
                 strengthUpdates.push({ id: existing.id, strength: occurrences });
@@ -752,6 +775,101 @@ export const useStore = create<AppState>((set, get) => ({
         get().endSave();
       }
     }, 500);
+  },
+
+  // REVERSE SPIDERWEB: scan every other node's existing text for THIS node's
+  // title/aliases and create (or strengthen) doc->node links. The forward
+  // spiderweb in updateNodeData only fires when the mentioning document is
+  // edited, so without this, adding an alias AFTER the document was written
+  // never forms the link.
+  linkExistingMentionsOf: async (targetId: string) => {
+    const target = get().nodes.find(n => n.id === targetId);
+    if (!target || target.type === 'alias') return;
+
+    const names = [
+      String(target.data.label || ''),
+      ...String((target.data as any).metadata?.aliases || '').split(','),
+    ]
+      .map(s => s.trim().toLowerCase())
+      .filter(s => s.length > 2);
+    if (names.length === 0) return;
+
+    const currentEdges = get().edges;
+    const newEdgesToCreate: any[] = [];
+    const strengthUpdates: { id: string; strength: number }[] = [];
+
+    for (const other of get().nodes) {
+      if (other.id === targetId || other.type === 'alias') continue;
+      // Same text source as the forward scan (content OR manuscript, never
+      // both) so the two scans always agree on the mention count.
+      const raw = String(other.data.content || other.data.manuscript || '');
+      if (raw.length <= 5) continue;
+      const plainText = raw.toLowerCase().replace(/<[^>]+>/g, '');
+
+      let occurrences = 0;
+      for (const name of names) {
+        const regex = new RegExp(`\\b${escapeRegExp(name)}\\b`, 'gi');
+        occurrences += (plainText.match(regex) || []).length;
+      }
+      if (occurrences === 0) continue;
+
+      const existing = currentEdges.find(e =>
+        (e.source === other.id && e.target === targetId) ||
+        (e.source === targetId && e.target === other.id));
+      if (!existing) {
+        newEdgesToCreate.push({
+          id: crypto.randomUUID(),
+          source: other.id,
+          target: targetId,
+          sourceHandle: 'bottom',
+          targetHandle: 'top',
+          type: 'elastic',
+          animated: true,
+          data: { strength: occurrences },
+          style: { stroke: '#fbbf24', strokeWidth: 2 }
+        });
+      } else if (((existing.data as any)?.strength || 1) !== occurrences) {
+        strengthUpdates.push({ id: existing.id, strength: occurrences });
+      }
+    }
+
+    if (newEdgesToCreate.length > 0) {
+      set({ edges: [...get().edges, ...newEdgesToCreate] });
+      try {
+        const { db } = await initDb();
+        for (const edge of newEdgesToCreate) {
+          await db.insert(edgesTable).values({
+            id: edge.id,
+            project_id: get().activeProjectId,
+            source_id: edge.source,
+            target_id: edge.target,
+            source_handle: edge.sourceHandle || null,
+            target_handle: edge.targetHandle || null,
+            strength: edge.data.strength,
+            edge_type: DEFAULT_EDGE_TYPE
+          });
+        }
+      } catch (e) {
+        get().reportSaveError('save auto-link', e);
+      }
+    }
+
+    if (strengthUpdates.length > 0) {
+      set({
+        edges: get().edges.map(e => {
+          const u = strengthUpdates.find(s => s.id === e.id);
+          return u ? { ...e, data: { ...e.data, strength: u.strength } } : e;
+        })
+      });
+      try {
+        const { db } = await initDb();
+        for (const u of strengthUpdates) {
+          await db.update(edgesTable).set({ strength: u.strength }).where(eq(edgesTable.id, u.id));
+        }
+      } catch (e) {
+        get().reportSaveError('save link strength', e);
+      }
+    }
   },
 
   updateNodeType: async (id: string, type: string) => {

@@ -7,3 +7,4 @@ import './cross_combinations.test.js';
 import './real_world_scenarios.test.js';
 import './f6_registry.test.js';
 import './f7_polish.test.js';
+import './f8_routing_polish.test.js';

@@ -341,16 +341,41 @@ function FlowCanvas() {
     return satellites;
   }, [nodes, edges]);
 
-  const processedNodes = useMemo(() => {
-    const collapsedHubIds = new Set(
-      nodes.filter(n => n.type === 'hub' && (n.data as any)?.metadata?.isCollapsed).map(n => n.id)
-    );
+  const collapsedHubIds = useMemo(() => new Set(
+    nodes.filter(n => n.type === 'hub' && (n.data as any)?.metadata?.isCollapsed).map(n => n.id)
+  ), [nodes]);
 
-    const hiddenNodeIds = new Set();
-    edges.forEach(edge => {
-      if (collapsedHubIds.has(edge.source)) hiddenNodeIds.add(edge.target);
-      if (collapsedHubIds.has(edge.target)) hiddenNodeIds.add(edge.source);
-    });
+  const hiddenNodeIds = useMemo(() => {
+    const hidden = new Set<string>();
+    if (collapsedHubIds.size > 0) {
+      edges.forEach(edge => {
+        if (collapsedHubIds.has(edge.source)) hidden.add(edge.target);
+        if (collapsedHubIds.has(edge.target)) hidden.add(edge.source);
+      });
+    }
+    return hidden;
+  }, [collapsedHubIds, edges]);
+
+  // Nodes currently mid collapse/expand animation. The gentle float is a CSS
+  // TRANSITION on transform, so it may only be armed on nodes actively
+  // animating a hub toggle -- left on permanently it made every programmatic
+  // transform glide, and children of a dragged group (which never get React
+  // Flow's .dragging exemption) visibly lagged behind the group. Tracked
+  // render-phase (not in an effect) because the transition must be present in
+  // the SAME render where an expand snaps positions back, or the animation is
+  // lost. Idempotent, so StrictMode double-renders are harmless.
+  const animUntilRef = useRef<Map<string, number>>(new Map());
+  const prevHiddenRef = useRef<Set<string>>(new Set());
+
+  const processedNodes = useMemo(() => {
+    const prevHidden = prevHiddenRef.current;
+    const animUntil = animUntilRef.current;
+    const now = performance.now();
+    const ANIM_MS = 3600; // outlives the longest (3.5s float-out) transition
+    hiddenNodeIds.forEach(id => { if (!prevHidden.has(id)) animUntil.set(id, now + ANIM_MS); });
+    prevHidden.forEach(id => { if (!hiddenNodeIds.has(id)) animUntil.set(id, now + ANIM_MS); });
+    prevHiddenRef.current = hiddenNodeIds;
+    animUntil.forEach((until, id) => { if (until <= now) animUntil.delete(id); });
 
     return nodes.map(node => {
       const constellationClass = constellation
@@ -398,25 +423,17 @@ function FlowCanvas() {
             '--orbit-dur': `${14 + (idHash % 9)}s`,
             animationDelay: `-${idHash % 14}s`,
           } : {}),
-          '--node-transition': isHidden
-            ? 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease, filter 0.3s ease' // Faster pull-in
-            : 'transform 3.5s cubic-bezier(0.05, 0.9, 0.1, 1.0), opacity 3.0s ease, filter 0.3s ease' // Extremely gentle float out
+          ...(isHidden || animUntil.has(node.id) ? {
+            '--node-transition': isHidden
+              ? 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease, filter 0.3s ease' // Faster pull-in
+              : 'transform 3.5s cubic-bezier(0.05, 0.9, 0.1, 1.0), opacity 3.0s ease, filter 0.3s ease' // Extremely gentle float out
+          } : {})
         } as any
       };
     });
-  }, [nodes, edges, constellation, orbitingIds]);
+  }, [nodes, edges, constellation, orbitingIds, hiddenNodeIds]);
 
   const processedEdges = useMemo(() => {
-    const collapsedHubIds = new Set(
-      nodes.filter(n => n.type === 'hub' && (n.data as any)?.metadata?.isCollapsed).map(n => n.id)
-    );
-
-    const hiddenNodeIds = new Set();
-    edges.forEach(edge => {
-      if (collapsedHubIds.has(edge.source)) hiddenNodeIds.add(edge.target);
-      if (collapsedHubIds.has(edge.target)) hiddenNodeIds.add(edge.source);
-    });
-
     // Edges whose endpoint is trashed stay in the store (so restoring the node
     // brings its connections back) but must not be handed to React Flow.
     const nodeIds = new Set(nodes.map(n => n.id));
@@ -435,10 +452,12 @@ function FlowCanvas() {
       return {
         ...edge,
         hidden: isHidden,
-        data: { ...edge.data, constellation: constellationMode },
+        // hiddenNodeIds rides along so ElasticEdge's smart routing doesn't
+        // detour around nodes that a collapsed hub has made invisible.
+        data: { ...edge.data, constellation: constellationMode, hiddenNodeIds },
       };
     });
-  }, [nodes, edges, constellation, hiddenEdgeTypes]);
+  }, [nodes, edges, constellation, hiddenEdgeTypes, collapsedHubIds, hiddenNodeIds]);
 
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 

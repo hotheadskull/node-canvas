@@ -9,9 +9,10 @@ import {
   Shield, 
   CalendarClock, 
   BookOpen, 
-  Gem, 
-  Lightbulb, 
-  Tags
+  Gem,
+  Lightbulb,
+  Tags,
+  ChevronDown
 } from 'lucide-react';
 import { EDGE_TYPES } from '../utils/edgeTypes';
 
@@ -81,19 +82,30 @@ export const KnowledgeCard = memo(({ id, data, selected, type }: NodeProps<AppNo
       minHeight={150}
       icon={Icon}
       accentColor={kind.color}
-      showFunction={true}
       showTags={true}
-      headerRight={
-        <select
-          className="text-[10px] text-gray-400 bg-[#1a1a1f] px-1.5 py-1 rounded border border-[#333] flex-shrink-0 cursor-pointer outline-none uppercase font-bold tracking-wider hover:border-gray-500 transition-colors"
-          value={SELECTABLE_KINDS.includes(nodeType) ? nodeType : 'reference'}
-          onChange={(e) => updateNodeType(id, e.target.value)}
-          onPointerDown={(e) => e.stopPropagation()}
+      renderIcon={
+        // The icon IS the type picker: an invisible native <select> sits on
+        // top of it, so the OS dropdown opens on click and nothing can be
+        // clipped by the card's overflow-hidden. Keeps the header to just
+        // grip + icon + title -- no dropdown chrome crowding the name input.
+        <div
+          className="relative flex items-center flex-shrink-0 cursor-pointer rounded px-0.5 hover:bg-white/10 transition-colors"
+          title={`${kind.label} — click to change type`}
         >
-          {SELECTABLE_KINDS.map(k => (
-            <option key={k} value={k}>{KINDS[k].label}</option>
-          ))}
-        </select>
+          <Icon size={14} style={{ color: kind.color }} />
+          <ChevronDown size={8} className="text-gray-500" />
+          <select
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            value={SELECTABLE_KINDS.includes(nodeType) ? nodeType : 'reference'}
+            onChange={(e) => updateNodeType(id, e.target.value)}
+            onPointerDown={(e) => e.stopPropagation()}
+            aria-label="Card type"
+          >
+            {SELECTABLE_KINDS.map(k => (
+              <option key={k} value={k} className="bg-[#151518] text-gray-200">{KINDS[k].label}</option>
+            ))}
+          </select>
+        </div>
       }
     >
       {/* Aliases Input -- hidden until selected (or filled) so small cards
@@ -107,6 +119,7 @@ export const KnowledgeCard = memo(({ id, data, selected, type }: NodeProps<AppNo
             onChange={(e) => updateNodeData(id, { metadata: { ...meta, aliases: e.target.value } })}
             onPointerDown={(e) => e.stopPropagation()}
             placeholder="Aliases (comma-separated)"
+            title="Other names this card answers to — typing any of them in a document auto-links it here"
           />
         </div>
       )}

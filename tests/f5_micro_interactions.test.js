@@ -68,9 +68,11 @@ test('F5-Boundary-2: Spiderweb auto-linking does not connect a node to itself', 
 
 test('F5-Boundary-3: Spiderweb auto-linking checks for existing edges to avoid duplicates', () => {
   const content = fs.readFileSync(useStorePath, 'utf8');
+  // The dedupe must look in BOTH directions -- a manual character->document
+  // edge counts as existing when the auto-linker wants document->character.
   assert.ok(
-    /currentEdges\.some\(e\s*=>\s*e\.source\s*===\s*id\s*&&\s*e\.target\s*===\s*otherNode\.id\)/.test(content),
-    'Expected check for existing edges before auto-creating'
+    /currentEdges\.find\(e\s*=>\s*\(e\.source === id && e\.target === otherNode\.id\)\s*\|\|\s*\(e\.source === otherNode\.id && e\.target === id\)\)/.test(content),
+    'Expected a bidirectional check for existing edges before auto-creating'
   );
 });
 

@@ -16,6 +16,8 @@ export interface BaseNodeProps {
   showFunction?: boolean;
   showTags?: boolean;
   headerRight?: React.ReactNode;
+  /** Replaces the plain header icon (e.g. an icon that doubles as a picker) */
+  renderIcon?: React.ReactNode;
   hasTopHandle?: boolean;
   hasBottomHandle?: boolean;
   hasLeftHandle?: boolean;
@@ -46,6 +48,7 @@ export const BaseNode = memo(({
   showFunction = false,
   showTags = false,
   headerRight,
+  renderIcon,
   hasTopHandle = true,
   hasBottomHandle = true,
   hasLeftHandle = true,
@@ -105,7 +108,7 @@ export const BaseNode = memo(({
                 overflow-hidden clipped them */}
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <GripHorizontal size={14} className="text-gray-500 opacity-50 hover:opacity-100 flex-shrink-0" />
-              <Icon size={14} style={{ color: accentColor }} className="flex-shrink-0" />
+              {renderIcon ?? <Icon size={14} style={{ color: accentColor }} className="flex-shrink-0" />}
               <input
                 type="text"
                 className={`bg-transparent flex-1 focus:outline-none min-w-0 ${headerInputClassName || 'text-sm font-bold'}`}

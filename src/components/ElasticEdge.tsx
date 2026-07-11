@@ -2,6 +2,7 @@ import { BaseEdge, EdgeLabelRenderer, EdgeProps, useInternalNode, getBezierPath 
 import { Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { getEdgeParams } from '../utils/edgeUtils';
+import { absoluteNodeRects, getAvoidingPath } from '../utils/smartPath';
 import { useStore } from '../store/useStore';
 import { EDGE_TYPES, edgeTypeOf } from '../utils/edgeTypes';
 import { EdgeTypePreview } from './EdgeTypePreview';
@@ -56,6 +57,7 @@ export function ElasticEdge({
 }: EdgeProps) {
   const sourceNode = useInternalNode(source);
   const targetNode = useInternalNode(target);
+  const allNodes = useStore(state => state.nodes);
   const updateEdgeLabel = useStore(state => state.updateEdgeLabel);
   const updateEdgeType = useStore(state => state.updateEdgeType);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -75,7 +77,7 @@ export function ElasticEdge({
   const MAX_STRETCH = 800;
   const TENSION_START = 400; // Distance where it starts turning red
 
-  const [edgePath, labelX, labelY] = getBezierPath({
+  const [bezierPath, bezierLabelX, bezierLabelY] = getBezierPath({
     sourceX: sx,
     sourceY: sy,
     targetX: tx,
@@ -83,6 +85,30 @@ export function ElasticEdge({
     sourcePosition: sourcePos,
     targetPosition: targetPos,
   });
+
+  // SMART ROUTING: if the straight line would plow under other nodes, bow
+  // around them. Skipped on huge canvases -- the O(edges x nodes) scan is
+  // fine at writing-project scale but not at stress-test scale.
+  const SMART_ROUTE_NODE_LIMIT = 300;
+  let smart: ReturnType<typeof getAvoidingPath> = null;
+  if (allNodes.length <= SMART_ROUTE_NODE_LIMIT) {
+    // Nodes hidden by a collapsed hub keep their real store position but are
+    // invisible; App passes their ids so we don't dodge empty space.
+    const hiddenIds = (data as any)?.hiddenNodeIds as Set<string> | undefined;
+    const obstacles = absoluteNodeRects(allNodes)
+      .filter(r =>
+        r.id !== source &&
+        r.id !== target &&
+        r.type !== 'group' && // edges may cross group zones freely
+        !(hiddenIds?.has(r.id))
+      )
+      .map(r => r.rect);
+    smart = getAvoidingPath(sx, sy, tx, ty, obstacles);
+  }
+
+  const edgePath = smart?.path ?? bezierPath;
+  const labelX = smart?.labelX ?? bezierLabelX;
+  const labelY = smart?.labelY ?? bezierLabelY;
 
   // Calculate tension percentage (0 to 1)
   const tension = Math.max(0, Math.min(1, (distance - TENSION_START) / (MAX_STRETCH - TENSION_START)));
