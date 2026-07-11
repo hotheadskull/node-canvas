@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { getEdgeParams } from '../utils/edgeUtils';
 import { useStore } from '../store/useStore';
 import { EDGE_TYPES, edgeTypeOf } from '../utils/edgeTypes';
+import { EdgeTypePreview } from './EdgeTypePreview';
 
 const Sparks = ({ x, y }: { x: number; y: number }) => {
   const [active, setActive] = useState(true);
@@ -220,9 +221,7 @@ export function ElasticEdge({
                 className="flex items-center gap-2 bg-[#1a1a24] border border-[#333] px-2 py-1 rounded cursor-pointer hover:border-gray-500 transition-colors"
                 style={{ color: typeDef.color }}
               >
-                <svg width="18" height="6" className="overflow-visible">
-                  <line x1="0" y1="3" x2="18" y2="3" stroke={typeDef.color} strokeWidth="2" strokeDasharray={typeDef.dash} />
-                </svg>
+                <EdgeTypePreview def={typeDef} width={18} />
                 <span className="text-xs font-bold uppercase tracking-wider">{typeDef.label}</span>
               </button>
 
@@ -241,9 +240,7 @@ export function ElasticEdge({
                         setMenuOpen(false);
                       }}
                     >
-                      <svg width="24" height="6" className="flex-shrink-0 overflow-visible">
-                        <line x1="0" y1="3" x2="24" y2="3" stroke={def.color} strokeWidth="2" strokeDasharray={def.dash} />
-                      </svg>
+                      <EdgeTypePreview def={def} width={24} />
                       <span className="text-xs font-bold uppercase tracking-wider" style={{ color: def.color }}>{def.label}</span>
                     </button>
                   ))}

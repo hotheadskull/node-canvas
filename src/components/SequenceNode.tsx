@@ -1,5 +1,5 @@
-import { memo, useRef, useState } from 'react';
-import { Handle, Position, NodeProps, useReactFlow } from '@xyflow/react';
+import { memo, useEffect, useRef, useState } from 'react';
+import { Handle, Position, NodeProps, useReactFlow, useUpdateNodeInternals } from '@xyflow/react';
 import { Plus, Trash2, GripHorizontal, ListOrdered } from 'lucide-react';
 import { useStore, AppNode } from '../store/useStore';
 import { BaseNode } from './BaseNode';
@@ -18,6 +18,13 @@ export const SequenceNode = memo(({ id, data, selected }: NodeProps<AppNode>) =>
   });
 
   const beats: { id: string, title: string, subtitle: string }[] = data.metadata?.beats || [];
+
+  // Each beat carries its own connection handle, created dynamically --
+  // React Flow must re-measure them or connections to beats silently fail.
+  const updateNodeInternals = useUpdateNodeInternals();
+  useEffect(() => {
+    updateNodeInternals(id);
+  }, [id, beats.length, updateNodeInternals]);
 
   const updateMetadata = (newMetadata: any) => {
     updateNodeData(id, {
@@ -179,11 +186,12 @@ export const SequenceNode = memo(({ id, data, selected }: NodeProps<AppNode>) =>
                       onChange={(e) => handleBeatChange(i, 'subtitle', e.target.value)}
                     />
                   </div>
-                  <Handle 
-                    type="source" 
-                    position={Position.Bottom} 
+                  {/* Purple, not near-black: the handle has to be findable */}
+                  <Handle
+                    type="source"
+                    position={Position.Bottom}
                     id={`beat-${beat.id}`}
-                    className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#151518]" 
+                    className="!w-3 !h-3 rounded-full border-2 !border-[#151518] z-50 transition-transform hover:scale-125 !bg-[#a855f7]"
                   />
                 </div>
               </div>

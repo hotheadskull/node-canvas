@@ -16,6 +16,7 @@ export function ProjectManager() {
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameTitle, setRenameTitle] = useState('');
   const [backups, setBackups] = useState<BackupInfo[] | null>(null);
+  const [showBackupList, setShowBackupList] = useState(false);
 
   // Refresh the automatic-backup info each time the menu opens
   useEffect(() => {
@@ -349,24 +350,44 @@ export function ProjectManager() {
                 )}
                 
               </div>
-              <div className="mt-2 flex items-center justify-between p-3 bg-emerald-900/15 border border-emerald-500/25 rounded">
-                <div className="flex items-center gap-2 min-w-0">
-                  <ShieldCheck size={15} className="text-emerald-400/80 flex-shrink-0" />
-                  <span className="text-[11px] text-emerald-100/70 font-sans truncate">
-                    {backups === null
-                      ? 'Automatic backups run before every app update.'
-                      : backups.length === 0
-                        ? 'No automatic backups yet — one is made before every app update.'
-                        : `${backups.length} automatic backup${backups.length === 1 ? '' : 's'} · latest ${new Date(backups[0].modified_secs * 1000).toLocaleDateString()} (${Math.max(1, Math.round(backups[0].size_kb))} KB)`}
-                  </span>
+              <div className="mt-2 flex flex-col p-3 bg-emerald-900/15 border border-emerald-500/25 rounded gap-2">
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => setShowBackupList(v => !v)}
+                    className="flex items-center gap-2 min-w-0 text-left"
+                    title={showBackupList ? 'Hide the backup list' : 'Show every backup with its date'}
+                  >
+                    <ShieldCheck size={15} className="text-emerald-400/80 flex-shrink-0" />
+                    <span className="text-[11px] text-emerald-100/70 font-sans truncate hover:text-emerald-100 transition-colors">
+                      {backups === null
+                        ? 'Automatic backups run before every app update.'
+                        : backups.length === 0
+                          ? 'No automatic backups yet — one is made before every app update.'
+                          : `${backups.length} automatic backup${backups.length === 1 ? '' : 's'} · latest ${new Date(backups[0].modified_secs * 1000).toLocaleString()} ${showBackupList ? '▴' : '▾'}`}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => invoke('open_backup_folder').catch(() => {})}
+                    className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-widest text-emerald-300 hover:text-white bg-emerald-500/10 hover:bg-emerald-500/25 px-2.5 py-1 rounded transition-colors flex-shrink-0 ml-3"
+                    title="Open the folder holding your database and its backups"
+                  >
+                    <FolderOpen size={12} /> Open Folder
+                  </button>
                 </div>
-                <button
-                  onClick={() => invoke('open_backup_folder').catch(() => {})}
-                  className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-widest text-emerald-300 hover:text-white bg-emerald-500/10 hover:bg-emerald-500/25 px-2.5 py-1 rounded transition-colors flex-shrink-0 ml-3"
-                  title="Open the folder holding your database and its backups"
-                >
-                  <FolderOpen size={12} /> Backups
-                </button>
+                {showBackupList && backups && backups.length > 0 && (
+                  <div className="flex flex-col gap-1 max-h-32 overflow-y-auto custom-scrollbar border-t border-emerald-500/15 pt-2">
+                    {backups.map(b => (
+                      <div key={b.name} className="flex items-center justify-between text-[10px] font-sans px-1">
+                        <span className="text-emerald-100/80">
+                          {new Date(b.modified_secs * 1000).toLocaleString()}
+                        </span>
+                        <span className="text-emerald-100/40 ml-3 flex-shrink-0">
+                          {b.size_kb >= 1024 ? `${(b.size_kb / 1024).toFixed(1)} MB` : `${Math.max(1, b.size_kb)} KB`}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="p-3 bg-indigo-900/20 border border-indigo-500/30 rounded text-center">
                 <span className="text-[11px] text-indigo-200/80 font-sans">

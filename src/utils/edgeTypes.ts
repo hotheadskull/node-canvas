@@ -24,8 +24,8 @@ export const EDGE_TYPES: Record<string, EdgeTypeDef> = {
   // ---------- Analytical / Logical ----------
   // The quiet default: muted gold, solid, still.
   references: { label: 'References', color: '#b08d4f', animation: 'none' },
-  // Causality has direction and force: hot orange with particles flowing.
-  causes: { label: 'Leads To', color: '#f97316', animation: 'particles' },
+  // Causality has direction and force: hot orange with particles firing.
+  causes: { label: 'Causes', color: '#f97316', animation: 'particles' },
   // Steady reinforcement: green heartbeat.
   supports: { label: 'Supports', color: '#22c55e', animation: 'pulse' },
   // Friction: a red line that never quite connects.
@@ -38,8 +38,9 @@ export const EDGE_TYPES: Record<string, EdgeTypeDef> = {
   foreshadows: { label: 'Foreshadows', color: '#a855f7', dash: '2 7', animation: 'pulse' },
   // A living spark between ideas: pink pulse.
   inspires: { label: 'Inspires', color: '#ec4899', animation: 'pulse' },
-  // Movement from one section into the next: sky blue, particles in transit.
-  transitions: { label: 'Flows Into', color: '#0ea5e9', animation: 'particles' },
+  // Movement from one section into the next: sky blue current, always
+  // streaming (distinct from Causes' particle bursts).
+  transitions: { label: 'Flows Into', color: '#0ea5e9', dash: '8 4', animation: 'dash' },
   // Two halves of the same shape: teal, perfectly even dashes, still.
   parallels: { label: 'Mirrors', color: '#14b8a6', dash: '6 6', animation: 'none' },
   // The thread being tied off: silver-white dashes drawing closed.

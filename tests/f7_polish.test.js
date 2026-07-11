@@ -68,6 +68,19 @@ test('F7-5: edge type colors are unique', () => {
   assert.strictEqual(new Set(colors).size, colors.length, 'Every edge type needs its own color');
 });
 
+// F7-7: nodes with DYNAMIC handles (compile slots, sequence beats) must call
+// useUpdateNodeInternals when the handle set changes -- without it React Flow
+// never registers the handles and connections to them silently fail.
+test('F7-7: dynamic-handle nodes re-register with React Flow', () => {
+  for (const file of ['src/components/CompileNode.tsx', 'src/components/SequenceNode.tsx']) {
+    const src = read(file);
+    assert.ok(
+      /useUpdateNodeInternals/.test(src) && /updateNodeInternals\(id\)/.test(src),
+      `${file} must call updateNodeInternals when its handles change`
+    );
+  }
+});
+
 // F7-6: the backup safety net must stay wired end to end.
 test('F7-6: backup commands exist in Rust and are surfaced in the UI', () => {
   const rust = read('src-tauri/src/lib.rs');

@@ -4,7 +4,7 @@ import { useStore } from '../store/useStore';
 
 type Toast = { key: number; id: string; label: string; type?: string };
 
-const TOAST_LIFETIME_MS = 7000;
+const TOAST_LIFETIME_MS = 4000;
 
 // Every node trashing (toolbar delete, Delete key, deck absorption) fires a
 // 'node-trashed' event from the store. This stack makes sure the user SEES

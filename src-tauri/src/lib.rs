@@ -16,12 +16,10 @@ fn backup_db(app_handle: tauri::AppHandle) -> Result<String, String> {
         return Ok("No database to backup".into());
     }
     
-    let timestamp = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_secs();
-        
-    let backup_name = format!("world_engine_{}.db.bak", timestamp);
+    // Human-readable name so the backup folder makes sense at a glance
+    // (older backups keep their unix-timestamp names; both still list)
+    let stamp = chrono::Local::now().format("%Y-%m-%d_%H-%M-%S");
+    let backup_name = format!("world_engine_{}.db.bak", stamp);
     let backup_path = app_dir.join(&backup_name);
     
     std::fs::copy(&db_path, &backup_path).map_err(|e| e.to_string())?;

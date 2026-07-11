@@ -30,21 +30,25 @@
   }
 }
 
+/* NOTE: 'inherit' is not animatable inside keyframes -- breathe with
+   opacity + glow only, which works on any stroke width. */
 @keyframes edge-pulse-anim {
-  0% { stroke-width: inherit; opacity: 0.7; }
-  50% { stroke-width: calc(inherit + 2px); opacity: 1; filter: drop-shadow(0 0 6px currentColor); }
-  100% { stroke-width: inherit; opacity: 0.7; }
+  0% { opacity: 0.55; }
+  50% { opacity: 1; filter: drop-shadow(0 0 7px currentColor); }
+  100% { opacity: 0.55; }
 }
 
 .edge-anim-pulse {
   animation: edge-pulse-anim 2s ease-in-out infinite;
 }
 
+/* 48 is a common multiple of the dash cycles in use ('8 4' = 12, '12 4' = 16)
+   so the march loops without a visible jump. */
 @keyframes edge-dash-anim {
-  from { stroke-dashoffset: 24; }
+  from { stroke-dashoffset: 48; }
   to { stroke-dashoffset: 0; }
 }
 
 .edge-anim-dash {
-  animation: edge-dash-anim 1s linear infinite;
+  animation: edge-dash-anim 1.6s linear infinite;
 }

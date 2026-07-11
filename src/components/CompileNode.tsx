@@ -1,5 +1,5 @@
-import { memo } from 'react';
-import { Handle, Position, NodeProps } from '@xyflow/react';
+import { memo, useEffect } from 'react';
+import { Handle, Position, NodeProps, useUpdateNodeInternals } from '@xyflow/react';
 import { Printer, Download } from 'lucide-react';
 import { useStore, AppNode } from '../store/useStore';
 import { BaseNode } from './BaseNode';
@@ -14,6 +14,13 @@ export const CompileNode = memo(({ id, data, selected }: NodeProps<AppNode>) => 
   // Dynamic number of ordered slots (default 3)
   const slotCount: number = typeof data.slotCount === 'number' ? data.slotCount : 3;
   const slots: number[] = Array.from({ length: slotCount }, (_, i) => i + 1);
+
+  // The slot handles are created dynamically -- React Flow must be told
+  // every time they change or it won't accept connections to them.
+  const updateNodeInternals = useUpdateNodeInternals();
+  useEffect(() => {
+    updateNodeInternals(id);
+  }, [id, slotCount, updateNodeInternals]);
 
   const handleAddSlot = () => {
     updateNodeData(id, { slotCount: slotCount + 1 });

@@ -22,6 +22,7 @@ import { ProjectManager } from './components/ProjectManager';
 import { ReferencePanel } from './components/ReferencePanel';
 import { TutorialOverlay } from './components/TutorialOverlay';
 import { TrashToast } from './components/TrashToast';
+import { EdgeTypePreview } from './components/EdgeTypePreview';
 import './App.css';
 import { Trash2, Undo2, Redo2, Anchor, Crosshair, CircleDashed, Wand } from 'lucide-react';
 import { RichTextEditor } from './components/RichTextEditor';
@@ -839,9 +840,7 @@ function FlowCanvas() {
                   onClick={() => toggleEdgeType(key)}
                   title={hiddenEdgeTypes.has(key) ? `Show "${def.label}" connections` : `Hide "${def.label}" connections`}
                 >
-                  <svg width="18" height="6">
-                    <line x1="0" y1="3" x2="18" y2="3" stroke={def.color} strokeWidth="2" strokeDasharray={def.dash} />
-                  </svg>
+                  <EdgeTypePreview def={def} width={18} />
                   {def.label}
                 </button>
               ))}
