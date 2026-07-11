@@ -2,14 +2,28 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Panel } from '@xyflow/react';
 import { useStore } from '../store/useStore';
 import { useReactFlow } from '@xyflow/react';
-import { Camera, Trash2, RotateCcw, Download, Upload, HelpCircle, PlayCircle } from 'lucide-react';
+import { invoke } from '@tauri-apps/api/core';
+import { Camera, Trash2, RotateCcw, Download, Upload, HelpCircle, PlayCircle, Pencil, ShieldCheck, FolderOpen } from 'lucide-react';
+
+type BackupInfo = { name: string; size_kb: number; modified_secs: number };
 
 export function ProjectManager() {
-  const { projects, activeProjectId, setActiveProject, createProject, createSnapshot, deleteProject, restoreProject, trashedNodes, restoreNode, exportProjectJSON, importProjectJSON } = useStore();
+  const { projects, activeProjectId, setActiveProject, createProject, renameProject, createSnapshot, deleteProject, restoreProject, trashedNodes, restoreNode, exportProjectJSON, importProjectJSON } = useStore();
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'workspaces' | 'snapshots' | 'trash' | 'nodes'>('workspaces');
   const [newTitle, setNewTitle] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameTitle, setRenameTitle] = useState('');
+  const [backups, setBackups] = useState<BackupInfo[] | null>(null);
+
+  // Refresh the automatic-backup info each time the menu opens
+  useEffect(() => {
+    if (!isOpen) return;
+    invoke<BackupInfo[]>('list_backups')
+      .then(setBackups)
+      .catch(() => setBackups(null));
+  }, [isOpen]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { fitView } = useReactFlow();
 
@@ -112,13 +126,13 @@ export function ProjectManager() {
                 onClick={() => setActiveTab('trash')}
                 className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider ${activeTab === 'trash' ? 'bg-red-900/40 text-red-400' : 'text-gray-500 hover:text-gray-300'}`}
               >
-                Bin (Projects)
+                Workspace Trash
               </button>
               <button 
                 onClick={() => setActiveTab('nodes')}
                 className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider ${activeTab === 'nodes' ? 'bg-orange-900/40 text-orange-400' : 'text-gray-500 hover:text-gray-300'}`}
               >
-                Bin (Nodes)
+                Node Trash
               </button>
             </div>
 
@@ -127,16 +141,49 @@ export function ProjectManager() {
                 <div className="flex flex-col gap-1">
                   {activeWorkspaces.map(p => (
                     <div key={p.id} className="flex items-center justify-between group">
+                      {renamingId === p.id ? (
+                        <form
+                          className="flex-1 px-4 py-1"
+                          onSubmit={async (e) => {
+                            e.preventDefault();
+                            await renameProject(p.id, renameTitle);
+                            setRenamingId(null);
+                          }}
+                        >
+                          <input
+                            autoFocus
+                            type="text"
+                            value={renameTitle}
+                            onChange={e => setRenameTitle(e.target.value)}
+                            onBlur={() => setRenamingId(null)}
+                            onKeyDown={e => { if (e.key === 'Escape') setRenamingId(null); }}
+                            className="w-full bg-transparent border-b border-[#d4b98c]/50 text-[#d4b98c] py-1 outline-none text-sm font-serif"
+                          />
+                        </form>
+                      ) : (
+                        <button
+                          onClick={() => handleSelect(p.id)}
+                          onDoubleClick={() => { setRenamingId(p.id); setRenameTitle(p.title); }}
+                          className={`flex-1 text-left px-4 py-2 text-sm font-serif rounded transition-colors ${p.id === activeProjectId ? 'bg-[#d4b98c]/20 text-[#d4b98c]' : 'text-gray-400 hover:bg-[#d4b98c]/10'}`}
+                        >
+                          {p.title}
+                        </button>
+                      )}
                       <button
-                        onClick={() => handleSelect(p.id)}
-                        className={`flex-1 text-left px-4 py-2 text-sm font-serif rounded transition-colors ${p.id === activeProjectId ? 'bg-[#d4b98c]/20 text-[#d4b98c]' : 'text-gray-400 hover:bg-[#d4b98c]/10'}`}
+                        onClick={() => { setRenamingId(p.id); setRenameTitle(p.title); }}
+                        className="p-2 text-gray-600 hover:text-[#d4b98c] opacity-50 group-hover:opacity-100 transition-opacity"
+                        title="Rename Workspace"
                       >
-                        {p.title}
+                        <Pencil size={14} />
                       </button>
-                      <button 
-                        onClick={() => deleteProject(p.id)}
+                      <button
+                        onClick={() => {
+                          if (confirm(`Move "${p.title}" to the trash? You can restore it from the Trash tab.`)) {
+                            deleteProject(p.id);
+                          }
+                        }}
                         className="p-2 text-gray-600 hover:text-red-400 opacity-50 group-hover:opacity-100 transition-opacity"
-                        title="Delete Workspace"
+                        title="Move Workspace to Trash"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -158,10 +205,14 @@ export function ProjectManager() {
                           <span>{p.title}</span>
                           <span className="text-[10px] text-gray-500 font-sans">Snapshot of: {original?.title || 'Unknown'}</span>
                         </button>
-                        <button 
-                          onClick={() => deleteProject(p.id)}
+                        <button
+                          onClick={() => {
+                            if (confirm(`Move the snapshot "${p.title}" to the trash?`)) {
+                              deleteProject(p.id);
+                            }
+                          }}
                           className="p-2 text-gray-600 hover:text-red-400 opacity-50 group-hover:opacity-100 transition-opacity"
-                          title="Delete Snapshot"
+                          title="Move Snapshot to Trash"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -298,9 +349,28 @@ export function ProjectManager() {
                 )}
                 
               </div>
-              <div className="mt-2 p-3 bg-indigo-900/20 border border-indigo-500/30 rounded text-center">
+              <div className="mt-2 flex items-center justify-between p-3 bg-emerald-900/15 border border-emerald-500/25 rounded">
+                <div className="flex items-center gap-2 min-w-0">
+                  <ShieldCheck size={15} className="text-emerald-400/80 flex-shrink-0" />
+                  <span className="text-[11px] text-emerald-100/70 font-sans truncate">
+                    {backups === null
+                      ? 'Automatic backups run before every app update.'
+                      : backups.length === 0
+                        ? 'No automatic backups yet — one is made before every app update.'
+                        : `${backups.length} automatic backup${backups.length === 1 ? '' : 's'} · latest ${new Date(backups[0].modified_secs * 1000).toLocaleDateString()} (${Math.max(1, Math.round(backups[0].size_kb))} KB)`}
+                  </span>
+                </div>
+                <button
+                  onClick={() => invoke('open_backup_folder').catch(() => {})}
+                  className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-widest text-emerald-300 hover:text-white bg-emerald-500/10 hover:bg-emerald-500/25 px-2.5 py-1 rounded transition-colors flex-shrink-0 ml-3"
+                  title="Open the folder holding your database and its backups"
+                >
+                  <FolderOpen size={12} /> Backups
+                </button>
+              </div>
+              <div className="p-3 bg-indigo-900/20 border border-indigo-500/30 rounded text-center">
                 <span className="text-[11px] text-indigo-200/80 font-sans">
-                  💡 <b>Want to export your manuscript?</b> Spawn a <b>Print Node</b> on your canvas to compile and download your writing as a PDF or Markdown file.
+                  💡 <b>Want to export your manuscript?</b> Spawn a <b>Print Node</b> on your canvas to compile and download your writing.
                 </span>
               </div>
             </div>

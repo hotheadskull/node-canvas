@@ -11,8 +11,16 @@ const TIPS_DATA = [
   { category: 'Mechanics', title: 'Edge Tension', desc: 'When you drag connected nodes far apart, the connecting line changes color and stretches thin to show stress, rather than breaking.' },
   { category: 'Mechanics', title: 'Connection Spark', desc: 'A one-time particle burst fires when a new edge is successfully drawn between two nodes.' },
   { category: 'Mechanics', title: 'Snapshots', desc: 'Manual save-points for a whole workspace, separate from the ongoing autosave. Accessible in the Workspace Manager.' },
-  { category: 'Mechanics', title: 'Edge Settings', desc: 'Click a selected connection line to change its relationship type (e.g., Supports, Contradicts) and add a custom text label to the line.' },
-  
+  { category: 'Mechanics', title: 'Edge Settings', desc: 'Click a selected connection line to change its relationship type (e.g., Supports, Conflicts With, Foreshadows) and add a custom text label to the line.' },
+  { category: 'Mechanics', title: '@ Mentions', desc: 'Type @ inside any text editor to search for another node and link it inline — or create a brand-new node right from the mention menu. Mentions feed the spiderweb.' },
+  { category: 'Mechanics', title: 'Edge Legend', desc: 'The legend in the bottom-right corner lists every connection type. Click a type to hide or show all edges of that type on the canvas.' },
+  { category: 'Mechanics', title: 'Constellation Hover', desc: 'Hover over a node to light up its entire web of connections. Quick-Link Pins bridge the glow through to their real node\'s constellation.' },
+  { category: 'Mechanics', title: 'Canvas Modes', desc: 'The + Add Node menu can switch between Novel, Sermon, and Universal modes. Same node types, renamed and described for your craft.' },
+  { category: 'Mechanics', title: 'Undo / Redo', desc: 'Ctrl+Z and Ctrl+Y (also in the bottom-left toolbar) step back and forward through adds, deletes, moves, and edits.' },
+  { category: 'Mechanics', title: 'Trash & Restore', desc: 'Deleted nodes and workspaces go to the Trash tabs in the Workspace Manager and can be restored from there — nothing vanishes silently.' },
+  { category: 'Mechanics', title: 'Function Tags', desc: 'Writing nodes can carry a function — Scripture, Illustration, Quote, Application, Transition — shown as a colored dot on the header when set.' },
+  { category: 'Mechanics', title: 'Export / Import Workspace', desc: 'Back up a whole workspace to a JSON file, or import one, from the Workspace Manager.' },
+
   // Writing Surfaces
   { category: 'Writing Surfaces', title: 'Main Concept / Core Premise', desc: 'The overarching idea connecting your project. Typically the node you set as your Anchor.' },
   { category: 'Writing Surfaces', title: 'Document / Chapter', desc: 'A large, expansive writing canvas with a full rich-text editor for major sections of your work.' },
@@ -28,7 +36,7 @@ const TIPS_DATA = [
 
   // Structure & Flow
   { category: 'Structure', title: 'Hub / Plot Nexus', desc: 'A structural node. Wire multiple nodes into a Hub, and you can collapse the Hub to visually hide the entire cluster and clean up your canvas.' },
-  { category: 'Structure', title: 'Sequence / Timeline', desc: 'A linear track for planning things chronologically. Drop nodes into the sequence to order them.' },
+  { category: 'Structure', title: 'Sequence / Timeline', desc: 'A linear track of beats. Click the + inside to add beats in order, then drag connections from each beat to the characters or documents it involves.' },
   { category: 'Structure', title: 'Logic Map', desc: 'A structured layout for mapping causality, arguments, or step-by-step logic.' },
   
   // Special & Universal

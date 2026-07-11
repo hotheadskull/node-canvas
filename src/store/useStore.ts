@@ -92,6 +92,7 @@ export type AppState = {
   loadInitialData: () => Promise<void>;
   setActiveProject: (id: string) => Promise<void>;
   createProject: (title: string) => Promise<void>;
+  renameProject: (id: string, title: string) => Promise<void>;
   addNode: (node: AppNode) => Promise<void>;
   updateNodeData: (id: string, data: Partial<AppNode['data']>) => Promise<void>;
   updateNodeType: (id: string, type: string) => Promise<void>;
@@ -212,6 +213,16 @@ export const useStore = create<AppState>((set, get) => ({
         },
         redo: () => get().onNodesChange(removedNodes.map(n => ({ type: 'remove' as const, id: n.id }))),
       });
+      // Surface every trashing as a toast with a Restore button -- deletes
+      // (including deck absorption and the Delete key) must never be silent.
+      // Suppressed during undo/redo replays: the user asked for those.
+      if (!isTimeTraveling) {
+        for (const n of removedNodes) {
+          window.dispatchEvent(new CustomEvent('node-trashed', {
+            detail: { id: n.id, label: n.data?.label || 'Untitled', type: n.type },
+          }));
+        }
+      }
     }
 
     changes.forEach(async (change) => {
@@ -973,6 +984,21 @@ export const useStore = create<AppState>((set, get) => ({
     });
     set({ projects: [...get().projects, { id: newId, title, updated_at: Date.now() }] });
     await get().setActiveProject(newId);
+  },
+
+  renameProject: async (id: string, title: string) => {
+    const trimmed = title.trim();
+    if (!trimmed) return;
+    set({ projects: get().projects.map(p => p.id === id ? { ...p, title: trimmed } : p) });
+    get().beginSave();
+    try {
+      const { db } = await initDb();
+      await db.update(projectsTable).set({ title: trimmed, updated_at: Date.now() }).where(eq(projectsTable.id, id));
+    } catch (e) {
+      get().reportSaveError('rename workspace', e);
+    } finally {
+      get().endSave();
+    }
   },
 
   exportProjectJSON: async () => {

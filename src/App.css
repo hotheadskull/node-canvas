@@ -53,6 +53,37 @@ body {
   fill: var(--art-deco-gold-bright) !important;
 }
 
+/* Instant, readable labels for every toolbar button. The bar sits bottom-left,
+   so labels fly out to the right. Custom buttons carry data-tip; React Flow's
+   built-in zoom/fit/lock buttons get fixed labels by class below. */
+.react-flow__controls-button {
+  position: relative;
+  overflow: visible !important;
+}
+.react-flow__controls-button:hover::after {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #1a1a20;
+  color: var(--art-deco-gold);
+  border: 1px solid var(--art-deco-gold-dark);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 2000;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+}
+.react-flow__controls-button[data-tip]:hover::after { content: attr(data-tip); }
+.react-flow__controls-zoomin:hover::after { content: 'Zoom In'; }
+.react-flow__controls-zoomout:hover::after { content: 'Zoom Out'; }
+.react-flow__controls-fitview:hover::after { content: 'Fit All Nodes on Screen'; }
+.react-flow__controls-interactive:hover::after { content: 'Lock / Unlock Canvas Editing'; }
+
 /* Hide React Flow Watermark */
 .react-flow__panel.react-flow__attribution {
   display: none !important;

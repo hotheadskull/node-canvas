@@ -21,6 +21,7 @@ import { CanvasSearch } from './components/CanvasSearch';
 import { ProjectManager } from './components/ProjectManager';
 import { ReferencePanel } from './components/ReferencePanel';
 import { TutorialOverlay } from './components/TutorialOverlay';
+import { TrashToast } from './components/TrashToast';
 import './App.css';
 import { Trash2, Undo2, Redo2, Anchor, Crosshair, CircleDashed, Wand } from 'lucide-react';
 import { RichTextEditor } from './components/RichTextEditor';
@@ -711,34 +712,34 @@ function FlowCanvas() {
                 await useStore.getState().applyLayout(layoutedNodes as AppNode[]);
                 setCenter(0, 0, { zoom: 0.6, duration: 800 });
               }}
-              title="Clean Up Board (Auto-Layout)"
+              data-tip="Clean Up Board (Auto-Layout)"
             >
               <Wand size={14} className="text-[#f0c050]" />
             </ControlButton>
             <ControlButton
               onClick={() => { if (selectedNodeId) useStore.getState().setAnchor(selectedNodeId); }}
-              title="Pin selected node as the Anchor (Big Idea)"
+              data-tip="Pin Selected Node as the Anchor (Big Idea)"
               disabled={!selectedNodeId}
             >
               <Anchor size={14} className={selectedNodeId ? 'text-[#f0c050]' : 'text-gray-600'} />
             </ControlButton>
             <ControlButton
               onClick={() => setAnchorCheck(c => !c)}
-              title={anchorCheck ? 'Exit anchor check' : 'Anchor check: dim everything that doesn\'t trace back to the Big Idea'}
+              data-tip={anchorCheck ? 'Exit Anchor Check' : 'Anchor Check: Dim Everything Not Linked to the Big Idea'}
               disabled={!anchorId}
             >
               <Crosshair size={14} className={anchorCheck ? 'text-[#f0c050]' : (anchorId ? 'text-white' : 'text-gray-600')} />
             </ControlButton>
             <ControlButton
               onClick={() => useStore.getState().undo()}
-              title="Undo (Ctrl+Z)"
+              data-tip="Undo (Ctrl+Z)"
               disabled={!canUndo}
             >
               <Undo2 size={14} className={canUndo ? 'text-white' : 'text-gray-600'} />
             </ControlButton>
             <ControlButton
               onClick={() => useStore.getState().redo()}
-              title="Redo (Ctrl+Shift+Z)"
+              data-tip="Redo (Ctrl+Shift+Z)"
               disabled={!canRedo}
             >
               <Redo2 size={14} className={canRedo ? 'text-white' : 'text-gray-600'} />
@@ -750,7 +751,7 @@ function FlowCanvas() {
                   setSelectedNodeId(null);
                 }
               }} 
-              title="Delete Selected Node"
+              data-tip="Delete Selected Node (goes to Node Trash)"
               disabled={!selectedNodeId}
             >
               <Trash2 size={14} className={selectedNodeId ? "text-red-500" : "text-gray-500"} />
@@ -761,7 +762,7 @@ function FlowCanvas() {
                   useStore.getState().duplicateNode(selectedNodeId);
                 }
               }} 
-              title="Duplicate Selected Node"
+              data-tip="Duplicate Selected Node"
               disabled={!selectedNodeId}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedNodeId ? "text-white" : "text-gray-500"}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
@@ -1013,6 +1014,7 @@ export default function App() {
       <ReactFlowProvider>
         <TutorialOverlay />
         <ReferencePanel />
+        <TrashToast />
         <FlowCanvas />
       </ReactFlowProvider>
     </>
