@@ -42,6 +42,28 @@ const sortParentsFirst = <T extends { id: string; parentId?: string }>(list: T[]
   return out;
 };
 
+// A restored node can point at a parent that is still in the trash. React
+// Flow cannot render a child whose parent is absent, so detach it and convert
+// its parent-relative coords to absolute by walking the parent chain through
+// ALL rows we have (trashed parents included).
+const resolveDanglingParents = (allRows: any[], activeRows: any[]): any[] => {
+  const byId = new Map(allRows.map((r: any) => [r.id, r]));
+  const activeIds = new Set(activeRows.map((r: any) => r.id));
+  return activeRows.map((r: any) => {
+    if (!r.parent_id || activeIds.has(r.parent_id)) return r;
+    let x = r.x_position, y = r.y_position;
+    let pid: string | null = r.parent_id;
+    let guard = 0;
+    while (pid && !activeIds.has(pid) && guard++ < 20) {
+      const p = byId.get(pid);
+      if (!p) { pid = null; break; }
+      x += p.x_position; y += p.y_position;
+      pid = p.parent_id;
+    }
+    return { ...r, parent_id: pid && activeIds.has(pid) ? pid : null, x_position: x, y_position: y };
+  });
+};
+
 const loadedNodeStyle = (n: any) => {
   const spawn = nodeSpawnConfig(n.node_type);
   return {
@@ -343,8 +365,12 @@ export const useStore = create<AppState>((set, get) => ({
     // Self-loops break the elastic edge geometry (zero-length vector), and
     // duplicate connections would just stack invisibly.
     if (connection.source === connection.target) return;
+    // Handles are part of identity: beat-1 -> hero and beat-2 -> hero are
+    // DIFFERENT connections (sequence beats and compile slots share a node id)
     const alreadyConnected = get().edges.some(
-      e => e.source === connection.source && e.target === connection.target
+      e => e.source === connection.source && e.target === connection.target &&
+        (e.sourceHandle ?? null) === (connection.sourceHandle ?? null) &&
+        (e.targetHandle ?? null) === (connection.targetHandle ?? null)
     );
     if (alreadyConnected) return;
 
@@ -366,6 +392,10 @@ export const useStore = create<AppState>((set, get) => ({
         project_id: get().activeProjectId,
         source_id: connection.source,
         target_id: connection.target,
+        // Without the handles, compile-slot and sequence-beat wiring
+        // reattached to default anchors on every restart
+        source_handle: connection.sourceHandle || null,
+        target_handle: connection.targetHandle || null,
         label: ''
       });
     } catch (e) {
@@ -386,7 +416,12 @@ export const useStore = create<AppState>((set, get) => ({
     try {
       const { db } = await initDb();
       await db.update(edgesTable)
-        .set({ source_id: newConnection.source, target_id: newConnection.target })
+        .set({
+          source_id: newConnection.source,
+          target_id: newConnection.target,
+          source_handle: newConnection.sourceHandle || null,
+          target_handle: newConnection.targetHandle || null,
+        })
         .where(eq(edgesTable.id, oldEdge.id));
     } catch (e) {
       get().reportSaveError('save reconnected edge', e);
@@ -457,6 +492,8 @@ export const useStore = create<AppState>((set, get) => ({
         project_id: get().activeProjectId,
         source_id: edge.source,
         target_id: edge.target,
+        source_handle: edge.sourceHandle || null,
+        target_handle: edge.targetHandle || null,
         label: (edge.label as string) || '',
         strength: (edge.data as any)?.strength || 1,
         edge_type: (edge.data as any)?.edgeType || DEFAULT_EDGE_TYPE,
@@ -864,8 +901,10 @@ export const useStore = create<AppState>((set, get) => ({
       }
     }
 
+    // STAY on the live workspace. Switching onto the snapshot here meant the
+    // user kept writing into the frozen copy without realizing it -- the
+    // snapshot is the backup, not the new working canvas.
     set({ projects: [...get().projects, { id: newId, title, updated_at: Date.now(), snapshot_of: currentId }] });
-    await get().setActiveProject(newId);
     } catch (e) {
       get().reportSaveError('create snapshot', e);
     }
@@ -875,11 +914,14 @@ export const useStore = create<AppState>((set, get) => ({
     const nodeToCopy = get().nodes.find(n => n.id === id);
     if (!nodeToCopy) return;
 
-    const newId = crypto.randomUUID();
-    const newNode = {
-      ...nodeToCopy,
-      id: newId,
+    // Build a clean copy -- spreading the live node would drag along
+    // React Flow runtime state (selected, dragging, measured)
+    const newNode: AppNode = {
+      id: crypto.randomUUID(),
+      type: nodeToCopy.type,
       position: { x: nodeToCopy.position.x + 50, y: nodeToCopy.position.y + 50 },
+      parentId: nodeToCopy.parentId,
+      style: { ...(nodeToCopy.style as any) },
       data: { ...nodeToCopy.data, label: `${nodeToCopy.data.label} (Copy)` }
     };
     await get().addNode(newNode);
@@ -916,7 +958,7 @@ export const useStore = create<AppState>((set, get) => ({
 
       // Only load non-deleted nodes for active project
       const dbNodes = await db.select().from(nodesTable).where(eq(nodesTable.project_id, initialProjectId));
-      const activeNodes = dbNodes.filter((n: any) => !n.deleted_at);
+      const activeNodes = resolveDanglingParents(dbNodes, dbNodes.filter((n: any) => !n.deleted_at));
       const trashedDbNodes = dbNodes.filter((n: any) => n.deleted_at);
       const dbEdges = await db.select().from(edgesTable).where(eq(edgesTable.project_id, initialProjectId));
 
@@ -968,7 +1010,7 @@ export const useStore = create<AppState>((set, get) => ({
     set({ isLoading: true, nodes: [], edges: [], activeProjectId: id });
     const { db } = await initDb();
     const dbNodes = await db.select().from(nodesTable).where(eq(nodesTable.project_id, id));
-    const activeNodes = dbNodes.filter((n: any) => !n.deleted_at);
+    const activeNodes = resolveDanglingParents(dbNodes, dbNodes.filter((n: any) => !n.deleted_at));
     const trashedDbNodes = dbNodes.filter((n: any) => n.deleted_at);
     const dbEdges = await db.select().from(edgesTable).where(eq(edgesTable.project_id, id));
 
@@ -1092,8 +1134,11 @@ export const useStore = create<AppState>((set, get) => ({
             project_id: newProjectId,
             source_id: mappedSource,
             target_id: mappedTarget,
+            source_handle: edge.sourceHandle || null,
+            target_handle: edge.targetHandle || null,
             label: edge.label || null,
             strength: edge.data?.strength || 1,
+            edge_type: edge.data?.edgeType || DEFAULT_EDGE_TYPE,
           });
         }
       }

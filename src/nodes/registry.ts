@@ -7,7 +7,7 @@
 // The create menu, spawn sizes, and palette badges all read from this file.
 //
 // NEVER rename an existing `type` string: they are stored in users' databases
-// and referenced by the demo/tutorial project (src/store/demoData.ts).
+// and the tutorial guides users to specific labels (see TutorialOverlay).
 // ============================================================================
 
 export type CanvasMode = 'novel' | 'sermon' | 'universal';

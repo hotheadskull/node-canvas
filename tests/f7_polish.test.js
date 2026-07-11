@@ -125,6 +125,50 @@ test('F7-9: group nesting survives save and reload', () => {
   );
 });
 
+// F7-10: deep-sweep invariants (pre-release audit)
+test('F7-10a: every edge write persists its handles', () => {
+  const store = read('src/store/useStore.ts');
+  // onConnect, restoreEdge, spiderweb, and import all insert edges; each
+  // must carry source_handle/target_handle or slot/beat wiring unravels
+  // on reload
+  const inserts = (store.match(/source_handle:/g) || []).length;
+  assert.ok(inserts >= 4, `Expected >= 4 edge writes carrying source_handle (found ${inserts})`);
+  assert.ok(
+    /sourceHandle \?\? null\) === \(connection\.sourceHandle \?\? null\)/.test(store),
+    'Duplicate-connection check must compare handles (two beats may share source/target ids)'
+  );
+});
+
+test('F7-10b: snapshots never hijack the active workspace', () => {
+  const store = read('src/store/useStore.ts');
+  const snapshotFn = store.slice(store.indexOf('createSnapshot: async'), store.indexOf('duplicateNode: async'));
+  assert.ok(
+    !/setActiveProject\(newId\)/.test(snapshotFn),
+    'createSnapshot must NOT switch onto the snapshot -- users kept writing into the frozen copy'
+  );
+});
+
+test('F7-10c: loads detach children of trashed parents', () => {
+  const store = read('src/store/useStore.ts');
+  assert.ok(
+    /resolveDanglingParents/.test(store) &&
+    (store.match(/resolveDanglingParents\(dbNodes/g) || []).length >= 2,
+    'Both load paths must resolve dangling parent references'
+  );
+});
+
+test('F7-10d: no unregistered node types are ever created', () => {
+  const app = read('src/App.tsx');
+  const registry = read('src/nodes/registry.ts');
+  const created = [...app.matchAll(/type:\s*'([a-z]+)'/g)].map(m => m[1]);
+  for (const t of created) {
+    assert.ok(
+      new RegExp(`type:\\s*'${t}'`).test(registry),
+      `App.tsx creates node type '${t}' which is not in the registry`
+    );
+  }
+});
+
 // F7-6: the backup safety net must stay wired end to end.
 test('F7-6: backup commands exist in Rust and are surfaced in the UI', () => {
   const rust = read('src-tauri/src/lib.rs');

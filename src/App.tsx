@@ -662,7 +662,9 @@ function FlowCanvas() {
               // Spawn a theme node (Rich text editor) for imported documents
               addNode({
                 id: crypto.randomUUID(),
-                type: 'theme',
+                // 'document' -- there is no 'theme' node type registered;
+                // dropped .md/.txt files rendered as broken unknown nodes
+                type: 'document',
                 position,
                 data: {
                   label: file.name.replace(/\.(md|txt)$/i, ''),
