@@ -123,3 +123,21 @@ test('F6-6: BaseNode inputs stop pointer propagation', () => {
     `Expected title, function, and tags controls to stop propagation (found ${stops})`
   );
 });
+
+// F6-7: spawn size regression guard -- new nodes must get FIXED width/height,
+// never minWidth/minHeight. With only a min-height on the React Flow wrapper,
+// BaseNode's h-full cannot resolve, the card collapses to content height, and
+// the resizer frame renders bigger than the visible node (the v1.0.9 bug).
+test('F6-7: new nodes spawn with fixed width/height, not min sizes', () => {
+  const store = fs.readFileSync(path.resolve('src/store/useStore.ts'), 'utf8');
+  assert.ok(
+    !/style:\s*\{\s*minWidth/.test(appTsx),
+    'App.tsx must not spawn nodes with minWidth/minHeight style'
+  );
+  assert.ok(
+    /nodeSpawnConfig\(node\.type/.test(store) &&
+    /style\.width = spawn\.width/.test(store) &&
+    /style\.height = spawn\.height/.test(store),
+    'useStore.addNode must stamp registry spawn dimensions on every new node'
+  );
+});

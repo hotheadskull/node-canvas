@@ -505,6 +505,16 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   addNode: async (node: AppNode) => {
+    // Stamp registry spawn dimensions as FIXED width/height on every creation
+    // path. min-sizes are not enough: BaseNode's h-full can't resolve against
+    // a wrapper that only has min-height, so the card collapses to content
+    // height while the resizer frame stays at full size.
+    const spawn = nodeSpawnConfig(node.type || 'default');
+    const style: any = { ...(node.style as any) };
+    if (style.width == null && spawn.width != null) style.width = spawn.width;
+    if (style.height == null && spawn.height != null) style.height = spawn.height;
+    if (style.zIndex == null) style.zIndex = spawn.zIndex;
+    node = { ...node, style };
     set({ nodes: [...get().nodes, node] });
     get().pushHistory({
       undo: () => get().deleteNode(node.id),

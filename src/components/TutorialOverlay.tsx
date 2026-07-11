@@ -3,6 +3,19 @@ import { driver, DriveStep } from 'driver.js';
 import 'driver.js/dist/driver.css';
 import { useStore } from '../store/useStore';
 
+// First step of each lesson. Resuming or skipping always lands on one of
+// these: the gated steps in between assume UI state (an open menu, a node
+// that was just created) that won't exist on re-entry.
+const LESSON_STARTS = [0, 1, 3, 6, 10, 12, 15, 18, 21, 22, 23];
+const TOTAL_STEPS = 24;
+const lessonStartAtOrBefore = (s: number) => {
+  for (let i = LESSON_STARTS.length - 1; i >= 0; i--) {
+    if (LESSON_STARTS[i] <= s) return LESSON_STARTS[i];
+  }
+  return 0;
+};
+const nextLessonAfter = (s: number) => LESSON_STARTS.find(l => l > s) ?? TOTAL_STEPS - 1;
+
 export function TutorialOverlay() {
   const [isActive, setIsActive] = useState(false);
   const [stepIndex, setStepIndex] = useState(-1);
@@ -10,6 +23,7 @@ export function TutorialOverlay() {
   
   const projects = useStore(state => state.projects);
   const nodes = useStore(state => state.nodes);
+  const edges = useStore(state => state.edges);
   const isWarpFocusOpen = useStore(state => !!state.focusedNodeId);
   
   const startPCount = useRef(0);
@@ -38,7 +52,9 @@ export function TutorialOverlay() {
       startNCount.current = state.nodes.length;
       startECount.current = state.edges.length;
       setIsActive(true);
-      setStepIndex(0);
+      // Resume at the lesson the user last reached instead of starting over
+      const saved = parseInt(localStorage.getItem('tutorialStep') || '0', 10);
+      setStepIndex(lessonStartAtOrBefore(Number.isFinite(saved) ? saved : 0));
     };
 
     const handleAction = (e: any) => {
@@ -59,10 +75,24 @@ export function TutorialOverlay() {
     };
   }, []);
 
+  // Remember progress so closing (or crashing) mid-tutorial resumes at the
+  // same lesson next time instead of restarting from zero
+  useEffect(() => {
+    if (isActive && stepIndex > 0 && stepIndex < TOTAL_STEPS - 1) {
+      localStorage.setItem('tutorialStep', String(stepIndex));
+    }
+  }, [isActive, stepIndex]);
+
+  // Baseline the edge count when the connect lesson starts so step 10 can
+  // auto-advance the moment the user actually draws the link
+  useEffect(() => {
+    if (stepIndex === 10) startECount.current = useStore.getState().edges.length;
+  }, [stepIndex]);
+
   // Handle auto-advancing based on user actions
   useEffect(() => {
     if (!isActive) return;
-    
+
     if (stepIndex === 1 && isWorkspaceMenuOpen) setStepIndex(2);
     if (stepIndex === 2 && projects.length > startPCount.current) setTimeout(() => setStepIndex(3), 300);
 
@@ -77,8 +107,17 @@ export function TutorialOverlay() {
 
     if (stepIndex === 8 && isWarpFocusOpen) setTimeout(() => setStepIndex(9), 300);
     if (stepIndex === 9 && !isWarpFocusOpen) setTimeout(() => setStepIndex(10), 300);
+    if (stepIndex === 10 && edges.length > startECount.current) setTimeout(() => setStepIndex(11), 300);
 
     const onNext = () => setStepIndex(s => s + 1);
+    // "Skip lesson" on action-gated steps: jump to the next lesson start so
+    // a user who can't complete an action is never stranded mid-tutorial
+    const onSkip = () => setStepIndex(s => nextLessonAfter(s));
+    const skippable = {
+      showButtons: ['next', 'close'] as any,
+      nextBtnText: 'Skip lesson',
+      onNextClick: onSkip,
+    };
 
     const steps: DriveStep[] = [
       { // 0
@@ -92,11 +131,11 @@ export function TutorialOverlay() {
       { // 1
         element: '#workspace-manager-btn',
         popover: {
-          title: '1. Open Workspace Manager',
+          title: 'Open the Workspace Manager',
           description: "Everything you make lives in a Workspace. Click here to open the Workspace Manager.",
           side: "bottom",
           align: 'start',
-          showButtons: ['close']
+          ...skippable
         }
       },
       { // 2
@@ -106,17 +145,17 @@ export function TutorialOverlay() {
           description: "Click '+ Create New Workspace' at the bottom. Type a name and click Create.",
           side: "right",
           align: 'start',
-          showButtons: ['close']
+          ...skippable
         }
       },
       { // 3
         element: '#add-node-btn',
         popover: {
-          title: '1. Add a Main Concept',
+          title: 'Add a Main Concept',
           description: "Let's start building. Click '+ Add Node' to open the menu.",
           side: "bottom",
           align: 'end',
-          showButtons: ['close']
+          ...skippable
         }
       },
       { // 4
@@ -126,7 +165,7 @@ export function TutorialOverlay() {
           description: "Click 'Main Concept' (the golden node) under Writing Surfaces. This represents the overarching idea of your project.",
           side: "right",
           align: 'start',
-          showButtons: ['close']
+          ...skippable
         }
       },
       { // 5
@@ -143,11 +182,11 @@ export function TutorialOverlay() {
       { // 6
         element: '#add-node-btn',
         popover: {
-          title: '2. Add a Document',
+          title: 'Add a Document',
           description: "Now let's add a place to write. Click '+ Add Node'.",
           side: "bottom",
           align: 'end',
-          showButtons: ['close']
+          ...skippable
         }
       },
       { // 7
@@ -157,7 +196,7 @@ export function TutorialOverlay() {
           description: "Click 'Document' under Writing Surfaces. This is a large writing canvas.",
           side: "right",
           align: 'start',
-          showButtons: ['close']
+          ...skippable
         }
       },
       { // 8
@@ -167,7 +206,7 @@ export function TutorialOverlay() {
           description: "Notice the 'Expand' button in the bottom right of the Document? That opens Warp Focus, a distraction-free fullscreen editor. Click it now to enter focus mode!",
           side: "top",
           align: 'center',
-          showButtons: ['close']
+          ...skippable
         }
       },
       { // 9
@@ -177,14 +216,14 @@ export function TutorialOverlay() {
           description: "This is Warp Focus. It's just you and the text. Click '✕ Close' in the top right to return to the canvas.",
           side: "bottom",
           align: 'center',
-          showButtons: ['close']
+          ...skippable
         }
       },
       { // 10
         element: '#canvas-area',
         popover: {
           title: 'Connect them',
-          description: "Click and drag any of the connector dots on the edge of your Main Concept to your Document to connect them. Then click 'Next'.",
+          description: "Click and drag any of the connector dots on the edge of your Main Concept to your Document to connect them. The tutorial advances the moment the link forms (or click 'Next' if you're stuck).",
           side: "top",
           align: 'center',
           showButtons: ['next'],
@@ -205,7 +244,7 @@ export function TutorialOverlay() {
       { // 12
         element: '#add-node-btn',
         popover: {
-          title: '3. Add a Person',
+          title: 'Add a Person',
           description: "Let's add some context. Click '+ Add Node'.",
           side: "bottom",
           align: 'end',
@@ -219,7 +258,7 @@ export function TutorialOverlay() {
           description: "Look under 'Knowledge Cards' and select 'Person / Entity'.",
           side: "right",
           align: 'start',
-          showButtons: ['close']
+          ...skippable
         }
       },
       { // 14
@@ -236,7 +275,7 @@ export function TutorialOverlay() {
       { // 15
         element: '#add-node-btn',
         popover: {
-          title: '4. Add a Sequence',
+          title: 'Add a Sequence',
           description: "Let's map out a flow. Click '+ Add Node'.",
           side: "bottom",
           align: 'end',
@@ -250,7 +289,7 @@ export function TutorialOverlay() {
           description: "Look under 'Structure & Flow' and select 'Sequence'.",
           side: "right",
           align: 'start',
-          showButtons: ['close']
+          ...skippable
         }
       },
       { // 17
@@ -267,7 +306,7 @@ export function TutorialOverlay() {
       { // 18
         element: '#add-node-btn',
         popover: {
-          title: '5. Add a Group Zone',
+          title: 'Add a Group Zone',
           description: "Let's organize. Click '+ Add Node'.",
           side: "bottom",
           align: 'end',
@@ -281,7 +320,7 @@ export function TutorialOverlay() {
           description: "Look under 'Structure & Flow' and select 'Group Zone'.",
           side: "right",
           align: 'start',
-          showButtons: ['close']
+          ...skippable
         }
       },
       { // 20
@@ -322,20 +361,29 @@ export function TutorialOverlay() {
           title: 'Done',
           description: "That's everything you need. You're ready to build out your universe!",
           showButtons: ['next'],
-          onNextClick: () => driverRef.current?.destroy()
+          onNextClick: () => {
+            localStorage.removeItem('tutorialStep');
+            driverRef.current?.destroy();
+          }
         }
       }
     ];
 
     const currentStep = steps[stepIndex];
     if (currentStep) {
+      // Progress footer so users always know how far along they are
+      if (currentStep.popover) {
+        currentStep.popover.description =
+          `${currentStep.popover.description || ''}` +
+          `<div style="margin-top:10px;opacity:0.5;font-size:10px;font-weight:700;letter-spacing:0.08em;">STEP ${stepIndex + 1} OF ${steps.length}</div>`;
+      }
       setTimeout(() => {
         driverRef.current?.highlight(currentStep);
       }, 100);
     } else {
       driverRef.current?.destroy();
     }
-  }, [stepIndex, isActive, projects.length, nodes.length, isWorkspaceMenuOpen, isNodeMenuOpen, isWarpFocusOpen]);
+  }, [stepIndex, isActive, projects.length, nodes.length, edges.length, isWorkspaceMenuOpen, isNodeMenuOpen, isWarpFocusOpen]);
 
   return null;
 }

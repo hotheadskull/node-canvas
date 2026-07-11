@@ -784,7 +784,9 @@ function FlowCanvas() {
                 type,
                 position: centerPos,
                 data: { label, content: '', manuscript: '' },
-                style: { minWidth: width, minHeight: height, zIndex }
+                // Fixed width/height, NOT minWidth/minHeight: with only a
+                // min-height the card renders smaller than the resizer frame
+                style: { width, height, zIndex }
               });
             }} />
             {/* Removed the old compile button here since we now use the Master Print Node */}
