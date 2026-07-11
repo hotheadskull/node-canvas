@@ -16,29 +16,41 @@ test('F4-1: ElasticEdge is registered under edgeTypes in App.tsx', () => {
   );
 });
 
-test('F4-2: ElasticEdge implements Euclidean distance formula', () => {
+test('F4-2: ElasticEdge pins slot/beat edges to their exact handle', () => {
   const content = fs.readFileSync(elasticEdgePath, 'utf8');
+  // Compile slots and sequence beats are SPECIFIC handles: the edge must
+  // attach to the dot itself, never float to the host node's boundary
+  // (floating made beat connections look attached to the sequence node).
   assert.ok(
-    /Math\.hypot\(tx\s*-\s*sx,\s*ty\s*-\s*sy\)/.test(content),
-    'Expected Euclidean distance to be calculated with Math.hypot'
+    /getHandleAnchor\(sourceNode, 'source', sourceHandleId\)/.test(content) &&
+    /getHandleAnchor\(targetNode, 'target', targetHandleId\)/.test(content),
+    'Expected anchored endpoints for non-generic handles'
+  );
+  assert.ok(
+    /GENERIC_HANDLES/.test(content),
+    'Expected the four generic BaseNode handles to keep floating behavior'
   );
 });
 
-test('F4-3: ElasticEdge defines MAX_STRETCH distance limit', () => {
+test('F4-3: edge color never changes with distance', () => {
   const content = fs.readFileSync(elasticEdgePath, 'utf8');
+  // The old gold-to-red "tension" shift overrode the user's chosen
+  // connection color on long lines. Color comes ONLY from the edge type.
   assert.ok(
-    /MAX_STRETCH\s*=\s*800/.test(content),
-    'Expected MAX_STRETCH constant to equal 800px'
+    /const stroke = typeDef\.color/.test(content),
+    'Expected stroke to come straight from the edge type definition'
+  );
+  assert.ok(
+    !/MAX_STRETCH|TENSION_START|tension/.test(content),
+    'Expected all distance-tension physics to be gone from ElasticEdge'
   );
 });
 
-test('F4-4: ElasticEdge decreases strokeWidth as tension increases', () => {
+test('F4-4: strokeWidth comes from link strength only', () => {
   const content = fs.readFileSync(elasticEdgePath, 'utf8');
-  // Width starts from a strength-based base (thicker for stronger links) and
-  // thins under tension, never below 0.5px
   assert.ok(
-    /strokeWidth\s*=\s*Math\.max\(0\.5,\s*baseWidth\s*-\s*\(tension\s*\*\s*1\.5\)\)/.test(content),
-    'Expected strokeWidth to decrease dynamically from its strength base based on tension'
+    /strokeWidth = Math\.min\(2 \+ \(strength - 1\) \* 0\.6, 4\.5\)/.test(content),
+    'Expected width to scale with link strength, capped at 4.5px, independent of distance'
   );
 });
 
@@ -65,36 +77,34 @@ test('F4-Boundary-1: ElasticEdge returns null when source or target nodes are mi
   );
 });
 
-test('F4-Boundary-2: Tension interpolation keeps the value bounded between 0 and 1', () => {
+test('F4-Boundary-2: detoured routes re-aim their floating endpoints', () => {
   const content = fs.readFileSync(elasticEdgePath, 'utf8');
+  // Endpoints are chosen before the detour exists; without re-aiming at the
+  // first/last waypoint the line wraps an obstacle and doubles back to the
+  // far side of the card instead of entering on the near side.
   assert.ok(
-    /Math\.max\(0,\s*Math\.min\(1,\s*\(distance\s*-\s*TENSION_START\)\s*\/\s*\(MAX_STRETCH\s*-\s*TENSION_START\)\)\)/.test(content),
-    'Expected tension calculation to be clamped between 0 and 1 using Math.max/min'
+    /intersectToward\(sourceNode, first\[0\], first\[1\]\)/.test(content) &&
+    /intersectToward\(targetNode, last\[0\], last\[1\]\)/.test(content),
+    'Expected floating endpoints to re-aim at the detour approach direction'
+  );
+  assert.ok(
+    /if \(moved\) smart = getAvoidingPath\(sx, sy, tx, ty, obstacles\)/.test(content),
+    'Expected a second routing pass after endpoints move'
   );
 });
 
-test('F4-Boundary-3: Tension calculation interpolates to strained red RGB values', () => {
+test('F4-Boundary-3: an anchored end aims its floating partner at the pin', () => {
   const content = fs.readFileSync(elasticEdgePath, 'utf8');
   assert.ok(
-    /const\s+r\s*=\s*Math\.round\(140\s*\+\s*tension\s*\*\s*\(239\s*-\s*140\)\)/.test(content) &&
-    /const\s+g\s*=\s*Math\.round\(115\s*\+\s*tension\s*\*\s*\(68\s*-\s*115\)\)/.test(content) &&
-    /const\s+b\s*=\s*Math\.round\(75\s*\+\s*tension\s*\*\s*\(68\s*-\s*75\)\)/.test(content),
-    'Expected dynamic RGB interpolation from gold to strained red'
+    /if \(srcAnchor && !tgtAnchor\)/.test(content) && /else if \(tgtAnchor && !srcAnchor\)/.test(content),
+    'Expected the floating end of a slot/beat edge to aim at the pinned handle, not the node center'
   );
 });
 
-test('F4-Boundary-4: Edge thins down to a minimum of 0.5px and no thinner', () => {
+test('F4-Boundary-4: strong links still glow gold', () => {
   const content = fs.readFileSync(elasticEdgePath, 'utf8');
   assert.ok(
-    /Math\.max\(0\.5,/.test(content),
-    'Expected strokeWidth lower limit to be 0.5px'
-  );
-});
-
-test('F4-Boundary-5: Highly tense edges render a glowing blur under-layer', () => {
-  const content = fs.readFileSync(elasticEdgePath, 'utf8');
-  assert.ok(
-    /tension\s*>\s*0\.5/.test(content) && /filter:\s*['"]blur\(4px\)['"]/.test(content),
-    'Expected extra blur under-layer for tension > 0.5'
+    /strength >= 3/.test(content) && /rgba\(240, 192, 80/.test(content),
+    'Expected the strength aura layer to survive the tension-system removal'
   );
 });

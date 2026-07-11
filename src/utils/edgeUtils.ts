@@ -1,53 +1,69 @@
 import { InternalNode, Position } from '@xyflow/react';
 
-// Returns the parameters (sx, sy, tx, ty, position) for a line connecting two nodes by computing bounding box intersections
-function getIntersection(nodeA: InternalNode, nodeB: InternalNode) {
-  const w = nodeA.measured?.width || 250;
-  const h = nodeA.measured?.height || 150;
-  
-  const x = (nodeA.internals?.positionAbsolute?.x || nodeA.position.x) + w / 2;
-  const y = (nodeA.internals?.positionAbsolute?.y || nodeA.position.y) + h / 2;
+function nodeGeometry(node: InternalNode) {
+  const w = node.measured?.width || 250;
+  const h = node.measured?.height || 150;
+  const x = (node.internals?.positionAbsolute?.x || node.position.x);
+  const y = (node.internals?.positionAbsolute?.y || node.position.y);
+  return { x, y, w, h, cx: x + w / 2, cy: y + h / 2 };
+}
 
-  const targetW = nodeB.measured?.width || 250;
-  const targetH = nodeB.measured?.height || 150;
-
-  const targetX = (nodeB.internals?.positionAbsolute?.x || nodeB.position.x) + targetW / 2;
-  const targetY = (nodeB.internals?.positionAbsolute?.y || nodeB.position.y) + targetH / 2;
-
-  const dx = targetX - x;
-  const dy = targetY - y;
-  
+// Boundary intersection of a node's bounding box aimed at an arbitrary point.
+// Floating edges use this so the line leaves the card on whichever side
+// actually faces where the edge is headed.
+export function intersectToward(node: InternalNode, targetX: number, targetY: number) {
+  const { w, h, cx, cy } = nodeGeometry(node);
+  const dx = targetX - cx;
+  const dy = targetY - cy;
   const absDx = Math.abs(dx);
   const absDy = Math.abs(dy);
-
-  let intersectionX = x;
-  let intersectionY = y;
-  let position: Position;
 
   // Guard against a zero-length vector (self-loop or perfectly overlapping
   // nodes) which would otherwise divide by zero and produce NaN coordinates.
   if (absDx === 0 && absDy === 0) {
-    return { x, y, position: Position.Top };
+    return { x: cx, y: cy, position: Position.Top };
   }
 
   if (absDx * h > absDy * w) {
     // Intersects left or right
-    intersectionX = x + (Math.sign(dx) * w) / 2;
-    intersectionY = y + (dy * w) / (2 * absDx);
-    position = dx > 0 ? Position.Right : Position.Left;
-  } else {
-    // Intersects top or bottom
-    intersectionY = y + (Math.sign(dy) * h) / 2;
-    intersectionX = x + (dx * h) / (2 * absDy);
-    position = dy > 0 ? Position.Bottom : Position.Top;
+    return {
+      x: cx + (Math.sign(dx) * w) / 2,
+      y: cy + (dy * w) / (2 * absDx),
+      position: dx > 0 ? Position.Right : Position.Left,
+    };
   }
+  // Intersects top or bottom
+  return {
+    x: cx + (dx * h) / (2 * absDy),
+    y: cy + (Math.sign(dy) * h) / 2,
+    position: dy > 0 ? Position.Bottom : Position.Top,
+  };
+}
 
-  return { x: intersectionX, y: intersectionY, position };
+// Absolute center of a SPECIFIC handle (compile slot, sequence beat). Returns
+// null when the id isn't registered so callers can fall back to floating.
+export function getHandleAnchor(
+  node: InternalNode,
+  type: 'source' | 'target',
+  handleId: string | null | undefined
+) {
+  if (!handleId) return null;
+  const bounds = node.internals?.handleBounds?.[type];
+  const handle = bounds?.find(h => h.id === handleId);
+  if (!handle) return null;
+  const { x, y } = nodeGeometry(node);
+  return {
+    x: x + handle.x + handle.width / 2,
+    y: y + handle.y + handle.height / 2,
+    position: handle.position,
+  };
 }
 
 export function getEdgeParams(source: InternalNode, target: InternalNode) {
-  const sourceIntersection = getIntersection(source, target);
-  const targetIntersection = getIntersection(target, source);
+  const tg = nodeGeometry(target);
+  const sg = nodeGeometry(source);
+  const sourceIntersection = intersectToward(source, tg.cx, tg.cy);
+  const targetIntersection = intersectToward(target, sg.cx, sg.cy);
 
   return {
     sx: sourceIntersection.x,

@@ -71,19 +71,20 @@ test('F2-F4-4: LogicNode keeps its blue identity through the BaseNode accent', (
   );
 });
 
-test('F1-F4-5: ElasticEdge tension-based red color maintains visibility against the deep space dark background', () => {
+test('F1-F4-5: edge colors come from the type palette and stay constant on the dark background', () => {
   const appCss = fs.readFileSync(appCssPath, 'utf8');
   const elasticEdge = fs.readFileSync(elasticEdgePath, 'utf8');
-  
+
   // Background is #0a0a0c
   assert.ok(
     /--background:\s*#0a0a0c/.test(appCss),
     'Expected background to be deep-space #0a0a0c'
   );
-  
-  // Tension red RGB values are calculated
+
+  // Stroke comes only from the edge type definition -- no distance-based
+  // recoloring that could fade a line into the background
   assert.ok(
-    /239/.test(elasticEdge) && /68/.test(elasticEdge),
-    'Expected tension color calculation to output bright red values (e.g. rgb(239, 68, 68)) for readability on dark background'
+    /const stroke = typeDef\.color/.test(elasticEdge) && !/tension/.test(elasticEdge),
+    'Expected constant per-type edge colors with no tension recoloring'
   );
 });

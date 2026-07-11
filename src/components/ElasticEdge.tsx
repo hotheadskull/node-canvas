@@ -1,7 +1,7 @@
 import { BaseEdge, EdgeLabelRenderer, EdgeProps, useInternalNode, getBezierPath } from '@xyflow/react';
 import { Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { getEdgeParams } from '../utils/edgeUtils';
+import { getEdgeParams, getHandleAnchor, intersectToward } from '../utils/edgeUtils';
 import { absoluteNodeRects, getAvoidingPath } from '../utils/smartPath';
 import { useStore } from '../store/useStore';
 import { EDGE_TYPES, edgeTypeOf } from '../utils/edgeTypes';
@@ -45,10 +45,17 @@ const Sparks = ({ x, y }: { x: number; y: number }) => {
   );
 };
 
+// The four generic BaseNode handles float (the edge attaches wherever the
+// route actually leaves the card). Any OTHER handle id (compile slot,
+// sequence beat) pins the edge to that exact dot.
+const GENERIC_HANDLES = new Set(['top', 'bottom', 'left', 'right']);
+
 export function ElasticEdge({
   id,
   source,
   target,
+  sourceHandleId,
+  targetHandleId,
   style = {},
   markerEnd,
   label,
@@ -66,25 +73,27 @@ export function ElasticEdge({
     return null;
   }
 
-  const { sx, sy, tx, ty, sourcePos, targetPos } = getEdgeParams(sourceNode, targetNode);
+  // ANCHORED ENDS: edges drawn from a compile slot or sequence beat must
+  // visually attach to that dot, not float to the host node's boundary --
+  // floating made beat connections look attached to the sequence node itself.
+  const srcAnchor = sourceHandleId && !GENERIC_HANDLES.has(sourceHandleId)
+    ? getHandleAnchor(sourceNode, 'source', sourceHandleId)
+    : null;
+  const tgtAnchor = targetHandleId && !GENERIC_HANDLES.has(targetHandleId)
+    ? getHandleAnchor(targetNode, 'target', targetHandleId)
+    : null;
 
-  // Calculate Euclidean distance between source and target
-  const distance = Math.hypot(tx - sx, ty - sy);
-
-  // Physics parameters. Edges no longer snap/delete at distance -- silently
-  // destroying a connection on a far drag was a footgun. Tension visuals
-  // (color shift, thinning) still communicate the stretch.
-  const MAX_STRETCH = 800;
-  const TENSION_START = 400; // Distance where it starts turning red
-
-  const [bezierPath, bezierLabelX, bezierLabelY] = getBezierPath({
-    sourceX: sx,
-    sourceY: sy,
-    targetX: tx,
-    targetY: ty,
-    sourcePosition: sourcePos,
-    targetPosition: targetPos,
-  });
+  let { sx, sy, tx, ty, sourcePos, targetPos } = getEdgeParams(sourceNode, targetNode);
+  if (srcAnchor) { sx = srcAnchor.x; sy = srcAnchor.y; sourcePos = srcAnchor.position; }
+  if (tgtAnchor) { tx = tgtAnchor.x; ty = tgtAnchor.y; targetPos = tgtAnchor.position; }
+  // A floating end paired with a pinned end aims at the pin, not the center.
+  if (srcAnchor && !tgtAnchor) {
+    const t2 = intersectToward(targetNode, sx, sy);
+    tx = t2.x; ty = t2.y; targetPos = t2.position;
+  } else if (tgtAnchor && !srcAnchor) {
+    const s2 = intersectToward(sourceNode, tx, ty);
+    sx = s2.x; sy = s2.y; sourcePos = s2.position;
+  }
 
   // SMART ROUTING: if the straight line would plow under other nodes, bow
   // around them. Skipped on huge canvases -- the O(edges x nodes) scan is
@@ -104,40 +113,57 @@ export function ElasticEdge({
       )
       .map(r => r.rect);
     smart = getAvoidingPath(sx, sy, tx, ty, obstacles);
+
+    if (smart) {
+      // The endpoints were aimed BEFORE the detour existed, so the route
+      // could wrap around an obstacle and double back to the far side of the
+      // card. Re-aim each floating end at its first/last waypoint (the
+      // direction the route actually approaches from) and route once more --
+      // often the re-aimed line is clear and collapses to a plain curve.
+      const first = smart.points[1];
+      const last = smart.points[smart.points.length - 2];
+      let moved = false;
+      if (!srcAnchor) {
+        const s2 = intersectToward(sourceNode, first[0], first[1]);
+        if (s2.x !== sx || s2.y !== sy) { sx = s2.x; sy = s2.y; sourcePos = s2.position; moved = true; }
+      }
+      if (!tgtAnchor) {
+        const t2 = intersectToward(targetNode, last[0], last[1]);
+        if (t2.x !== tx || t2.y !== ty) { tx = t2.x; ty = t2.y; targetPos = t2.position; moved = true; }
+      }
+      if (moved) smart = getAvoidingPath(sx, sy, tx, ty, obstacles);
+    }
   }
+
+  const [bezierPath, bezierLabelX, bezierLabelY] = getBezierPath({
+    sourceX: sx,
+    sourceY: sy,
+    targetX: tx,
+    targetY: ty,
+    sourcePosition: sourcePos,
+    targetPosition: targetPos,
+  });
 
   const edgePath = smart?.path ?? bezierPath;
   const labelX = smart?.labelX ?? bezierLabelX;
   const labelY = smart?.labelY ?? bezierLabelY;
 
-  // Calculate tension percentage (0 to 1)
-  const tension = Math.max(0, Math.min(1, (distance - TENSION_START) / (MAX_STRETCH - TENSION_START)));
-
-  // Interpolate color from Art Deco gold (#8c734b) to strained red (#ef4444)
-  // Base: 140, 115, 75
-  // Red: 239, 68, 68
-  const r = Math.round(140 + tension * (239 - 140));
-  const g = Math.round(115 + tension * (68 - 115));
-  const b = Math.round(75 + tension * (68 - 75));
-
-  // Relationship type drives base color + dash; the default 'references'
-  // type keeps the classic gold that shifts red under tension.
+  // Relationship type drives color + dash. The color NEVER changes with
+  // distance -- the old gold-to-red stretch shift predates typed edges and
+  // overrode the user's chosen connection color on long lines.
   const edgeType = edgeTypeOf(data);
   const typeDef = EDGE_TYPES[edgeType];
-  const stroke = edgeType === 'references' ? `rgb(${r}, ${g}, ${b})` : typeDef.color;
+  const stroke = typeDef.color;
 
   // Link strength: how often the connection has been "used" (title mentions).
   // Strong links render thicker so load-bearing relationships stand out.
   const strength = (data as any)?.strength || 1;
-  const baseWidth = Math.min(2 + (strength - 1) * 0.6, 4.5);
+  const strokeWidth = Math.min(2 + (strength - 1) * 0.6, 4.5);
 
   // Constellation hover mode set by App: 'lit' edges belong to the hovered
   // node's web, 'dim' edges fade into the background.
   const constellation = (data as any)?.constellation as 'lit' | 'dim' | undefined;
   const dimOpacity = constellation === 'dim' ? 0.06 : 1;
-
-  // Thinner stroke as it stretches
-  const strokeWidth = Math.max(0.5, baseWidth - (tension * 1.5));
 
   return (
     <>
@@ -206,18 +232,6 @@ export function ElasticEdge({
           />
         </>
       )}
-      {/* If it's highly tense, add a glowing under-layer to show stress */}
-      {tension > 0.5 && (
-        <BaseEdge
-          path={edgePath}
-          style={{
-            stroke: 'rgba(239, 68, 68, 0.4)',
-            strokeWidth: strokeWidth + 4,
-            filter: 'blur(4px)',
-          }}
-        />
-      )}
-
       {/* Selected: inline editor for relationship type + freeform label.
           Otherwise: show the label pill if one is set. */}
       {(data as any)?.isNew && (

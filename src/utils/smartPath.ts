@@ -100,7 +100,7 @@ export function getAvoidingPath(
   sx: number, sy: number, tx: number, ty: number,
   obstacles: ObstacleRect[],
   clearance = 28
-): { path: string; labelX: number; labelY: number } | null {
+): { path: string; labelX: number; labelY: number; points: [number, number][] } | null {
   const dx = tx - sx;
   const dy = ty - sy;
   const len = Math.hypot(dx, dy);
@@ -206,5 +206,6 @@ export function getAvoidingPath(
     path,
     labelX: sx + dx * midT + px * mid.offset,
     labelY: sy + dy * midT + py * mid.offset,
+    points: pts,
   };
 }
