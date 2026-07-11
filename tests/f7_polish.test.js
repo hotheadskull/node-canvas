@@ -81,6 +81,21 @@ test('F7-7: dynamic-handle nodes re-register with React Flow', () => {
   }
 });
 
+// F7-8: hiding edge types must never be silent or sticky-by-accident --
+// a visible restore banner exists, and drawing an edge of a hidden type
+// unhides that type immediately.
+test('F7-8: hidden edge types are loud and self-healing', () => {
+  const app = read('src/App.tsx');
+  assert.ok(
+    /edge-legend-restore/.test(app) && /hiddenEdgeTypes\.size > 0/.test(app),
+    'App must show a restore banner when any edge type is hidden'
+  );
+  assert.ok(
+    /edges\.length > prevEdgeCountRef\.current/.test(app),
+    'Drawing a new edge must unhide its type (never born invisible)'
+  );
+});
+
 // F7-6: the backup safety net must stay wired end to end.
 test('F7-6: backup commands exist in Rust and are surfaced in the UI', () => {
   const rust = read('src-tauri/src/lib.rs');

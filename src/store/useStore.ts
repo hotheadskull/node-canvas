@@ -1096,3 +1096,9 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
 }));
+
+// DEV-ONLY: expose the store for browser-based verification and stress
+// seeding (dead code in production builds).
+if (import.meta.env.DEV) {
+  (window as any).__store = useStore;
+}

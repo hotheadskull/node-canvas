@@ -34,7 +34,8 @@ export function ProjectManager() {
 
   const openTutorial = () => {
     setIsOpen(false);
-    window.dispatchEvent(new CustomEvent('open-tutorial'));
+    // fresh: an explicit replay starts from the beginning, never mid-way
+    window.dispatchEvent(new CustomEvent('open-tutorial', { detail: { fresh: true } }));
   };
 
   const openReference = () => {

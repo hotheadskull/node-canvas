@@ -242,6 +242,8 @@ function FlowCanvas() {
   const [anchorCheck, setAnchorCheck] = useState(false);
   const { screenToFlowPosition, getIntersectingNodes, setCenter } = useReactFlow();
   const dragStartPos = useRef<Record<string, { x: number; y: number }>>({});
+  // Cascade counter for successive node spawns (see CreateNodeMenu onCreate)
+  const spawnSeqRef = useRef(0);
 
   const previewMarkdown = useStore(state => state.previewMarkdown);
   const setPreviewMarkdown = useStore(state => state.setPreviewMarkdown);
@@ -476,6 +478,23 @@ function FlowCanvas() {
       return next;
     });
   }, []);
+
+  // A connection the user JUST drew must never be born invisible: if its
+  // type is currently legend-hidden, unhide that type on the spot.
+  const prevEdgeCountRef = useRef(edges.length);
+  useEffect(() => {
+    if (edges.length > prevEdgeCountRef.current) {
+      const newest = edges[edges.length - 1];
+      const t = edgeTypeOf(newest?.data);
+      setHiddenEdgeTypes(prev => {
+        if (!prev.has(t)) return prev;
+        const next = new Set(prev);
+        next.delete(t);
+        return next;
+      });
+    }
+    prevEdgeCountRef.current = edges.length;
+  }, [edges]);
 
   const onNodeDragStop = useCallback((_: any, draggedNode: any) => {
     const node = draggedNode as AppNode;
@@ -776,10 +795,13 @@ function FlowCanvas() {
           <Panel position="top-left" className="m-4 flex gap-2">
             <CreateNodeMenu onCreate={(type, label) => {
               const newNodeId = crypto.randomUUID();
-              // Spawn in the center of the screen, with a slight random offset
+              // Cascade successive spawns like OS windows: perfectly stacked
+              // nodes hide each other AND hide any connection drawn between
+              // them ("my nodes don't look connected")
+              const k = spawnSeqRef.current++ % 6;
               const centerPos = screenToFlowPosition({
-                x: window.innerWidth / 2 + (Math.random() * 50 - 25),
-                y: window.innerHeight / 2 + (Math.random() * 50 - 25)
+                x: window.innerWidth / 2 + k * 48 - 120 + (Math.random() * 24 - 12),
+                y: window.innerHeight / 2 + k * 40 - 100 + (Math.random() * 24 - 12)
               });
               // Sizes and z-order come from the node registry -- one place to
               // tune every type (src/nodes/registry.ts)
@@ -841,6 +863,15 @@ function FlowCanvas() {
                   {orphanNodes.length} unlinked
                 </button>
               </div>
+            )}
+            {hiddenEdgeTypes.size > 0 && (
+              <button
+                className="edge-legend-restore pointer-events-auto"
+                onClick={() => setHiddenEdgeTypes(new Set())}
+                title="Clicking a legend entry hides that connection type — this restores them all"
+              >
+                ⚠ {hiddenEdgeTypes.size} connection type{hiddenEdgeTypes.size === 1 ? '' : 's'} hidden — show all
+              </button>
             )}
             <div className="edge-legend pointer-events-auto">
               {Object.entries(EDGE_TYPES).map(([key, def]) => (

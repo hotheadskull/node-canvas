@@ -46,13 +46,19 @@ export function TutorialOverlay() {
       }
     });
 
-    const handleOpen = () => {
+    const handleOpen = (e?: any) => {
       const state = useStore.getState();
       startPCount.current = state.projects.length;
       startNCount.current = state.nodes.length;
       startECount.current = state.edges.length;
       setIsActive(true);
-      // Resume at the lesson the user last reached instead of starting over
+      // "Replay Tutorial" (fresh: true) always starts from the top; only the
+      // automatic first-launch open resumes a previously interrupted run.
+      if (e?.detail?.fresh) {
+        localStorage.removeItem('tutorialStep');
+        setStepIndex(0);
+        return;
+      }
       const saved = parseInt(localStorage.getItem('tutorialStep') || '0', 10);
       setStepIndex(lessonStartAtOrBefore(Number.isFinite(saved) ? saved : 0));
     };

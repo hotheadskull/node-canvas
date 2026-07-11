@@ -169,6 +169,25 @@ body {
 .edge-legend-item:hover { color: #e5e7eb; }
 .edge-legend-item.is-hidden { opacity: 0.3; text-decoration: line-through; }
 
+/* Impossible-to-miss banner whenever any connection type is filtered out --
+   otherwise a stray legend click makes edges "disappear" mysteriously */
+.edge-legend-restore {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fbbf24;
+  background: rgba(120, 80, 10, 0.35);
+  border: 1px solid rgba(251, 191, 36, 0.5);
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.edge-legend-restore:hover { background: rgba(120, 80, 10, 0.6); color: #fde68a; }
+
 .edge-editor {
   display: flex;
   align-items: center;
