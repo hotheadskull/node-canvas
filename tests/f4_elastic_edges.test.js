@@ -42,10 +42,12 @@ test('F4-4: ElasticEdge decreases strokeWidth as tension increases', () => {
   );
 });
 
-test('F4-5: ElasticEdge never deletes itself on stretch (snap removal was a footgun)', () => {
+test('F4-5: ElasticEdge never auto-deletes on stretch (manual delete button is fine)', () => {
   const content = fs.readFileSync(elasticEdgePath, 'utf8');
+  // No distance-triggered snap deletion -- removal must only happen from an
+  // explicit user action (the edge's delete button)
   assert.ok(
-    !/onEdgesChange\(\[\{\s*type:\s*['"]remove['"],\s*id\s*\}\]\)/.test(content) && !/isBroken/.test(content),
+    !/isBroken/.test(content) && !/distance\s*>\s*MAX_STRETCH\s*&&/.test(content),
     'Expected no auto-removal of edges at distance; tension visuals only'
   );
   assert.ok(

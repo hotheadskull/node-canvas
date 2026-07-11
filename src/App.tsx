@@ -26,6 +26,7 @@ import { Trash2, Undo2, Redo2, Anchor, Crosshair, CircleDashed, Wand } from 'luc
 import { RichTextEditor } from './components/RichTextEditor';
 import { CommandPalette } from './components/CommandPalette';
 import { EDGE_TYPES, edgeTypeOf } from './utils/edgeTypes';
+import { nodeSpawnConfig } from './nodes/registry';
 
 import { QuoteNode } from './components/QuoteNode';
 import { StatNode } from './components/StatNode';
@@ -554,9 +555,12 @@ function FlowCanvas() {
         }
       }
 
-      // If we dropped onto a DECK
-      if (intersections.length > 0) {
-        const targetNode = intersections[0] as AppNode;
+      // If we dropped onto a DECK. The type guard is load-bearing: without it
+      // ANY node dropped overlapping ANY other node was absorbed and deleted
+      // (this is how group zones and sequence nodes were "disappearing").
+      const targetDeck = intersections.find(n => n.type === 'deck') as AppNode | undefined;
+      if (targetDeck && node.type !== 'deck' && node.type !== 'group') {
+        const targetNode = targetDeck;
         const cardData = { label: node.data.label, content: node.data.content };
 
         // Cards live in metadata so they survive restarts -- metadata is the
@@ -766,61 +770,13 @@ function FlowCanvas() {
             <CreateNodeMenu onCreate={(type, label) => {
               const newNodeId = crypto.randomUUID();
               // Spawn in the center of the screen, with a slight random offset
-              const centerPos = screenToFlowPosition({ 
-                x: window.innerWidth / 2 + (Math.random() * 50 - 25), 
-                y: window.innerHeight / 2 + (Math.random() * 50 - 25) 
+              const centerPos = screenToFlowPosition({
+                x: window.innerWidth / 2 + (Math.random() * 50 - 25),
+                y: window.innerHeight / 2 + (Math.random() * 50 - 25)
               });
-              let width: number | undefined = 400;
-              let height: number | undefined = 300;
-              let zIndex = 1;
-
-              if (['document', 'book', 'chapter', 'scene'].includes(type)) {
-                // Tier 1: main writing surfaces get the most room
-                width = 480;
-                height = 380;
-              } else if (['character', 'location', 'faction', 'event'].includes(type)) {
-                // Tier 2: knowledge cards sit between writing surfaces and sparks
-                width = 320;
-                height = 260;
-              } else if (type === 'quote') {
-                width = 320;
-                height = 220;
-              } else if (type === 'alias') {
-                width = undefined; // pill sizes itself
-                height = undefined;
-                zIndex = 2;
-              } else if (type === 'hub') {
-                width = 120;
-                height = 120;
-              } else if (type === 'sequence') {
-                width = 500;
-                height = 200;
-              } else if (type === 'group') {
-                width = 400;
-                height = 400;
-                zIndex = -1;
-              } else if (type === 'lore') {
-                width = 300;
-                height = 200;
-              } else if (type === 'snippet' || type === 'reference') { // Idea node
-                width = 300;
-                height = 150;
-              } else if (type === 'master') {
-                width = 400;
-                height = 300;
-              } else if (type === 'logic') {
-                width = 300;
-                height = 200;
-              } else if (type === 'item') {
-                width = 300;
-                height = 250;
-              } else if (type === 'deck') {
-                width = 250;
-                height = 300;
-              } else if (type === 'print') {
-                width = 300;
-                height = 250;
-              }
+              // Sizes and z-order come from the node registry -- one place to
+              // tune every type (src/nodes/registry.ts)
+              const { width, height, zIndex } = nodeSpawnConfig(type);
 
               addNode({
                 id: newNodeId,

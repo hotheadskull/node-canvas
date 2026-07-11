@@ -247,7 +247,7 @@ export function TutorialOverlay() {
         element: '#create-node-dropdown',
         popover: {
           title: 'Select "Sequence"',
-          description: "Look under 'Architecture' and select 'Sequence'.",
+          description: "Look under 'Structure & Flow' and select 'Sequence'.",
           side: "right",
           align: 'start',
           showButtons: ['close']
@@ -278,7 +278,7 @@ export function TutorialOverlay() {
         element: '#create-node-dropdown',
         popover: {
           title: 'Select "Group Zone"',
-          description: "Look under 'Universal' at the bottom and select 'Group Zone'.",
+          description: "Look under 'Structure & Flow' and select 'Group Zone'.",
           side: "right",
           align: 'start',
           showButtons: ['close']

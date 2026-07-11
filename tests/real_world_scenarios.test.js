@@ -33,15 +33,16 @@ test('Scenario-2: Typing matching node title triggers spiderweb auto-linking dat
   );
 });
 
-test('Scenario-3: Dropping a node onto a DeckNode nests it as a card and deletes the original canvas node', () => {
+test('Scenario-3: Deck absorption only fires on actual deck targets and soft-deletes the original', () => {
   const appTsx = fs.readFileSync(appTsxPath, 'utf8');
-  
-  // Check for targetNode.type === 'deck' nesting logic
+
+  // REGRESSION GUARD: absorbing on ANY intersection (without the deck type
+  // check) ate group zones and sequence nodes on overlap-drop
   assert.ok(
-    /targetNode\.type\s*===\s*['"]deck['"]/.test(appTsx),
-    'Expected intersection check for deck type'
+    /intersections\.find\(n\s*=>\s*n\.type\s*===\s*['"]deck['"]\)/.test(appTsx),
+    'Expected deck absorption to check the target is a deck'
   );
-  
+
   // Check for cards copying (persisted inside metadata so it survives restarts)
   assert.ok(
     /metadata:\s*\{\s*\.\.\.meta,\s*cards:\s*\[\.\.\.deckCards,\s*cardData\]/.test(appTsx),
@@ -55,19 +56,25 @@ test('Scenario-3: Dropping a node onto a DeckNode nests it as a card and deletes
   );
 });
 
-test('Scenario-4: Dropping a node onto a GroupNode sets it as a child with extent constraint', () => {
+test('Scenario-4: Dropping a node onto a GroupNode nests it and dragging out un-nests it', () => {
   const appTsx = fs.readFileSync(appTsxPath, 'utf8');
-  
-  // Check for group type check
+
+  // Group targets are found by type, never by "first intersection"
   assert.ok(
-    /targetNode\.type\s*===\s*['"]group['"]/.test(appTsx),
-    'Expected intersection check for group type'
+    /intersections\.find\(n\s*=>\s*n\.type\s*===\s*['"]group['"]\)/.test(appTsx),
+    'Expected intersection lookup specifically for group type'
   );
-  
-  // Check for parentId and extent properties updates
+
+  // Nesting sets parentId to the group and persists it
   assert.ok(
-    /parentId:\s*targetNode\.id/.test(appTsx) && /extent:\s*['"]parent['"]/.test(appTsx),
-    'Expected node parentId and parent extent constraint to be set'
+    /parentId:\s*targetGroup\.id/.test(appTsx) && /updateNodeParent\(node\.id,\s*targetGroup\.id\)/.test(appTsx),
+    'Expected node parentId set to the group and persisted'
+  );
+
+  // Dragging out clears the parent and persists that too
+  assert.ok(
+    /updateNodeParent\(node\.id,\s*null\)/.test(appTsx),
+    'Expected dragging out of a group to clear the parent'
   );
 });
 

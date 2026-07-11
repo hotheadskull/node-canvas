@@ -5,3 +5,4 @@ import './f4_elastic_edges.test.js';
 import './f5_micro_interactions.test.js';
 import './cross_combinations.test.js';
 import './real_world_scenarios.test.js';
+import './f6_registry.test.js';

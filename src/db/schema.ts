@@ -16,6 +16,10 @@ export const nodes = sqliteTable('nodes', {
   content: text('content').notNull(),
   x_position: real('x_position').notNull(),
   y_position: real('y_position').notNull(),
+  // Persisted node size; NULL falls back to the registry's default for the
+  // type, so old nodes pick up new defaults automatically
+  width: real('width'),
+  height: real('height'),
   node_type: text('node_type').notNull(),
   manuscript: text('manuscript'),
   notes: text('notes'),

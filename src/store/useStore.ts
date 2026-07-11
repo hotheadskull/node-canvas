@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import {
   Connection,
   Edge,
@@ -17,6 +17,22 @@ import { initDb } from '../db';
 import { nodes as nodesTable, edges as edgesTable, projects as projectsTable } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { DEFAULT_EDGE_TYPE, EDGE_TYPES } from '../utils/edgeTypes';
+import { nodeSpawnConfig } from '../nodes/registry';
+
+// Style for a node loaded from the DB: stored size wins, otherwise the
+// registry default for its type (so old nodes pick up new defaults), plus
+// the type's z-order (groups behind, alias pins in front).
+const loadedNodeStyle = (n: any) => {
+  const spawn = nodeSpawnConfig(n.node_type);
+  return {
+    // Stored size wins (dimension column, then legacy metadata from the
+    // auto-layout feature), otherwise the registry default for the type
+    width: n.width ?? n.metadata?.width ?? spawn.width,
+    height: n.height ?? n.metadata?.height ?? spawn.height,
+    zIndex: spawn.zIndex,
+  };
+};
+
 export type AppNode = Node & {
   data: { label: string; content?: string; manuscript?: string; notes?: string; metadata?: any; updated_at?: number };
 };
@@ -212,6 +228,26 @@ export const useStore = create<AppState>((set, get) => ({
               .where(eq(nodesTable.id, change.id));
           } catch (e) {
             get().reportSaveError('save node position', e);
+          } finally {
+            get().endSave();
+          }
+        }, 500);
+      } else if (change.type === 'dimensions' && change.dimensions) {
+        // Persist resizes (debounced like positions -- the resizer emits a
+        // stream of dimension changes while dragging)
+        const key = `size:${change.id}`;
+        const dims = change.dimensions;
+        if (updateTimeouts[key]) clearTimeout(updateTimeouts[key]);
+        else get().beginSave();
+        updateTimeouts[key] = setTimeout(async () => {
+          delete updateTimeouts[key];
+          try {
+            const { db } = await initDb();
+            await db.update(nodesTable)
+              .set({ width: dims.width, height: dims.height })
+              .where(eq(nodesTable.id, change.id));
+          } catch (e) {
+            get().reportSaveError('save node size', e);
           } finally {
             get().endSave();
           }
@@ -488,6 +524,8 @@ export const useStore = create<AppState>((set, get) => ({
         updated_at: Date.now(),
         x_position: node.position.x,
         y_position: node.position.y,
+        width: (node.style as any)?.width ?? null,
+        height: (node.style as any)?.height ?? null,
         node_type: node.type || 'default'
       });
     } catch (e) {
@@ -838,6 +876,7 @@ export const useStore = create<AppState>((set, get) => ({
           position: { x: n.x_position, y: n.y_position },
           parentId: n.parent_id || undefined,
           extent: n.parent_id ? 'parent' : undefined,
+        style: loadedNodeStyle(n),
           data: { label: n.title, content: n.content, manuscript: n.manuscript || '', notes: n.notes || '', metadata: n.metadata, updated_at: n.updated_at || Date.now() },
         })),
         nodes: activeNodes.map((n: any) => ({
@@ -846,7 +885,7 @@ export const useStore = create<AppState>((set, get) => ({
           position: { x: n.x_position, y: n.y_position },
           parentId: n.parent_id || undefined,
           extent: n.parent_id ? 'parent' : undefined,
-          style: n.metadata?.width ? { width: n.metadata.width, height: n.metadata.height } : undefined,
+        style: loadedNodeStyle(n),
           data: {
             label: n.title,
             content: n.content,
@@ -889,6 +928,7 @@ export const useStore = create<AppState>((set, get) => ({
         position: { x: n.x_position, y: n.y_position },
         parentId: n.parent_id || undefined,
         extent: n.parent_id ? 'parent' : undefined,
+        style: loadedNodeStyle(n),
         data: { label: n.title, content: n.content, manuscript: n.manuscript || '', notes: n.notes || '', metadata: n.metadata, updated_at: n.updated_at || Date.now() },
       })),
       nodes: activeNodes.map((n: any) => ({
@@ -897,7 +937,7 @@ export const useStore = create<AppState>((set, get) => ({
         position: { x: n.x_position, y: n.y_position },
         parentId: n.parent_id || undefined,
         extent: n.parent_id ? 'parent' : undefined,
-        style: n.metadata?.width ? { width: n.metadata.width, height: n.metadata.height } : undefined,
+        style: loadedNodeStyle(n),
         data: { label: n.title, content: n.content, manuscript: n.manuscript || '', notes: n.notes || '', metadata: n.metadata, updated_at: n.updated_at || Date.now() },
       })),
       edges: dbEdges.map((e: any) => ({
@@ -969,6 +1009,8 @@ export const useStore = create<AppState>((set, get) => ({
           metadata: node.data.metadata || null,
           x_position: Math.round(node.position.x),
           y_position: Math.round(node.position.y),
+          width: node.style?.width ?? null,
+          height: node.style?.height ?? null,
           parent_id: mappedParentId,
           updated_at: Date.now()
         });
