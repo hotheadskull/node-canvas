@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { Handle, Position, NodeResizer } from '@xyflow/react';
 import { useStore } from '../store/useStore';
-import { Settings, Hash } from 'lucide-react';
+import { Settings, Hash, GripHorizontal } from 'lucide-react';
 
 export interface BaseNodeProps {
   id: string;
@@ -94,7 +94,7 @@ export const BaseNode = memo(({
         >
           {/* Header */}
           <div 
-            className="px-3 py-2 border-b flex items-center justify-between z-10"
+            className="px-3 py-2 border-b flex items-center justify-between z-10 custom-drag-handle cursor-grab active:cursor-grabbing"
             style={{ 
               backgroundColor: `${accentColor}15`,
               borderColor: `${accentColor}40`
@@ -104,6 +104,7 @@ export const BaseNode = memo(({
                 type selector and function pill past the node edge, where
                 overflow-hidden clipped them */}
             <div className="flex items-center gap-2 flex-1 min-w-0">
+              <GripHorizontal size={14} className="text-gray-500 opacity-50 hover:opacity-100 flex-shrink-0" />
               <Icon size={14} style={{ color: accentColor }} className="flex-shrink-0" />
               <input
                 type="text"

@@ -21,7 +21,7 @@ export const HubNode = memo(({ id, data, selected }: any) => {
   return (
     <>
       <NodeResizer minWidth={200} minHeight={150} isVisible={selected} handleClassName="w-3 h-3 bg-[#151518] border-2 border-white rounded transition-transform hover:scale-125" />
-      <div className={`relative flex items-center justify-center text-white transition-colors shadow-lg duration-300
+      <div className={`relative flex items-center justify-center text-white transition-colors shadow-lg duration-300 custom-drag-handle cursor-grab active:cursor-grabbing
       ${selected ? 'scale-[1.05]' : ''}
     `} style={{ 
       width: '100%', 

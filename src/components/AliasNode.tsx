@@ -31,7 +31,7 @@ export const AliasNode = memo(({ id, data, selected }: any) => {
 
   return (
     <div
-      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2 bg-[#151518]/95 shadow-xl transition-colors ${
+      className={`custom-drag-handle flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2 bg-[#151518]/95 shadow-xl transition-colors ${
         selected ? 'border-[#f0c050]' : 'border-[#a88530]/60'
       }`}
       style={{ boxShadow: selected ? '0 0 12px rgba(240,192,80,0.35)' : '0 4px 12px rgba(0,0,0,0.5)' }}

@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { NodeResizer } from '@xyflow/react';
 import { useStore } from '../store/useStore';
-import { Layers } from 'lucide-react';
+import { Layers, GripHorizontal } from 'lucide-react';
 
 export const GroupNode = memo(({ id, data, selected }: any) => {
   const updateNodeData = useStore(state => state.updateNodeData);
@@ -36,7 +36,8 @@ export const GroupNode = memo(({ id, data, selected }: any) => {
         <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-[#a855f7] opacity-50" />
 
         {/* Title Header */}
-        <div className="flex items-center gap-2 px-4 py-2 opacity-80 border-b border-[#2a2a35] bg-[#16161c]/50">
+        <div className="flex items-center gap-2 px-4 py-2 opacity-80 border-b border-[#2a2a35] bg-[#16161c]/50 custom-drag-handle cursor-grab active:cursor-grabbing">
+          <GripHorizontal size={14} className="text-[#a855f7] opacity-50 hover:opacity-100 flex-shrink-0" />
           <Layers size={14} className="text-[#a855f7]" />
           <input
             type="text"

@@ -383,6 +383,7 @@ function FlowCanvas() {
 
       return {
         ...node,
+        dragHandle: '.custom-drag-handle',
         position: targetPosition,
         className: (isHidden
           ? 'opacity-0 pointer-events-none'
