@@ -92,6 +92,43 @@ test('F9-6: ThemeNode type picker is icon-based with proper labels', () => {
   );
 });
 
+// F9-8: nodes auto-grow with content. Height ownership belongs to the
+// content until the USER resizes; only user resizes persist; Fit hands
+// ownership back.
+test('F9-8: auto-grow sizing model stays intact', () => {
+  const store = read('src/store/useStore.ts');
+  // Only user-driven dimension changes may hit the DB -- persisting React
+  // Flow's measure events would freeze auto heights forever.
+  assert.ok(
+    /change\.type === 'dimensions' && change\.dimensions &&\s*\n?\s*\(\(change as any\)\.resizing \|\| \(change as any\)\.setAttributes\)/.test(store),
+    'Dimension persistence must be gated on resizing/setAttributes'
+  );
+  assert.ok(
+    /resetNodeSize/.test(store) && /set\(\{ height: null \}\)/.test(store),
+    'resetNodeSize must clear the persisted height'
+  );
+  // Load fallback: fixed types get registry heights, everything else auto
+  assert.ok(
+    /spawn\.sizing === 'fixed' \? spawn\.height : undefined/.test(store),
+    'Loads must not re-stamp heights onto auto-sizing nodes'
+  );
+  const baseNode = read('src/components/BaseNode.tsx');
+  assert.ok(
+    /hasManualHeight/.test(baseNode) && /resetNodeSize\(id\)/.test(baseNode),
+    'BaseNode must offer the Fit button once a manual resize took ownership'
+  );
+  const css = read('src/App.css');
+  assert.ok(
+    /field-sizing: content/.test(css),
+    'Textareas must grow with content so auto-height cards grow too'
+  );
+  const registry = read('src/nodes/registry.ts');
+  assert.ok(
+    /sizing: 'fixed'/.test(registry) && /sizing: 'auto'/.test(registry),
+    'Registry must mark group/hub fixed and sequence auto'
+  );
+});
+
 // F9-7: below 50% zoom the app grows connection handles to a usable size.
 test('F9-7: zoomed-out canvases get bigger handle targets', () => {
   const app = read('src/App.tsx');

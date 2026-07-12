@@ -67,10 +67,12 @@ const resolveDanglingParents = (allRows: any[], activeRows: any[]): any[] => {
 const loadedNodeStyle = (n: any) => {
   const spawn = nodeSpawnConfig(n.node_type);
   return {
-    // Stored size wins (dimension column, then legacy metadata from the
-    // auto-layout feature), otherwise the registry default for the type
-    width: n.width ?? n.metadata?.width ?? spawn.width,
-    height: n.height ?? n.metadata?.height ?? spawn.height,
+    // Stored size wins (dimension column = the user's own resize, then
+    // legacy metadata from the auto-layout feature). Otherwise the sizing
+    // policy decides: 'fixed' types get registry defaults, everything else
+    // stays AUTO so the card grows with its content.
+    width: n.width ?? n.metadata?.width ?? (spawn.sizing === 'auto' ? undefined : spawn.width),
+    height: n.height ?? n.metadata?.height ?? (spawn.sizing === 'fixed' ? spawn.height : undefined),
     zIndex: spawn.zIndex,
   };
 };
@@ -140,6 +142,7 @@ export type AppState = {
   linkExistingMentionsOf: (targetId: string) => Promise<void>;
   updateNodeType: (id: string, type: string) => Promise<void>;
   updateNodeParent: (id: string, parentId: string | null) => Promise<void>;
+  resetNodeSize: (id: string) => Promise<void>;
   deleteNode: (id: string) => Promise<void>;
   restoreNode: (id: string) => Promise<void>;
   duplicateNode: (id: string) => Promise<void>;
@@ -296,9 +299,14 @@ export const useStore = create<AppState>((set, get) => ({
             get().endSave();
           }
         }, 500);
-      } else if (change.type === 'dimensions' && change.dimensions) {
-        // Persist resizes (debounced like positions -- the resizer emits a
-        // stream of dimension changes while dragging)
+      } else if (
+        change.type === 'dimensions' && change.dimensions &&
+        ((change as any).resizing || (change as any).setAttributes)
+      ) {
+        // Persist USER resizes only (NodeResizer marks them with resizing/
+        // setAttributes). React Flow also emits measure-only dimension events
+        // for auto-height nodes -- persisting those would freeze the auto
+        // size into the DB and the card would never grow again.
         const key = `size:${change.id}`;
         const dims = change.dimensions;
         if (updateTimeouts[key]) clearTimeout(updateTimeouts[key]);
@@ -584,14 +592,18 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   addNode: async (node: AppNode) => {
-    // Stamp registry spawn dimensions as FIXED width/height on every creation
-    // path. min-sizes are not enough: BaseNode's h-full can't resolve against
-    // a wrapper that only has min-height, so the card collapses to content
-    // height while the resizer frame stays at full size.
+    // Sizing policy (see NodeSizing in the registry): width is stamped fixed
+    // so prose WRAPS instead of stretching the card, but height stays AUTO --
+    // the card grows with its content, and scrolling only starts once the
+    // user drags the resizer and takes ownership of the size. 'fixed' types
+    // (group zones, hubs) get both dimensions; 'auto' (sequence) gets
+    // neither and sizes itself to its beats. BaseNode's own min sizes keep
+    // empty auto cards from collapsing (the old v1.0.9 trap was a MIN height
+    // on the wrapper instead of on the card).
     const spawn = nodeSpawnConfig(node.type || 'default');
     const style: any = { ...(node.style as any) };
-    if (style.width == null && spawn.width != null) style.width = spawn.width;
-    if (style.height == null && spawn.height != null) style.height = spawn.height;
+    if (spawn.sizing !== 'auto' && style.width == null && spawn.width != null) style.width = spawn.width;
+    if (spawn.sizing === 'fixed' && style.height == null && spawn.height != null) style.height = spawn.height;
     if (style.zIndex == null) style.zIndex = spawn.zIndex;
     node = { ...node, style };
     set({ nodes: [...get().nodes, node] });
@@ -869,6 +881,31 @@ export const useStore = create<AppState>((set, get) => ({
       } catch (e) {
         get().reportSaveError('save link strength', e);
       }
+    }
+  },
+
+  // FIT TO CONTENT: hands height ownership back to the content after a manual
+  // resize -- clears the explicit height everywhere React Flow might read one
+  // (style, node attribute) and nulls the DB column so it stays auto on reload.
+  resetNodeSize: async (id: string) => {
+    set({
+      nodes: get().nodes.map(n => {
+        if (n.id !== id) return n;
+        const style: any = { ...(n.style as any) };
+        delete style.height;
+        const next: any = { ...n, style };
+        delete next.height;
+        return next;
+      })
+    });
+    get().beginSave();
+    try {
+      const { db } = await initDb();
+      await db.update(nodesTable).set({ height: null }).where(eq(nodesTable.id, id));
+    } catch (e) {
+      get().reportSaveError('reset node size', e);
+    } finally {
+      get().endSave();
     }
   },
 

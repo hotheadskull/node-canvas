@@ -124,11 +124,12 @@ test('F6-6: BaseNode inputs stop pointer propagation', () => {
   );
 });
 
-// F6-7: spawn size regression guard -- new nodes must get FIXED width/height,
-// never minWidth/minHeight. With only a min-height on the React Flow wrapper,
-// BaseNode's h-full cannot resolve, the card collapses to content height, and
-// the resizer frame renders bigger than the visible node (the v1.0.9 bug).
-test('F6-7: new nodes spawn with fixed width/height, not min sizes', () => {
+// F6-7: sizing policy guard. Nodes AUTO-GROW with content: width is stamped
+// fixed (prose wraps), height stays auto unless the type is 'fixed' (groups,
+// hubs) or the user resizes. The v1.0.9 trap (min sizes on the WRAPPER, so
+// BaseNode h-full collapsed while the resizer stayed big) must never return:
+// min sizes live on the card via BaseNode props, never on wrapper style.
+test('F6-7: spawn sizing follows the registry policy', () => {
   const store = fs.readFileSync(path.resolve('src/store/useStore.ts'), 'utf8');
   assert.ok(
     !/style:\s*\{\s*minWidth/.test(appTsx),
@@ -136,8 +137,12 @@ test('F6-7: new nodes spawn with fixed width/height, not min sizes', () => {
   );
   assert.ok(
     /nodeSpawnConfig\(node\.type/.test(store) &&
-    /style\.width = spawn\.width/.test(store) &&
-    /style\.height = spawn\.height/.test(store),
-    'useStore.addNode must stamp registry spawn dimensions on every new node'
+    /spawn\.sizing !== 'auto' && style\.width == null/.test(store) &&
+    /spawn\.sizing === 'fixed' && style\.height == null/.test(store),
+    'addNode must stamp width for wrapping, height only for fixed types'
+  );
+  assert.ok(
+    !/style\.minHeight = spawn/.test(store),
+    'Never put min sizes on the React Flow wrapper (v1.0.9 collapse trap)'
   );
 });

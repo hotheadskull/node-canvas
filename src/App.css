@@ -636,3 +636,11 @@ body {
 .zoomed-out .react-flow__handle-bottom:not([data-handleid*="-"]) { bottom: -13px !important; }
 .zoomed-out .react-flow__handle-left:not([data-handleid*="-"]) { left: -13px !important; }
 .zoomed-out .react-flow__handle-right:not([data-handleid*="-"]) { right: -13px !important; }
+
+/* Textareas size themselves to their content (Chromium/WebView2 123+), so
+   auto-height cards grow as you type in Master/Logic/Crucible fields too.
+   Each textarea's rows= still acts as the minimum; once a card has been
+   manually resized, the surrounding scroll container takes over as before. */
+.react-flow__node textarea {
+  field-sizing: content;
+}

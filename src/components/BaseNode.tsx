@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { Handle, Position, NodeResizer } from '@xyflow/react';
 import { useStore } from '../store/useStore';
-import { Settings, Hash, GripHorizontal } from 'lucide-react';
+import { Settings, Hash, GripHorizontal, ChevronsUpDown } from 'lucide-react';
 
 export interface BaseNodeProps {
   id: string;
@@ -57,6 +57,14 @@ export const BaseNode = memo(({
   children 
 }: BaseNodeProps) => {
   const updateNodeData = useStore(state => state.updateNodeData);
+  // Nodes auto-grow with content by default; a manual resize takes ownership
+  // of the height (content scrolls from then on). This flag drives the Fit
+  // button that hands ownership back. Selector returns a boolean, so pans/
+  // typing elsewhere never re-render this node.
+  const hasManualHeight = useStore(state => {
+    const n = state.nodes.find(nd => nd.id === id);
+    return n != null && ((n as any).height != null || (n.style as any)?.height != null);
+  });
 
   const meta = data.metadata || {};
   const currentFunc = meta.function || 'none';
@@ -174,6 +182,20 @@ export const BaseNode = memo(({
           <div className="flex-1 flex flex-col relative z-10 overflow-hidden">
             {children}
           </div>
+
+          {/* FIT TO CONTENT: only offered once a manual resize has taken
+              ownership of the height -- clicking hands it back so the card
+              auto-grows with its text again. */}
+          {selected && hasManualHeight && (
+            <button
+              onClick={(e) => { e.stopPropagation(); useStore.getState().resetNodeSize(id); }}
+              onPointerDown={(e) => e.stopPropagation()}
+              className="absolute bottom-1 right-1 z-30 flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#1a1a24]/90 border border-[#333] text-gray-400 hover:text-white hover:border-gray-500 transition-colors text-[9px] font-bold uppercase tracking-wider cursor-pointer"
+              title="Fit to content — the card grows with its text again"
+            >
+              <ChevronsUpDown size={10} /> Fit
+            </button>
+          )}
         </div>
       </div>
     </>

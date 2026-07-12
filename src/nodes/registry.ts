@@ -13,6 +13,18 @@
 export type CanvasMode = 'novel' | 'sermon' | 'universal';
 export type NodeTier = 'writing' | 'knowledge' | 'structure';
 
+/**
+ * How a node owns its size:
+ * - 'auto-height' (the default): width is fixed so prose wraps, height GROWS
+ *   with content. Scrolling only starts after the user drags the resizer and
+ *   takes ownership of the size (a Fit button hands it back).
+ * - 'auto': neither dimension is stamped -- the node sizes itself entirely
+ *   to content (sequence grows sideways as beats are added).
+ * - 'fixed': both dimensions are explicit (group zones and hubs are spatial
+ *   containers the user sizes deliberately).
+ */
+export type NodeSizing = 'auto-height' | 'auto' | 'fixed';
+
 export type NodeDef = {
   /** Canonical type string -- stored in the DB, never rename */
   type: string;
@@ -25,6 +37,8 @@ export type NodeDef = {
   descriptions: Record<CanvasMode, string>;
   /** Spawn size; omit for self-sizing nodes (e.g. alias pills) */
   size?: { width: number; height: number };
+  /** Size ownership; defaults to 'auto-height' (see NodeSizing) */
+  sizing?: NodeSizing;
   zIndex?: number;
   /** Show in the + Add Node menu (legacy types stay registered but hidden) */
   inMenu: boolean;
@@ -130,7 +144,7 @@ export const NODE_DEFS: NodeDef[] = [
 
   // ---------- Tier 3: Structure & flow ----------
   {
-    type: 'hub', tier: 'structure', accent: '#a855f7', inMenu: true,
+    type: 'hub', tier: 'structure', accent: '#a855f7', inMenu: true, sizing: 'fixed',
     labels: { novel: 'Plot Nexus', sermon: 'Concept Hub', universal: 'Hub' },
     descriptions: {
       novel: 'Wire nodes to it, then collapse them into orbit',
@@ -140,7 +154,8 @@ export const NODE_DEFS: NodeDef[] = [
     size: { width: 120, height: 120 },
   },
   {
-    type: 'sequence', tier: 'structure', accent: '#a855f7', inMenu: true,
+    // 'auto': grows SIDEWAYS as beats are added instead of clipping them
+    type: 'sequence', tier: 'structure', accent: '#a855f7', inMenu: true, sizing: 'auto',
     labels: { novel: 'Timeline Track', sermon: 'Sermon Flow', universal: 'Sequence' },
     descriptions: {
       novel: 'Plan story beats chronologically',
@@ -192,7 +207,7 @@ export const NODE_DEFS: NodeDef[] = [
     size: { width: 280, height: 260 },
   },
   {
-    type: 'group', tier: 'structure', accent: '#a855f7', inMenu: true,
+    type: 'group', tier: 'structure', accent: '#a855f7', inMenu: true, sizing: 'fixed',
     labels: { novel: 'Group Zone', sermon: 'Group Zone', universal: 'Group Zone' },
     descriptions: {
       novel: 'A visual container -- drop nodes inside to nest them',
@@ -305,11 +320,12 @@ export function nodeLabel(type: string, mode: CanvasMode): string {
   return NODE_REGISTRY[type]?.labels[mode] ?? type;
 }
 
-export function nodeSpawnConfig(type: string): { width?: number; height?: number; zIndex: number } {
+export function nodeSpawnConfig(type: string): { width?: number; height?: number; zIndex: number; sizing: NodeSizing } {
   const def = NODE_REGISTRY[type];
   return {
     width: def?.size?.width,
     height: def?.size?.height,
     zIndex: def?.zIndex ?? 1,
+    sizing: def?.sizing ?? 'auto-height',
   };
 }
