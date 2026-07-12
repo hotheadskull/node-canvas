@@ -479,6 +479,11 @@ function FlowCanvas() {
   const onNodeMouseEnter = useCallback((_: React.MouseEvent, node: any) => {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
     hoverTimeoutRef.current = setTimeout(() => {
+      // Alt-Tab away with the cursor parked on a node and this timer still
+      // fires -- but the mouseleave that would clear it never comes, so the
+      // constellation stays lit into the next session with every unrelated
+      // line faded to near-invisible. Only light up while we own the focus.
+      if (!document.hasFocus() || document.visibilityState === 'hidden') return;
       setHoveredNodeId(node.id);
     }, 3000);
   }, []);
@@ -486,6 +491,22 @@ function FlowCanvas() {
   const onNodeMouseLeave = useCallback(() => {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
     setHoveredNodeId(null);
+  }, []);
+
+  // Leaving the app (Alt-Tab, minimize) never delivers a mouseleave, so any
+  // active constellation would survive the trip and look like a node stuck
+  // in a selected/highlighted state that clicks can't dismiss.
+  useEffect(() => {
+    const clearHover = () => {
+      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+      setHoveredNodeId(null);
+    };
+    window.addEventListener('blur', clearHover);
+    document.addEventListener('visibilitychange', clearHover);
+    return () => {
+      window.removeEventListener('blur', clearHover);
+      document.removeEventListener('visibilitychange', clearHover);
+    };
   }, []);
 
   const onNodeDragStart = useCallback((_: any, node: any) => {
@@ -645,6 +666,10 @@ function FlowCanvas() {
 
   const onPaneClick = useCallback(() => {
     setSelectedNodeId(null);
+    // Escape hatch: a plain canvas click always dismisses the constellation,
+    // whatever got it stuck (hover timers race window focus in odd ways)
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    setHoveredNodeId(null);
   }, []);
 
   const onConnectEnd = useCallback((event: any, connectionState: any) => {
@@ -843,23 +868,43 @@ function FlowCanvas() {
                 x: window.innerWidth / 2,
                 y: window.innerHeight / 2,
               });
-              // Land in a FREE spot: start centered, and while the landing
-              // rect overlaps an existing node, step to the right of it --
-              // successive spawns line up NEXT TO each other instead of
-              // stacking (stacked nodes hide each other and any connection
-              // drawn between them).
-              // Wide enough that the connection between two adjacent spawns
-              // has a comfortably clickable run of line between the cards
+              // Land in the NEAREST free spot to the screen center. Walking
+              // only rightward marched every spawn further off-screen once a
+              // row formed -- instead scan a grid of candidate cells in rings
+              // around the center and take the closest open one, preferring
+              // same-row neighbors (right first) so consecutive spawns still
+              // read left-to-right, then filling below/above. The spawn stays
+              // on the part of the canvas the user is actually looking at.
+              // GAP is wide enough that the connection between two adjacent
+              // spawns has a comfortably clickable run of line between them.
               const GAP = 80;
               const rects = absoluteNodeRects(useStore.getState().nodes);
+              const overlaps = (px: number, py: number) => rects.some(r =>
+                px < r.rect.x + r.rect.w + GAP && r.rect.x - GAP < px + estW &&
+                py < r.rect.y + r.rect.h + GAP && r.rect.y - GAP < py + estH);
               let x = centerPos.x - estW / 2;
               let y = centerPos.y - estH / 2;
-              for (let i = 0; i < 40; i++) {
-                const hit = rects.find(r =>
-                  x < r.rect.x + r.rect.w + GAP && r.rect.x - GAP < x + estW &&
-                  y < r.rect.y + r.rect.h + GAP && r.rect.y - GAP < y + estH);
-                if (!hit) break;
-                x = hit.rect.x + hit.rect.w + GAP;
+              if (overlaps(x, y)) {
+                const stepX = estW + GAP;
+                const stepY = estH + GAP;
+                const cands: { x: number; y: number; key: number }[] = [];
+                for (let dx = -4; dx <= 4; dx++) {
+                  for (let dy = -4; dy <= 4; dy++) {
+                    if (dx === 0 && dy === 0) continue;
+                    cands.push({
+                      x: x + dx * stepX,
+                      y: y + dy * stepY,
+                      // Rank: same row beats other rows, then true distance,
+                      // with right-of-center winning distance ties
+                      key: (dy !== 0 ? 1e12 : 0) +
+                        (dx * stepX) ** 2 + (dy * stepY) ** 2 +
+                        (dx < 0 ? 1 : 0),
+                    });
+                  }
+                }
+                cands.sort((a, b) => a.key - b.key);
+                const free = cands.find(c => !overlaps(c.x, c.y));
+                if (free) { x = free.x; y = free.y; }
               }
 
               addNode({

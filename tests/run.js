@@ -9,3 +9,4 @@ import './f6_registry.test.js';
 import './f7_polish.test.js';
 import './f8_routing_polish.test.js';
 import './f9_node_audit.test.js';
+import './f10_hover_spawn.test.js';
