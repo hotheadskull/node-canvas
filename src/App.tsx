@@ -29,6 +29,7 @@ import { RichTextEditor } from './components/RichTextEditor';
 import { CommandPalette } from './components/CommandPalette';
 import { EDGE_TYPES, edgeTypeOf } from './utils/edgeTypes';
 import { hasAnchoredHandle } from './utils/edgeUtils';
+import { absoluteNodeRects } from './utils/smartPath';
 import { nodeSpawnConfig } from './nodes/registry';
 
 import { QuoteNode } from './components/QuoteNode';
@@ -244,7 +245,6 @@ function FlowCanvas() {
   const { screenToFlowPosition, getIntersectingNodes, setCenter } = useReactFlow();
   const dragStartPos = useRef<Record<string, { x: number; y: number }>>({});
   // Cascade counter for successive node spawns (see CreateNodeMenu onCreate)
-  const spawnSeqRef = useRef(0);
 
   const previewMarkdown = useStore(state => state.previewMarkdown);
   const setPreviewMarkdown = useStore(state => state.setPreviewMarkdown);
@@ -832,32 +832,41 @@ function FlowCanvas() {
           <Panel position="top-left" className="m-4 flex gap-2">
             <CreateNodeMenu onCreate={(type, label) => {
               const newNodeId = crypto.randomUUID();
-              // Cascade successive spawns like OS windows: perfectly stacked
-              // nodes hide each other AND hide any connection drawn between
-              // them ("my nodes don't look connected")
-              const k = spawnSeqRef.current++ % 6;
+              // Estimated landing size for PLACEMENT only -- the node's real
+              // size comes from the sizing policy in addNode (auto-height
+              // cards must NOT get a style height stamped here, or they stop
+              // growing with their content)
+              const { width, height } = nodeSpawnConfig(type);
+              const estW = width ?? 300;
+              const estH = height ?? 220;
               const centerPos = screenToFlowPosition({
-                x: window.innerWidth / 2 + k * 48 - 120 + (Math.random() * 24 - 12),
-                y: window.innerHeight / 2 + k * 40 - 100 + (Math.random() * 24 - 12)
+                x: window.innerWidth / 2,
+                y: window.innerHeight / 2,
               });
-              // Sizes and z-order come from the node registry -- one place to
-              // tune every type (src/nodes/registry.ts)
-              const { width, height, zIndex } = nodeSpawnConfig(type);
+              // Land in a FREE spot: start centered, and while the landing
+              // rect overlaps an existing node, step to the right of it --
+              // successive spawns line up NEXT TO each other instead of
+              // stacking (stacked nodes hide each other and any connection
+              // drawn between them).
+              // Wide enough that the connection between two adjacent spawns
+              // has a comfortably clickable run of line between the cards
+              const GAP = 80;
+              const rects = absoluteNodeRects(useStore.getState().nodes);
+              let x = centerPos.x - estW / 2;
+              let y = centerPos.y - estH / 2;
+              for (let i = 0; i < 40; i++) {
+                const hit = rects.find(r =>
+                  x < r.rect.x + r.rect.w + GAP && r.rect.x - GAP < x + estW &&
+                  y < r.rect.y + r.rect.h + GAP && r.rect.y - GAP < y + estH);
+                if (!hit) break;
+                x = hit.rect.x + hit.rect.w + GAP;
+              }
 
               addNode({
                 id: newNodeId,
                 type,
-                position: {
-                  // Center the NODE on screen-center, not its top-left corner
-                  // -- otherwise large nodes hang off the bottom-right with
-                  // their controls (like the Expand button) unreachable
-                  x: centerPos.x - (width ?? 300) / 2,
-                  y: centerPos.y - (height ?? 200) / 2,
-                },
+                position: { x, y },
                 data: { label, content: '', manuscript: '' },
-                // Fixed width/height, NOT minWidth/minHeight: with only a
-                // min-height the card renders smaller than the resizer frame
-                style: { width, height, zIndex }
               });
             }} />
             {/* Removed the old compile button here since we now use the Master Print Node */}
