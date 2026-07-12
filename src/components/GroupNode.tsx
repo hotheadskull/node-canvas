@@ -8,13 +8,12 @@ export const GroupNode = memo(({ id, data, selected }: any) => {
 
   return (
     <>
-      <NodeResizer 
-        color="#a855f7" 
-        isVisible={selected} 
-        minWidth={200} 
+      <NodeResizer
+        isVisible={selected}
+        minWidth={200}
         minHeight={200}
-        handleStyle={{ width: 10, height: 10, borderRadius: '50%', border: '2px solid #111114' }}
-        lineStyle={{ border: '1px solid #a855f7' }}
+        handleClassName="transition-transform hover:scale-150"
+        handleStyle={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#a855f7', border: '2px solid #111114', boxShadow: '0 0 6px #a855f7aa' }}
       />
       
       <div 

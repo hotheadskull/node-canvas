@@ -107,6 +107,12 @@ test('F9-8: auto-grow sizing model stays intact', () => {
     /resetNodeSize/.test(store) && /set\(\{ height: null \}\)/.test(store),
     'resetNodeSize must clear the persisted height'
   );
+  // A bare click on a resize edge emits a zero-delta resize -- it must not
+  // convert an auto-growing card to manual sizing.
+  assert.ok(
+    /Math\.abs\(cur\.width - c\.dimensions\.width\) < 1/.test(store),
+    'Zero-delta resize events must be filtered before they take ownership'
+  );
   // Load fallback: fixed types get registry heights, everything else auto
   assert.ok(
     /spawn\.sizing === 'fixed' \? spawn\.height : undefined/.test(store),
@@ -126,6 +132,26 @@ test('F9-8: auto-grow sizing model stays intact', () => {
   assert.ok(
     /sizing: 'fixed'/.test(registry) && /sizing: 'auto'/.test(registry),
     'Registry must mark group/hub fixed and sequence auto'
+  );
+});
+
+// F9-9: the resizer is part of the card, not a frame around it -- no
+// visible outline, corner dots wear the node accent, edges light up flush
+// with the card border on hover.
+test('F9-9: resize affordance is integrated, not a floating frame', () => {
+  const css = read('src/App.css');
+  assert.ok(
+    /\.react-flow__resize-control\.line \{ border: none !important; \}/.test(css),
+    'Resize lines must draw no frame'
+  );
+  assert.ok(
+    /\.react-flow__resize-control\.line:hover::after \{ opacity: 1; \}/.test(css),
+    'Hovering an edge must light the flush border line'
+  );
+  const baseNode = read('src/components/BaseNode.tsx');
+  assert.ok(
+    /backgroundColor: accentColor/.test(baseNode) && /borderRadius: '50%'/.test(baseNode),
+    'Corner handles must be accent-colored dots'
   );
 });
 

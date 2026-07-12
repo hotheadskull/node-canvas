@@ -23,7 +23,11 @@ export const HubNode = memo(({ id, data, selected }: any) => {
       {/* Min matches the 120px spawn (it used to be 200x150, so merely
           selecting the resizer JUMPED the hub bigger); aspect stays locked
           so the octagon clip-path never squashes. */}
-      <NodeResizer minWidth={100} minHeight={100} keepAspectRatio isVisible={selected} handleClassName="w-3 h-3 bg-[#151518] border-2 border-white rounded transition-transform hover:scale-125" />
+      <NodeResizer
+        minWidth={100} minHeight={100} keepAspectRatio isVisible={selected}
+        handleClassName="transition-transform hover:scale-150"
+        handleStyle={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#a855f7', border: '2px solid #151518', boxShadow: '0 0 6px #a855f7aa' }}
+      />
       <div className={`relative flex items-center justify-center text-white transition-colors shadow-lg duration-300 custom-drag-handle cursor-grab active:cursor-grabbing
       ${selected ? 'scale-[1.05]' : ''}
     `} style={{ 

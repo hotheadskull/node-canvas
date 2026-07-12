@@ -79,11 +79,22 @@ export const BaseNode = memo(({
   return (
     <>
       {resizable && (
-        <NodeResizer 
-          minWidth={minWidth} 
-          minHeight={minHeight} 
-          isVisible={selected} 
-          handleClassName="w-3 h-3 bg-[#151518] border-2 border-white rounded transition-transform hover:scale-125" 
+        <NodeResizer
+          minWidth={minWidth}
+          minHeight={minHeight}
+          isVisible={selected}
+          // Corner dots wear the node's accent so the resizer reads as part
+          // of the card, not a frame around it (lines are styled in App.css:
+          // invisible until hovered, then flush with the card border)
+          handleClassName="transition-transform hover:scale-150"
+          handleStyle={{
+            width: 10,
+            height: 10,
+            borderRadius: '50%',
+            backgroundColor: accentColor,
+            border: '2px solid #151518',
+            boxShadow: `0 0 6px ${accentColor}aa`,
+          }}
         />
       )}
       <div className="relative w-full h-full">

@@ -53,13 +53,35 @@ body {
   fill: var(--art-deco-gold-bright) !important;
 }
 
-/* Resize grab-lines must sit just OUTSIDE the card edge. On the edge they
-   cover the node's footer controls -- the Document's Expand button became
-   unclickable whenever the node was selected. */
+/* RESIZING, integrated into the card instead of a floating frame: there is
+   NO visible outline -- the card's accent border already shows selection.
+   Grab zones sit just OUTSIDE each edge (flush on the edge they covered
+   footer controls; the Document's Expand button became unclickable), stay
+   invisible until hovered, and then a gold line lights up FLUSH with the
+   card border so it reads as the card edge itself becoming grabbable. */
+.react-flow__resize-control.line { border: none !important; }
 .react-flow__resize-control.line.bottom { bottom: -7px; height: 8px; }
 .react-flow__resize-control.line.top { top: -7px; height: 8px; }
 .react-flow__resize-control.line.left { left: -7px; width: 8px; }
 .react-flow__resize-control.line.right { right: -7px; width: 8px; }
+
+.react-flow__resize-control.line::after {
+  content: '';
+  position: absolute;
+  background: #f0c050;
+  box-shadow: 0 0 8px rgba(240, 192, 80, 0.8);
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  pointer-events: none;
+}
+.react-flow__resize-control.line:hover::after { opacity: 1; }
+/* each zone spans 7px outside to 1px inside the card, so the card-side end
+   of the zone IS the border line */
+.react-flow__resize-control.line.bottom::after { left: 0; right: 0; top: 0; height: 2px; }
+.react-flow__resize-control.line.top::after { left: 0; right: 0; bottom: 0; height: 2px; }
+.react-flow__resize-control.line.left::after { top: 0; bottom: 0; right: 0; width: 2px; }
+.react-flow__resize-control.line.right::after { top: 0; bottom: 0; left: 0; width: 2px; }
 
 /* Instant, readable labels for every toolbar button. The bar sits bottom-left,
    so labels fly out to the right. Custom buttons carry data-tip; React Flow's

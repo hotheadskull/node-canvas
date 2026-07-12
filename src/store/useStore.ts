@@ -240,8 +240,21 @@ export const useStore = create<AppState>((set, get) => ({
   previewMarkdown: null,
   setPreviewMarkdown: (md: string | null) => set({ previewMarkdown: md }),
 
-  onNodesChange: (changes: NodeChange<AppNode>[]) => {
+  onNodesChange: (rawChanges: NodeChange<AppNode>[]) => {
     const prevNodes = get().nodes;
+
+    // A bare CLICK on a resize edge makes the resizer emit one ZERO-DELTA
+    // dimension change (setAttributes, same size). Letting it through would
+    // silently convert an auto-growing card to manual sizing at its current
+    // height -- only real size changes may take ownership.
+    const changes = rawChanges.filter(c => {
+      if (c.type !== 'dimensions' || !(c as any).setAttributes || !c.dimensions) return true;
+      const cur = prevNodes.find(n => n.id === c.id)?.measured;
+      return !(cur?.width != null && cur?.height != null &&
+        Math.abs(cur.width - c.dimensions.width) < 1 &&
+        Math.abs(cur.height - c.dimensions.height) < 1);
+    });
+
     // Capture removed nodes before applying changes so they land in the trash,
     // whether removal came from our UI or React Flow's keyboard delete.
     const removedNodes = changes
