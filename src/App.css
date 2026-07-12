@@ -621,3 +621,18 @@ body {
   pointer-events: none;
   z-index: 100;
 }
+
+/* ZOOMED-OUT USABILITY (App adds .zoomed-out below 50% zoom): handles shrink
+   with the canvas until they are unclickable specks, so grow their hit size.
+   Slot handles (compile/crucible, data-handleid "slot-*") are excluded: they
+   sit inside list rows and growing them would inflate the card layout. The
+   positional re-centering only applies to the four GENERIC handles -- custom
+   handles (hub corners, beats) keep their own inline positions. */
+.zoomed-out .react-flow__handle:not([data-handleid^="slot-"]) {
+  width: 26px !important;
+  height: 26px !important;
+}
+.zoomed-out .react-flow__handle-top:not([data-handleid*="-"]) { top: -13px !important; }
+.zoomed-out .react-flow__handle-bottom:not([data-handleid*="-"]) { bottom: -13px !important; }
+.zoomed-out .react-flow__handle-left:not([data-handleid*="-"]) { left: -13px !important; }
+.zoomed-out .react-flow__handle-right:not([data-handleid*="-"]) { right: -13px !important; }

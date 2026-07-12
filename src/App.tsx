@@ -464,6 +464,16 @@ function FlowCanvas() {
     });
   }, [nodes, edges, constellation, hiddenEdgeTypes, collapsedHubIds, hiddenNodeIds]);
 
+  // Below 50% zoom, handles become nearly unclickable specks -- a .zoomed-out
+  // class lets CSS grow them to a usable hit size. State only flips when the
+  // threshold is crossed (setState with the same value bails out), so panning
+  // and zooming never cause extra re-renders.
+  const [zoomedOut, setZoomedOut] = useState(false);
+  const onViewportMove = useCallback((_: unknown, viewport: { zoom: number }) => {
+    const out = viewport.zoom < 0.5;
+    setZoomedOut(prev => (prev === out ? prev : out));
+  }, []);
+
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const onNodeMouseEnter = useCallback((_: React.MouseEvent, node: any) => {
@@ -749,7 +759,8 @@ function FlowCanvas() {
              fires when the first node appears and would zoom to ~2x, making
              every later node spawn enormous with its controls off-screen */
           fitViewOptions={{ padding: 0.2, maxZoom: 1 }}
-          className="cosmic-canvas"
+          onMove={onViewportMove}
+          className={`cosmic-canvas${zoomedOut ? ' zoomed-out' : ''}`}
           defaultEdgeOptions={{ 
             style: { stroke: '#a88530', strokeWidth: 2 } 
           }}

@@ -167,7 +167,9 @@ export const NODE_DEFS: NodeDef[] = [
       sermon: 'Hold two truths together, unresolved',
       universal: 'Hold two ideas together for resolution',
     },
-    size: { width: 340, height: 300 },
+    // Must fit CrucibleNode's minWidth/minHeight (350x400) or the card
+    // renders bigger than the node box and edges/resizer misalign
+    size: { width: 360, height: 420 },
   },
   {
     type: 'alias', tier: 'structure', accent: '#f0c050', inMenu: true,
@@ -218,7 +220,8 @@ export const NODE_DEFS: NodeDef[] = [
       sermon: 'Connect points in order, compile the manuscript',
       universal: 'Connect nodes in order, compile and export',
     },
-    size: { width: 320, height: 280 },
+    // Must fit CompileNode's minHeight (350) or the card overflows the box
+    size: { width: 320, height: 360 },
   },
 
   // ---------- Legacy types: registered so old canvases load, hidden from menu ----------

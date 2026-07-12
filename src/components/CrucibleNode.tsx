@@ -1,5 +1,5 @@
-import { memo } from 'react';
-import { Handle, Position, NodeProps } from '@xyflow/react';
+import { memo, useEffect } from 'react';
+import { Handle, Position, NodeProps, useUpdateNodeInternals } from '@xyflow/react';
 import { Swords, ArrowRightToLine, Plus, Trash2 } from 'lucide-react';
 import { useStore, AppNode } from '../store/useStore';
 import { BaseNode } from './BaseNode';
@@ -12,6 +12,14 @@ export const CrucibleNode = memo(({ id, data, selected }: NodeProps<AppNode>) =>
   // Dynamic number of ordered input slots (default 3)
   const slotCount: number = typeof data.slotCount === 'number' ? data.slotCount : 3;
   const slots: number[] = Array.from({ length: slotCount }, (_, i) => i + 1);
+
+  // Slot handles are created dynamically -- React Flow must re-measure them
+  // when "Add Factor" grows the list or connections to new slots silently
+  // fail (same class of bug as compile slots and sequence beats).
+  const updateNodeInternals = useUpdateNodeInternals();
+  useEffect(() => {
+    updateNodeInternals(id);
+  }, [id, slotCount, updateNodeInternals]);
   const resolution: string = typeof data.resolution === 'string' ? data.resolution : '';
   const participantData: Record<string, string> = (data.participantData as Record<string, string>) || {};
 
@@ -67,10 +75,12 @@ export const CrucibleNode = memo(({ id, data, selected }: NodeProps<AppNode>) =>
     
     textToInsert += `<p><strong>-------------------------</strong></p><p></p>`;
 
-    // Insert into target node's content
-    const existingContent = targetNode.data.content || '';
+    // Scene nodes EDIT and DISPLAY `manuscript` (falling back to content
+    // only when manuscript is empty) -- appending to `content` made the
+    // pushed conflict invisible on any scene that already had text.
+    const existingText = targetNode.data.manuscript || targetNode.data.content || '';
     updateNodeData(targetNode.id, {
-      content: existingContent + textToInsert
+      manuscript: existingText + textToInsert
     });
     
     alert(`Conflict pushed to Scene: ${targetNode.data.label || 'Untitled'}`);

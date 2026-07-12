@@ -20,7 +20,10 @@ export const HubNode = memo(({ id, data, selected }: any) => {
 
   return (
     <>
-      <NodeResizer minWidth={200} minHeight={150} isVisible={selected} handleClassName="w-3 h-3 bg-[#151518] border-2 border-white rounded transition-transform hover:scale-125" />
+      {/* Min matches the 120px spawn (it used to be 200x150, so merely
+          selecting the resizer JUMPED the hub bigger); aspect stays locked
+          so the octagon clip-path never squashes. */}
+      <NodeResizer minWidth={100} minHeight={100} keepAspectRatio isVisible={selected} handleClassName="w-3 h-3 bg-[#151518] border-2 border-white rounded transition-transform hover:scale-125" />
       <div className={`relative flex items-center justify-center text-white transition-colors shadow-lg duration-300 custom-drag-handle cursor-grab active:cursor-grabbing
       ${selected ? 'scale-[1.05]' : ''}
     `} style={{ 
@@ -55,11 +58,15 @@ export const HubNode = memo(({ id, data, selected }: any) => {
       <Handle id="left" type="target" position={Position.Left} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#a855f7]" />
       <Handle id="right" type="source" position={Position.Right} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#a855f7]" />
 
-      {/* 4-way Diagonal Handles to prevent edges from clipping through the corners */}
-      <Handle id="top-left" type="target" position={Position.Top} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#a855f7]" style={{ left: '18px', top: '12px' }} />
-      <Handle id="top-right" type="target" position={Position.Top} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#a855f7]" style={{ left: '102px', top: '12px' }} />
-      <Handle id="bottom-left" type="source" position={Position.Bottom} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#a855f7]" style={{ left: '18px', bottom: '12px' }} />
-      <Handle id="bottom-right" type="source" position={Position.Bottom} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#a855f7]" style={{ left: '102px', bottom: '12px' }} />
+      {/* 4-way Diagonal Handles to prevent edges from clipping through the
+          corners. PERCENTAGE positions (15%/85% = midpoint of each diagonal
+          octagon face) so they stay on the shape at ANY size -- they were
+          hardcoded px offsets calibrated to the 120px spawn, and resizing
+          the hub left them floating in space. */}
+      <Handle id="top-left" type="target" position={Position.Top} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#a855f7]" style={{ left: '15%', top: '15%', transform: 'translate(-50%, -50%)' }} />
+      <Handle id="top-right" type="target" position={Position.Top} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#a855f7]" style={{ left: '85%', top: '15%', transform: 'translate(-50%, -50%)' }} />
+      <Handle id="bottom-left" type="source" position={Position.Bottom} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#a855f7]" style={{ left: '15%', top: '85%', bottom: 'auto', transform: 'translate(-50%, -50%)' }} />
+      <Handle id="bottom-right" type="source" position={Position.Bottom} className="w-3 h-3 rounded-full border-2 border-[#151518] z-50 transition-transform hover:scale-125 bg-[#a855f7]" style={{ left: '85%', top: '85%', bottom: 'auto', transform: 'translate(-50%, -50%)' }} />
 
       <div className="flex flex-col items-center justify-center p-2 text-center z-10 w-full h-full gap-2">
         <Network size={20} className={isCollapsed ? 'text-[#a855f7]' : 'text-gray-500'} />

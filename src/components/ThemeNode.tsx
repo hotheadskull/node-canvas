@@ -3,7 +3,8 @@ import { NodeProps } from '@xyflow/react';
 import { useStore, AppNode } from '../store/useStore';
 import { RichTextEditor } from './RichTextEditor';
 import { BaseNode } from './BaseNode';
-import { Book, FileText, Clapperboard, Library, File } from 'lucide-react';
+import { Book, FileText, Clapperboard, Library, File, ChevronDown } from 'lucide-react';
+import { nodeLabel } from '../nodes/registry';
 
 const WRITING_TYPES = ['document', 'book', 'chapter', 'scene', 'story'];
 
@@ -36,6 +37,7 @@ export function ThemeNode({ id, data, selected, type }: NodeProps<AppNode>) {
   const setFocusedNode = useStore(state => state.setFocusedNode);
   const edges = useStore(state => state.edges);
   const allNodes = useStore(state => state.nodes);
+  const mode = useStore(state => state.mode);
 
   const textContent = data.manuscript || data.content || '';
   const wordCount = textContent.split(/\s+/).filter((w: string) => w.length > 0).length;
@@ -68,17 +70,29 @@ export function ThemeNode({ id, data, selected, type }: NodeProps<AppNode>) {
       accentColor={accentColor}
       showFunction={true}
       showTags={true}
-      headerRight={
-        <select
-          className="text-[10px] text-gray-400 bg-[#1a1a1f] px-1.5 py-1 rounded border border-[#333] flex-shrink-0 cursor-pointer outline-none uppercase font-bold tracking-wider hover:border-gray-500 transition-colors"
-          value={nodeType}
-          onChange={(e) => updateNodeType(id, e.target.value)}
-          onPointerDown={(e) => e.stopPropagation()}
+      renderIcon={
+        // Same pattern as KnowledgeCard: the icon IS the type picker (an
+        // invisible native <select> on top), so the header stays lean and
+        // the options show proper mode-aware labels instead of raw type
+        // strings like 'document'.
+        <div
+          className="relative flex items-center flex-shrink-0 cursor-pointer rounded px-0.5 hover:bg-white/10 transition-colors"
+          title={`${nodeLabel(nodeType, mode)} — click to change type`}
         >
-          {WRITING_TYPES.map(t => (
-            <option key={t} value={t}>{t}</option>
-          ))}
-        </select>
+          <Icon size={14} style={{ color: accentColor }} />
+          <ChevronDown size={8} className="text-gray-500" />
+          <select
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            value={WRITING_TYPES.includes(nodeType) ? nodeType : 'document'}
+            onChange={(e) => updateNodeType(id, e.target.value)}
+            onPointerDown={(e) => e.stopPropagation()}
+            aria-label="Writing surface type"
+          >
+            {WRITING_TYPES.map(t => (
+              <option key={t} value={t} className="bg-[#151518] text-gray-200">{nodeLabel(t, mode)}</option>
+            ))}
+          </select>
+        </div>
       }
     >
       {/* Liquid Volume Background */}

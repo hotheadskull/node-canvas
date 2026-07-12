@@ -22,8 +22,11 @@ export const GroupNode = memo(({ id, data, selected }: any) => {
           ${selected ? 'border-[#a855f7]' : 'border-[#2a2a35]'}
         `}
         style={{
-          minWidth: '400px',
-          minHeight: '400px',
+          // Must match the NodeResizer minimums above -- when this was 400px
+          // the resize frame could shrink to 200 while the card refused to
+          // follow, recreating the frame-bigger-than-card glitch.
+          minWidth: '200px',
+          minHeight: '200px',
           // A very faint translucent background so it acts as a zone
           background: 'radial-gradient(circle at center, rgba(26,26,36,0.5) 0%, rgba(17,17,20,0.8) 100%)',
           backdropFilter: 'blur(2px)',

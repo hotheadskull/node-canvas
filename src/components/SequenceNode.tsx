@@ -105,7 +105,6 @@ export const SequenceNode = memo(({ id, data, selected }: NodeProps<AppNode>) =>
       selected={selected}
       minWidth={400}
       minHeight={200}
-      resizable={false}
       icon={ListOrdered}
       accentColor="#a855f7"
       headerTitlePlaceholder="Sequence Name..."
@@ -120,8 +119,17 @@ export const SequenceNode = memo(({ id, data, selected }: NodeProps<AppNode>) =>
         </button>
       }
     >
-      {/* Horizontal Axis & Beats */}
-      <div className="flex-1 relative flex items-center px-6 py-8 overflow-hidden bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9IiMzMzMiLz48L3N2Zz4=')]">
+      {/* Horizontal Axis & Beats. overflow-x-auto + nowheel: beats past the
+          node's width used to be CLIPPED with no way to reach them -- now the
+          strip scrolls (mouse wheel scrolls beats instead of zooming the
+          canvas), and the node is resizable for those who want it all visible. */}
+      <div
+        className="nowheel flex-1 relative flex items-center px-6 py-8 overflow-x-auto overflow-y-hidden bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9IiMzMzMiLz48L3N2Zz4=')]"
+        style={{ scrollbarWidth: 'thin' }}
+        // Scrolling moves the beat handles relative to the node -- React Flow
+        // (and the pinned beat edges) must re-measure or anchors go stale.
+        onScroll={() => requestAnimationFrame(() => updateNodeInternals(id))}
+      >
         {/* The Central Line */}
         <div className="absolute left-0 right-0 h-1 bg-[#2a2a35] top-1/2 -translate-y-1/2 z-0" style={{ width: Math.max(800, beats.length * 160 + 100) + 'px' }} />
 
