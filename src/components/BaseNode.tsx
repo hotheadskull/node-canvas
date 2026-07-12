@@ -139,6 +139,19 @@ export const BaseNode = memo(({
               />
             </div>
 
+            {/* FIT TO CONTENT: only offered once a manual resize has taken
+                ownership of the height. Lives in the HEADER -- it used to sit
+                bottom-right, exactly on top of the Document's Expand button. */}
+            {selected && hasManualHeight && (
+              <button
+                onClick={(e) => { e.stopPropagation(); useStore.getState().resetNodeSize(id); }}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="flex items-center flex-shrink-0 ml-1 p-1 rounded bg-[#1a1a24]/90 border border-[#333] text-gray-400 hover:text-white hover:border-gray-500 transition-colors cursor-pointer"
+                title="Fit to content — the card grows with its text again"
+              >
+                <ChevronsUpDown size={11} />
+              </button>
+            )}
             {headerRight}
             {/* Function pill collapses to just its colored dot when the node
                 isn't selected -- chrome should never crowd out content */}
@@ -193,20 +206,6 @@ export const BaseNode = memo(({
           <div className="flex-1 flex flex-col relative z-10 overflow-hidden">
             {children}
           </div>
-
-          {/* FIT TO CONTENT: only offered once a manual resize has taken
-              ownership of the height -- clicking hands it back so the card
-              auto-grows with its text again. */}
-          {selected && hasManualHeight && (
-            <button
-              onClick={(e) => { e.stopPropagation(); useStore.getState().resetNodeSize(id); }}
-              onPointerDown={(e) => e.stopPropagation()}
-              className="absolute bottom-1 right-1 z-30 flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#1a1a24]/90 border border-[#333] text-gray-400 hover:text-white hover:border-gray-500 transition-colors text-[9px] font-bold uppercase tracking-wider cursor-pointer"
-              title="Fit to content — the card grows with its text again"
-            >
-              <ChevronsUpDown size={10} /> Fit
-            </button>
-          )}
         </div>
       </div>
     </>
