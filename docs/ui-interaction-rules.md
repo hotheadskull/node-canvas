@@ -56,6 +56,12 @@ another). Where possible each rule is enforced by a test in
 15. **Every RF canvas wires `onError`.** RF drops misconfigured elements
     silently or with console-only messages; surface them in dev.
 
+16. **Hover must never move layout.** Anything that changes on hover (preview
+    panels, expanding rows) renders inside a reserved, fixed-size box. A
+    bottom-anchored menu that grows on hover shifts every control upward
+    under the user's cursor — clicks land on the wrong card (found by e2e in
+    Chunk 4: hovering a node card resized the add-menu and broke picking).
+
 ## Consistency sources
 
 10. **The registry is the single source of truth for looks.** Menu cards,

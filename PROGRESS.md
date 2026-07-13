@@ -14,8 +14,8 @@ master brief — see its "Revision log" for what changed and why).
 | 1 | Core graph: nodes, plain edges, registry skeleton, Zod document schema, load/save round-trip golden test | **completed** |
 | 2 | Canvas baseline: legacy look (starfield, toolbar bottom-left, legend bottom-right), plain edges end-to-end, collision-free spawn, auto-fit sizing (golden-tested), I5 regression test | **completed** |
 | 3 | Ports & wires (core): port declarations in registry, wire validation, tentative wires (create/commit/dissolve, golden), story-time stamps | **completed** |
-| 4 | Connection UX: handles, connectOnClick, big hit targets, valid/invalid live coloring, tentative wire rendering, "N ideas waiting" badge | **current** |
-| 5 | Derivations: compile (wire-order text) + ordered-intake reorder UI, deriveFace, readiness rollups, unsupported-claim flag. Golden tests incl. worked examples | not started |
+| 4 | Connection UX: handles, connectOnClick, big hit targets, valid/invalid live coloring, tentative wire rendering, "N ideas waiting" badge | **completed** |
+| 5 | Derivations: compile (wire-order text) + ordered-intake reorder UI, deriveFace, readiness rollups, unsupported-claim flag. Golden tests incl. worked examples | **current** |
 | 6 | Split: generic Split + template presets (beats, Toulmin, Passage→Propositions). Golden tests + UI | not started |
 | 7 | Assemblies (core): membership by reference, multi-membership, nesting, face-proxy stability, lossless collapse/expand. Golden tests are the gate for everything after | not started |
 | 8 | Assembly rendering: collapsed face card, drill-in scoped canvas with breadcrumbs, gather-into-Assembly, unpack | not started |
@@ -135,10 +135,45 @@ presentation-walk mode. All registry entries + isolated reducers (invariant I8).
   it. Acceptable pre-release; a real migration ships with the first release.
 - Suite: 83 unit tests + 3 e2e green; typecheck + lint clean.
 
-**Next session: Chunk 4 — connection UX.** Render give/take ports as handles
-(visible ones only; rest in a node inspector "more ports"), connectOnClick,
-live valid/invalid coloring from isValidWire reason codes, tentative wire
-rendering (dashed) + commit/dissolve UI with the undo toast, "N ideas
-waiting" badge from tentativeInboundCount. MUST call updateNodeInternals
-whenever a node's rendered handles change at runtime. **Design checkpoint
-applies: present 3-4 node-look/customizability mockups BEFORE building.**
+### 2026-07-13 — Chunk 4 (completed)
+- Node face per the approved design mix: A's tinted header + clickable kind
+  tag (opens the per-node accent picker, 8 presets + reset), B's port rails
+  (visible takes stacked on the LEFT, gives on the RIGHT), C's glowing-star
+  ports colored by dataKind (text purple, thread gold, person blue, place
+  green, thing amber) with ≥24px invisible hit areas and hover growth.
+  updateNodeInternals re-registers handles when their set changes.
+- Connection grammar: top/bottom dots ↔ dots = plain edge; give→take = live
+  wire (take→give wires backwards — users drag both ways); give→plain dot =
+  TENTATIVE wire into the first compatible intake; give→incompatible node =
+  surfaced error. isValidConnection drives live green/red star coloring and
+  blocks invalid drops. connectOnClick enabled.
+- WireEdge: solid live / dashed tentative, kind-colored, zoom-compensated
+  interaction path + chip (tentative chip: commit ✓ / dissolve ✗; live chip:
+  kind label + delete). Commit fires the undo toast ("N other candidates
+  dissolved — Undo" restores the pre-commit document). waiting-badge on
+  nodes from tentativeInboundCount.
+- Customization: per-node accent override (stored in node data), density
+  comfortable/compact, port labels hover/always/off — settings popover on
+  the toolbar gear, persisted in localStorage.
+- Menu preview panel now lists Gives/Takes from the registry ports.
+- **Bug found by e2e (now interaction rule 16): hover must never move
+  layout.** The bottom-anchored menu grew upward when the hover preview got
+  taller, shifting cards under the cursor so clicks missed. Menu now has a
+  fixed height; hover content scrolls inside a reserved box.
+- Suite: 96 unit + 6 e2e green; typecheck + lint clean. Screenshot verified
+  (rails, star ports, labels, dashed tentative + commit chip all correct).
+
+**Next session: Chunk 5 — derivations.** compile (wire-order text) with the
+ordered-intake reorder UI (drag-to-reorder list in a node inspector — wire
+order is NOT directly manipulable in RF), deriveFace, readiness rollups,
+unsupported-claim flag. Golden tests including the worked examples from the
+brief (Chapter compile; rename propagation).
+
+**Chunk 4 design checkpoint RESOLVED (2026-07-13).** User saw 4 mockups and
+chose a mix: **A's title bar** (tinted header band + kind tag) + **B's port
+rails** (takes enter on the LEFT rail, gives exit on the RIGHT rail — canvas
+reads left→right) + **C's glowing-star ports** (small stars with glow, but
+hit areas stay ≥24px invisible per interaction rule 1). Customizable:
+per-node accent override, density mode (comfortable/compact per canvas),
+port-label visibility (hover/always/off per canvas). Spatial grammar:
+top/bottom dots = plain relationship edges; left/right rails = dataflow.

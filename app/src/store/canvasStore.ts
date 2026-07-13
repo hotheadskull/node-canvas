@@ -5,14 +5,20 @@ import { create } from 'zustand';
 import {
   addNode,
   addPlainEdge,
+  addWire,
+  commitTentativeWire,
   computeAutoHeight,
   createEmptyDocument,
+  createTentativeWire,
+  dissolveTentativeWire,
   findFreePosition,
   getNodeDef,
+  getPort,
   GraphError,
   parseDocument,
   removeNode,
   removePlainEdge,
+  removeWire,
   serializeDocument,
   spawnNode,
   type CanvasDocument,
@@ -22,8 +28,16 @@ import {
 export const STORAGE_KEY = 'nodecanvas.v2.document';
 export const CORRUPT_BACKUP_KEY = 'nodecanvas.v2.document.corrupt-backup';
 export const VIEWPORT_KEY = 'nodecanvas.v2.viewport';
+export const SETTINGS_KEY = 'nodecanvas.v2.settings';
 
 export type Viewport = { x: number; y: number; zoom: number };
+export type PortLabelMode = 'hover' | 'always' | 'off';
+export type CanvasSettings = { density: 'comfortable' | 'compact'; portLabels: PortLabelMode };
+
+export type Toast = { message: string; undo?: () => void };
+
+/** RF handle ids that mean "plain relationship edge", not a port. */
+export const PLAIN_HANDLES = new Set(['top', 'bottom', 'left', 'right']);
 
 type CanvasState = {
   document: CanvasDocument;
@@ -34,26 +48,42 @@ type CanvasState = {
   persistenceError: string | null;
   /** Viewport restored on boot. Never changed programmatically after (I5). */
   initialViewport: Viewport;
+  settings: CanvasSettings;
+  toast: Toast | null;
 
   load: () => void;
   save: () => void;
   dismissError: () => void;
+  dismissToast: () => void;
+  setSettings: (settings: Partial<CanvasSettings>) => void;
 
   spawnAt: (type: string, desired: { x: number; y: number }) => string | null;
   moveNode: (nodeId: string, position: { x: number; y: number }) => void;
   setNodeTitle: (nodeId: string, title: string) => void;
   setNodeContent: (nodeId: string, content: string) => void;
+  setNodeAccent: (nodeId: string, accent: string | undefined) => void;
   applyMeasuredHeight: (nodeId: string, contentHeight: number) => void;
   setOwnedSize: (nodeId: string, width: number, height: number) => void;
   clearOwnedHeight: (nodeId: string) => void;
   deleteNode: (nodeId: string) => void;
+
   connect: (
     source: string,
     target: string,
     handles?: { sourceHandle?: string; targetHandle?: string },
   ) => void;
+  /** Route a completed RF connection: plain edge, live wire, or tentative. */
+  connectFromHandles: (
+    source: string,
+    sourceHandle: string | null | undefined,
+    target: string,
+    targetHandle: string | null | undefined,
+  ) => void;
   setEdgeLabel: (edgeId: string, label: string) => void;
   deleteEdge: (edgeId: string) => void;
+  commitWire: (wireId: string) => void;
+  dissolveWire: (wireId: string) => void;
+  deleteWire: (wireId: string) => void;
   saveViewport: (viewport: Viewport) => void;
 };
 
@@ -66,7 +96,44 @@ function nodeRect(node: CanvasDocument['nodes'][number]): Rect {
   };
 }
 
+/** First take port on the node's type compatible with the given give port. */
+export function firstCompatibleTake(
+  document: CanvasDocument,
+  giveNodeId: string,
+  givePortId: string,
+  targetNodeId: string,
+): string | null {
+  const giveNode = document.nodes.find((node) => node.id === giveNodeId);
+  const targetNode = document.nodes.find((node) => node.id === targetNodeId);
+  if (!giveNode || !targetNode) return null;
+  const givePort = getPort(giveNode.type, givePortId);
+  const targetDef = getNodeDef(targetNode.type);
+  if (!givePort || !targetDef) return null;
+  const take = targetDef.ports.find(
+    (port) => port.direction === 'take' && port.dataKind === givePort.dataKind,
+  );
+  return take?.id ?? null;
+}
+
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
+
+function loadSettings(): CanvasSettings {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<CanvasSettings>;
+      return {
+        density: parsed.density === 'compact' ? 'compact' : 'comfortable',
+        portLabels: ['hover', 'always', 'off'].includes(parsed.portLabels as string)
+          ? (parsed.portLabels as PortLabelMode)
+          : 'hover',
+      };
+    }
+  } catch {
+    // settings are preferences, not user data; fall back silently
+  }
+  return { density: 'comfortable', portLabels: 'hover' };
+}
 
 export const useCanvasStore = create<CanvasState>((set, get) => {
   const commit = (document: CanvasDocument) => {
@@ -92,6 +159,8 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
     document: createEmptyDocument('My canvas'),
     persistenceError: null,
     initialViewport: { x: 0, y: 0, zoom: 1 },
+    settings: loadSettings(),
+    toast: null,
 
     load: () => {
       let viewport: Viewport = { x: 0, y: 0, zoom: 1 };
@@ -131,6 +200,17 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
     },
 
     dismissError: () => set({ persistenceError: null }),
+    dismissToast: () => set({ toast: null }),
+
+    setSettings: (partial) => {
+      const settings = { ...get().settings, ...partial };
+      set({ settings });
+      try {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+      } catch {
+        // preferences only
+      }
+    },
 
     spawnAt: (type, desired) => {
       const def = getNodeDef(type);
@@ -171,6 +251,21 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
         nodes: doc.nodes.map((node) =>
           node.id === nodeId ? { ...node, data: { ...node.data, content } } : node,
         ),
+      });
+    },
+
+    setNodeAccent: (nodeId, accent) => {
+      const doc = get().document;
+      commit({
+        ...doc,
+        nodes: doc.nodes.map((node) => {
+          if (node.id !== nodeId) return node;
+          if (accent === undefined) {
+            const { accent: _dropped, ...data } = node.data;
+            return { ...node, data };
+          }
+          return { ...node, data: { ...node.data, accent } };
+        }),
       });
     },
 
@@ -232,6 +327,60 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
     connect: (source, target, handles = {}) =>
       tryOp(() => addPlainEdge(get().document, source, target, handles)),
 
+    connectFromHandles: (source, sourceHandle, target, targetHandle) => {
+      const sourceIsPort = !!sourceHandle && !PLAIN_HANDLES.has(sourceHandle);
+      const targetIsPort = !!targetHandle && !PLAIN_HANDLES.has(targetHandle);
+      const doc = get().document;
+
+      const portDirection = (nodeId: string, portId: string) => {
+        const node = doc.nodes.find((candidate) => candidate.id === nodeId);
+        return node ? getPort(node.type, portId)?.direction : undefined;
+      };
+
+      if (sourceIsPort && targetIsPort) {
+        const sourceDir = portDirection(source, sourceHandle);
+        const targetDir = portDirection(target, targetHandle);
+        if (sourceDir === 'give' && targetDir === 'take') {
+          tryOp(() =>
+            addWire(doc, { source, sourcePort: sourceHandle, target, targetPort: targetHandle }),
+          );
+          return;
+        }
+        if (sourceDir === 'take' && targetDir === 'give') {
+          // users drag both directions; a take->give drag is the same wire
+          tryOp(() =>
+            addWire(doc, { source: target, sourcePort: targetHandle, target: source, targetPort: sourceHandle }),
+          );
+          return;
+        }
+        set({ persistenceError: 'Those two ports cannot connect (give must feed take).' });
+        return;
+      }
+
+      if (sourceIsPort && !targetIsPort && portDirection(source, sourceHandle) === 'give') {
+        // Loose drop from a give onto a node's relationship dot: a CANDIDATE
+        // placement -- "this might go here." Tentative wire into the first
+        // compatible intake.
+        const takePort = firstCompatibleTake(doc, source, sourceHandle, target);
+        if (!takePort) {
+          set({ persistenceError: 'That node has no intake for this kind of connection.' });
+          return;
+        }
+        tryOp(() =>
+          createTentativeWire(doc, { source, sourcePort: sourceHandle, target, targetPort: takePort }),
+        );
+        return;
+      }
+
+      // everything else is the universal fallback: a plain relationship line (I1)
+      tryOp(() =>
+        addPlainEdge(doc, source, target, {
+          ...(sourceHandle && !sourceIsPort ? { sourceHandle } : {}),
+          ...(targetHandle && !targetIsPort ? { targetHandle } : {}),
+        }),
+      );
+    },
+
     setEdgeLabel: (edgeId, label) => {
       const doc = get().document;
       commit({
@@ -248,6 +397,36 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
     },
 
     deleteEdge: (edgeId) => tryOp(() => removePlainEdge(get().document, edgeId)),
+
+    commitWire: (wireId) => {
+      const before = get().document;
+      try {
+        const result = commitTentativeWire(before, wireId);
+        commit(result.document);
+        if (result.dissolvedIds.length > 0) {
+          const count = result.dissolvedIds.length;
+          set({
+            toast: {
+              message: `Committed. ${count} other candidate${count === 1 ? '' : 's'} dissolved.`,
+              undo: () => {
+                commit(before);
+                set({ toast: null });
+              },
+            },
+          });
+        }
+      } catch (error) {
+        if (error instanceof GraphError) {
+          set({ persistenceError: error.message });
+          return;
+        }
+        throw error;
+      }
+    },
+
+    dissolveWire: (wireId) => tryOp(() => dissolveTentativeWire(get().document, wireId)),
+
+    deleteWire: (wireId) => tryOp(() => removeWire(get().document, wireId)),
 
     saveViewport: (viewport) => {
       try {

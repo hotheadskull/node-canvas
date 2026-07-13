@@ -146,8 +146,8 @@ html, body, #root {
 }
 .canvas-node-content::placeholder { color: #55555e; }
 
-/* Handles: 14px visible dot, 28px invisible hit area (never rely on the
-   visible shape for the hit target). */
+/* Plain-edge dots (top/bottom): 14px visible, 28px invisible hit area
+   (never rely on the visible shape for the hit target). */
 .node-handle.react-flow__handle {
   width: 14px; height: 14px;
   background: var(--accent);
@@ -159,6 +159,99 @@ html, body, #root {
   content: ''; position: absolute; inset: -7px; border-radius: 9999px;
 }
 .canvas-node:hover .node-handle, .node-handle:hover { opacity: 1; transform: scale(1.25); }
+
+/* ---------- Port rails & glowing star ports (Chunk 4 design mix) ---------- */
+.port-rail {
+  position: absolute; top: 40px; bottom: 8px; width: 16px;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+.rail-left { left: 0; border-right: 1px solid rgba(255, 255, 255, 0.05); }
+.rail-right { right: 0; border-left: 1px solid rgba(255, 255, 255, 0.05); }
+
+/* Star ports: small glowing star (C), 24px+ invisible hit area (rule 1),
+   grows on hover, colored by dataKind. */
+.port-star.react-flow__handle {
+  width: 9px; height: 9px;
+  background: var(--port-color);
+  border: none; border-radius: 9999px;
+  box-shadow: 0 0 7px var(--port-color), 0 0 14px color-mix(in srgb, var(--port-color) 45%, transparent);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.port-star.react-flow__handle::after {
+  content: ''; position: absolute; inset: -9px; border-radius: 9999px;
+}
+.port-star.react-flow__handle:hover {
+  transform: scale(1.5);
+  box-shadow: 0 0 10px var(--port-color), 0 0 22px var(--port-color);
+}
+/* live validity coloring during a connection drag */
+.port-star.react-flow__handle.connectingto.valid,
+.port-star.react-flow__handle.valid {
+  box-shadow: 0 0 10px #22c55e, 0 0 20px rgba(34, 197, 94, 0.7);
+  background: #22c55e;
+}
+.port-star.react-flow__handle.connectingto:not(.valid) {
+  box-shadow: 0 0 10px #ef4444, 0 0 20px rgba(239, 68, 68, 0.7);
+  background: #ef4444;
+}
+
+/* Port labels: float beside the star; visibility is a canvas setting. */
+.port-label {
+  position: absolute; z-index: 15;
+  transform: translateY(-50%);
+  font-size: 10px; color: #cfcfd8;
+  background: rgba(16, 16, 20, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 5px; padding: 1px 6px;
+  pointer-events: none; white-space: nowrap;
+  opacity: 0; transition: opacity 0.12s ease;
+}
+.port-label.side-left { left: -6px; transform: translate(-100%, -50%); }
+.port-label.side-right { right: -6px; transform: translate(100%, -50%); }
+.port-labels-always .port-label { opacity: 1; }
+.port-labels-hover .canvas-node:hover .port-label { opacity: 1; }
+.port-labels-off .port-label { opacity: 0 !important; }
+
+/* "N ideas waiting" badge */
+.waiting-badge {
+  position: absolute; top: -9px; right: -6px; z-index: 20;
+  font-size: 10px; font-weight: 600; padding: 2px 8px;
+  border-radius: 9999px;
+  background: var(--gold); color: #3b2f10;
+  box-shadow: 0 0 10px rgba(240, 192, 80, 0.5);
+  pointer-events: none;
+}
+
+/* Accent picker (kind tag opens it) */
+.canvas-node-kind {
+  font-size: 10px; letter-spacing: 0.6px; text-transform: uppercase;
+  color: var(--accent); white-space: nowrap;
+  background: transparent; border: none; cursor: pointer; padding: 0;
+}
+.canvas-node-kind:hover { text-decoration: underline dotted; }
+.accent-picker {
+  position: absolute; top: 34px; left: 8px; z-index: 30;
+  display: flex; gap: 5px; padding: 6px;
+  background: var(--panel-solid); border: 1px solid var(--hairline);
+  border-radius: 8px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+}
+.accent-swatch {
+  width: 18px; height: 18px; border-radius: 9999px;
+  border: 1px solid rgba(0, 0, 0, 0.5); cursor: pointer;
+}
+.accent-swatch:hover { transform: scale(1.15); }
+.accent-swatch.reset {
+  background: transparent; border: 1px dashed var(--text-dim);
+  color: var(--text-dim); font-size: 11px; line-height: 1;
+}
+
+/* ---------- Density: compact mode ---------- */
+.density-compact .canvas-node-header { min-height: 30px; padding: 5px 8px; }
+.density-compact .canvas-node-title { font-size: 12.5px; }
+.density-compact .canvas-node-kind { font-size: 9px; }
+.density-compact .canvas-node-content { font-size: 12px; padding: 7px; }
+.density-compact .canvas-node-mirror { font-size: 12px; padding: 7px; }
 
 .node-resizer-line { border-color: var(--gold-soft) !important; }
 .node-resizer-handle { background: var(--gold) !important; border-radius: 2px !important; }
@@ -207,6 +300,75 @@ html, body, #root {
 }
 .edge-chip-delete:hover { border-color: #b56060; color: #e88; }
 
+/* ---------- Data wires ---------- */
+.wire-edge.react-flow__edge-path {
+  stroke: var(--wire-color, #94a3b8);
+  stroke-width: 2.25;
+}
+.react-flow__edge:has(.wire-edge.is-tentative) .react-flow__edge-path,
+.wire-edge.is-tentative {
+  stroke-dasharray: 7 5;
+  opacity: 0.65;
+}
+.react-flow__edge:hover .wire-edge { opacity: 1; }
+.wire-face {
+  color: var(--wire-color, #94a3b8);
+  border-color: color-mix(in srgb, var(--wire-color, #94a3b8) 50%, transparent);
+}
+.wire-chip-kind { font-size: 11px; color: #cfcfd8; padding: 0 2px; }
+.wire-chip-commit, .wire-chip-dissolve {
+  display: grid; place-items: center; width: 26px; height: 26px;
+  border-radius: 5px; background: transparent; cursor: pointer;
+  border: 1px solid transparent;
+}
+.wire-chip-commit { color: #4ade80; }
+.wire-chip-commit:hover { border-color: #4ade80; background: rgba(74, 222, 128, 0.12); }
+.wire-chip-dissolve { color: #b56060; }
+.wire-chip-dissolve:hover { border-color: #b56060; color: #e88; }
+.wire-tentative-menu { border-style: dashed; }
+
+/* ---------- Toast (bottom-center, with Undo) ---------- */
+.toast {
+  position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+  z-index: 40; display: flex; align-items: center; gap: 12px;
+  padding: 9px 14px; border-radius: 8px;
+  background: var(--panel-solid); border: 1px solid var(--gold-soft);
+  color: #e8e8ee; font-size: 13px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55);
+}
+.toast-undo {
+  border: 1px solid var(--gold-soft); background: transparent;
+  color: var(--gold); font-size: 12px; padding: 3px 12px;
+  border-radius: 6px; cursor: pointer;
+}
+.toast-undo:hover { background: rgba(240, 192, 80, 0.14); }
+.toast-close {
+  border: none; background: transparent; color: var(--text-dim);
+  font-size: 15px; cursor: pointer;
+}
+
+/* ---------- Settings popover ---------- */
+.settings-popover {
+  position: absolute; bottom: 46px; left: 0; z-index: 30;
+  width: 240px; padding: 12px;
+  background: var(--panel-solid); border: 1px solid var(--hairline);
+  border-radius: 10px; box-shadow: 0 14px 34px rgba(0, 0, 0, 0.6);
+}
+.settings-title { margin: 0 0 10px; font-size: 11px; letter-spacing: 0.6px; text-transform: uppercase; color: #6a6a72; }
+.settings-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 9px; font-size: 12.5px; color: #cfcfd8; }
+.settings-row:last-child { margin-bottom: 0; }
+.settings-toggle { display: inline-flex; border: 1px solid var(--hairline); border-radius: 6px; overflow: hidden; }
+.settings-toggle button {
+  padding: 3px 9px; font-size: 11.5px; border: none; cursor: pointer;
+  background: transparent; color: var(--text-dim);
+}
+.settings-toggle button.is-active { background: rgba(240, 192, 80, 0.15); color: var(--gold); }
+
+/* Menu preview: gives/takes lines */
+.add-menu-preview-ports { margin: 8px 0 0; font-size: 11px; line-height: 1.6; display: flex; flex-direction: column; gap: 2px; }
+.add-menu-preview-ports .gives { color: #7ddba9; }
+.add-menu-preview-ports .takes { color: #7fb0f5; }
+
 /* ---------- Toolbar (bottom-left) ---------- */
 .toolbar {
   position: absolute; bottom: 16px; left: 16px; z-index: 20;
@@ -243,7 +405,10 @@ html, body, #root {
 .add-menu {
   position: absolute; bottom: 64px; left: 16px; z-index: 30;
   display: flex; gap: 12px;
-  width: 520px; max-height: 70vh;
+  /* FIXED height: the hover preview must never resize the menu -- a
+     bottom-anchored panel grows UPWARD and shifts cards under the cursor
+     (interaction rule 16). Content scrolls inside instead. */
+  width: 520px; height: min(430px, 70vh);
   padding: 12px;
   border-radius: 12px;
   background: var(--panel-solid);
@@ -300,6 +465,7 @@ html, body, #root {
   padding: 10px; border-radius: 9px;
   background: #101014;
   border: 1px solid rgba(255, 255, 255, 0.05);
+  overflow-y: auto;
 }
 .add-menu-preview-text { margin: 9px 0 0; font-size: 11.5px; line-height: 1.5; color: #b9b9c2; }
 .add-menu-preview-kicker {

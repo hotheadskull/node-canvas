@@ -8,6 +8,13 @@
 //   OWN changes (measurements, selection) are never dropped -- dropping the
 //   'dimensions' changes silently breaks all edge rendering. The core
 //   document stays the data truth: positions, sizes, titles, wiring.
+//
+// Connection grammar (user-approved Chunk 4 design):
+// - top/bottom dots <-> top/bottom dots: plain relationship edge (I1)
+// - give star -> take star: live data wire (validated, live-colored)
+// - take star -> give star: same wire, drawn backwards (users do both)
+// - give star -> a node's plain dot: TENTATIVE wire into the first
+//   compatible intake ("this might go here")
 
 import {
   applyEdgeChanges,
@@ -17,29 +24,36 @@ import {
   useReactFlow,
   type Connection,
   type Edge,
+  type IsValidConnection,
   type Node,
   type NodeChange,
   type EdgeChange,
 } from '@xyflow/react';
 import { useCallback, useEffect, useState } from 'react';
+import { getPort, isValidWire } from '@node-canvas/core';
 import { AddNodeMenu } from './components/AddNodeMenu';
 import { CanvasNode, type CanvasNodeData } from './components/CanvasNode';
 import { Legend } from './components/Legend';
 import { PlainEdge } from './components/PlainEdge';
 import { Starfield } from './components/Starfield';
+import { Toast } from './components/Toast';
 import { Toolbar } from './components/Toolbar';
-import { useCanvasStore } from './store/canvasStore';
+import { WireEdge } from './components/WireEdge';
+import { firstCompatibleTake, PLAIN_HANDLES, useCanvasStore } from './store/canvasStore';
 
 const nodeTypes = { canvas: CanvasNode };
-const edgeTypes = { plain: PlainEdge };
+const edgeTypes = { plain: PlainEdge, wire: WireEdge };
 
 export function Canvas() {
   const document = useCanvasStore((state) => state.document);
   const initialViewport = useCanvasStore((state) => state.initialViewport);
+  const settings = useCanvasStore((state) => state.settings);
   const moveNode = useCanvasStore((state) => state.moveNode);
   const deleteNode = useCanvasStore((state) => state.deleteNode);
   const deleteEdge = useCanvasStore((state) => state.deleteEdge);
-  const connect = useCanvasStore((state) => state.connect);
+  const deleteWire = useCanvasStore((state) => state.deleteWire);
+  const dissolveWire = useCanvasStore((state) => state.dissolveWire);
+  const connectFromHandles = useCanvasStore((state) => state.connectFromHandles);
   const spawnAt = useCanvasStore((state) => state.spawnAt);
   const saveViewport = useCanvasStore((state) => state.saveViewport);
 
@@ -70,6 +84,9 @@ export function Canvas() {
             ...(typeof docNode.data['ownedHeight'] === 'number'
               ? { ownedHeight: docNode.data['ownedHeight'] }
               : {}),
+            ...(typeof docNode.data['accent'] === 'string'
+              ? { accent: docNode.data['accent'] }
+              : {}),
           },
         };
       });
@@ -79,7 +96,7 @@ export function Canvas() {
   useEffect(() => {
     setRfEdges((current) => {
       const byId = new Map(current.map((edge) => [edge.id, edge]));
-      return document.edges.map((docEdge) => ({
+      const plainEdges = document.edges.map((docEdge) => ({
         ...byId.get(docEdge.id),
         id: docEdge.id,
         type: 'plain' as const,
@@ -89,8 +106,27 @@ export function Canvas() {
         ...(docEdge.targetHandle !== undefined ? { targetHandle: docEdge.targetHandle } : {}),
         ...(docEdge.label !== undefined ? { label: docEdge.label } : {}),
       }));
+      const wireEdges = document.wires.map((wire) => {
+        const sourceNode = document.nodes.find((node) => node.id === wire.source);
+        const givePort = sourceNode ? getPort(sourceNode.type, wire.sourcePort) : undefined;
+        return {
+          ...byId.get(wire.id),
+          id: wire.id,
+          type: 'wire' as const,
+          source: wire.source,
+          sourceHandle: wire.sourcePort,
+          target: wire.target,
+          targetHandle: wire.targetPort,
+          data: {
+            status: wire.status,
+            dataKind: givePort?.dataKind ?? '',
+            portLabel: givePort?.label ?? wire.sourcePort,
+          },
+        };
+      });
+      return [...plainEdges, ...wireEdges];
     });
-  }, [document.edges]);
+  }, [document.edges, document.wires, document.nodes]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange<Node<CanvasNodeData>>[]) => {
@@ -111,23 +147,74 @@ export function Canvas() {
       setRfEdges((edges) => applyEdgeChanges(changes, edges));
       for (const change of changes) {
         if (change.type === 'remove') {
-          deleteEdge(change.id);
+          const wire = document.wires.find((candidate) => candidate.id === change.id);
+          if (wire) {
+            if (wire.status === 'tentative') dissolveWire(change.id);
+            else deleteWire(change.id);
+          } else if (document.edges.some((edge) => edge.id === change.id)) {
+            deleteEdge(change.id);
+          }
         }
       }
     },
-    [deleteEdge],
+    [deleteEdge, deleteWire, dissolveWire, document.wires, document.edges],
   );
 
   const onConnect = useCallback(
     (connection: Connection) => {
       if (connection.source && connection.target) {
-        connect(connection.source, connection.target, {
-          ...(connection.sourceHandle ? { sourceHandle: connection.sourceHandle } : {}),
-          ...(connection.targetHandle ? { targetHandle: connection.targetHandle } : {}),
-        });
+        connectFromHandles(
+          connection.source,
+          connection.sourceHandle,
+          connection.target,
+          connection.targetHandle,
+        );
       }
     },
-    [connect],
+    [connectFromHandles],
+  );
+
+  // Live valid/invalid coloring during a drag. Returning false BLOCKS the
+  // drop and RF marks the hovered handle .invalid (styled red); true marks
+  // it .valid (green glow).
+  const isValidConnection: IsValidConnection = useCallback(
+    (connection) => {
+      const { source, target, sourceHandle, targetHandle } = connection;
+      if (!source || !target) return false;
+      const sourceIsPort = !!sourceHandle && !PLAIN_HANDLES.has(sourceHandle);
+      const targetIsPort = !!targetHandle && !PLAIN_HANDLES.has(targetHandle);
+      if (!sourceIsPort && !targetIsPort) {
+        // plain relationship line: always allowed except self (I1)
+        return source !== target;
+      }
+      const direction = (nodeId: string, portId: string) => {
+        const node = document.nodes.find((candidate) => candidate.id === nodeId);
+        return node ? getPort(node.type, portId)?.direction : undefined;
+      };
+      if (sourceIsPort && targetIsPort) {
+        const forward = { source, sourcePort: sourceHandle, target, targetPort: targetHandle };
+        const reversed = {
+          source: target,
+          sourcePort: targetHandle,
+          target: source,
+          targetPort: sourceHandle,
+        };
+        if (direction(source, sourceHandle) === 'give') {
+          return isValidWire(document, forward).ok;
+        }
+        return isValidWire(document, reversed).ok;
+      }
+      // give star -> plain dot: allowed when the target has a compatible
+      // intake (this creates a tentative wire)
+      if (sourceIsPort && direction(source, sourceHandle) === 'give') {
+        return (
+          source !== target && firstCompatibleTake(document, source, sourceHandle, target) !== null
+        );
+      }
+      // remaining mixed combos fall back to plain edges
+      return source !== target;
+    },
+    [document],
   );
 
   const pickType = useCallback(
@@ -143,7 +230,9 @@ export function Canvas() {
   );
 
   return (
-    <div className="canvas-root">
+    <div
+      className={`canvas-root density-${settings.density} port-labels-${settings.portLabels}`}
+    >
       <ReactFlow
         nodes={rfNodes}
         edges={rfEdges}
@@ -152,10 +241,12 @@ export function Canvas() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        isValidConnection={isValidConnection}
         defaultViewport={initialViewport}
         onMoveEnd={(_event, viewport) => saveViewport(viewport)}
         connectionMode={ConnectionMode.Loose}
         connectionRadius={40}
+        connectOnClick
         minZoom={0.05}
         maxZoom={2.5}
         deleteKeyCode={['Delete', 'Backspace']}
@@ -167,6 +258,7 @@ export function Canvas() {
       </ReactFlow>
       <Toolbar menuOpen={menuOpen} onToggleMenu={() => setMenuOpen((open) => !open)} />
       <Legend />
+      <Toast />
       {menuOpen && <AddNodeMenu onPick={pickType} onClose={() => setMenuOpen(false)} />}
     </div>
   );

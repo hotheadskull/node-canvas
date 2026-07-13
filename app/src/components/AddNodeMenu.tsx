@@ -130,6 +130,28 @@ export function AddNodeMenu({ onPick, onClose }: Props) {
             <span className="menu-card-line short" />
           </div>
           <p className="add-menu-preview-text">{preview.descriptions.universal}</p>
+          {preview.ports.length > 0 && (
+            <p className="add-menu-preview-ports">
+              {preview.ports.some((port) => port.direction === 'give') && (
+                <span className="gives">
+                  Gives{' '}
+                  {preview.ports
+                    .filter((port) => port.direction === 'give')
+                    .map((port) => port.label.toLowerCase())
+                    .join(', ')}
+                </span>
+              )}
+              {preview.ports.some((port) => port.direction === 'take') && (
+                <span className="takes">
+                  Takes{' '}
+                  {preview.ports
+                    .filter((port) => port.direction === 'take')
+                    .map((port) => port.label.toLowerCase())
+                    .join(', ')}
+                </span>
+              )}
+            </p>
+          )}
           <p className="add-menu-preview-kicker">Known as</p>
           <ul className="add-menu-known-as">
             {(Object.keys(MODE_NAMES) as CanvasMode[])

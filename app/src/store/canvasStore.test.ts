@@ -107,6 +107,102 @@ describe('graph interactions', () => {
   });
 });
 
+describe('connection routing (connectFromHandles)', () => {
+  function twoNodes(typeA: string, typeB: string) {
+    const store = useCanvasStore.getState();
+    const a = store.spawnAt(typeA, { x: 0, y: 0 })!;
+    const b = useCanvasStore.getState().spawnAt(typeB, { x: 900, y: 0 })!;
+    return { a, b };
+  }
+
+  it('plain dot to plain dot makes a relationship edge (I1)', () => {
+    const { a, b } = twoNodes('note', 'person');
+    useCanvasStore.getState().connectFromHandles(a, 'top', b, 'bottom');
+    const doc = useCanvasStore.getState().document;
+    expect(doc.edges).toHaveLength(1);
+    expect(doc.wires).toHaveLength(0);
+  });
+
+  it('give star to take star makes a live wire', () => {
+    const { a, b } = twoNodes('note', 'document');
+    useCanvasStore.getState().connectFromHandles(a, 'text-out', b, 'sections-in');
+    const doc = useCanvasStore.getState().document;
+    expect(doc.wires).toHaveLength(1);
+    expect(doc.wires[0]!.status).toBe('live');
+    expect(doc.edges).toHaveLength(0);
+  });
+
+  it('take star to give star wires the same connection backwards', () => {
+    const { a, b } = twoNodes('document', 'note');
+    useCanvasStore.getState().connectFromHandles(a, 'sections-in', b, 'text-out');
+    const doc = useCanvasStore.getState().document;
+    expect(doc.wires).toHaveLength(1);
+    expect(doc.wires[0]!.source).toBe(b);
+    expect(doc.wires[0]!.target).toBe(a);
+  });
+
+  it('give star to a plain dot places a TENTATIVE wire into the first compatible intake', () => {
+    const { a, b } = twoNodes('note', 'document');
+    useCanvasStore.getState().connectFromHandles(a, 'text-out', b, 'top');
+    const doc = useCanvasStore.getState().document;
+    expect(doc.wires).toHaveLength(1);
+    expect(doc.wires[0]!.status).toBe('tentative');
+    expect(doc.wires[0]!.targetPort).toBe('sections-in');
+  });
+
+  it('give star to a node with no compatible intake surfaces an error', () => {
+    const { a, b } = twoNodes('person', 'note'); // note has no person intake
+    useCanvasStore.getState().connectFromHandles(a, 'identity-out', b, 'top');
+    const state = useCanvasStore.getState();
+    expect(state.document.wires).toHaveLength(0);
+    expect(state.persistenceError).toContain('no intake');
+  });
+});
+
+describe('commit with undo toast', () => {
+  it('committing dissolves siblings and the toast undo restores them', () => {
+    const store = useCanvasStore.getState();
+    const note = store.spawnAt('note', { x: 0, y: 0 })!;
+    const doc1 = useCanvasStore.getState().spawnAt('document', { x: 900, y: -400 })!;
+    const doc2 = useCanvasStore.getState().spawnAt('document', { x: 900, y: 400 })!;
+    useCanvasStore.getState().connectFromHandles(note, 'text-out', doc1, 'top');
+    useCanvasStore.getState().connectFromHandles(note, 'text-out', doc2, 'top');
+    expect(useCanvasStore.getState().document.wires).toHaveLength(2);
+
+    const first = useCanvasStore.getState().document.wires[0]!.id;
+    useCanvasStore.getState().commitWire(first);
+    let state = useCanvasStore.getState();
+    expect(state.document.wires).toHaveLength(1);
+    expect(state.document.wires[0]!.status).toBe('live');
+    expect(state.toast?.message).toContain('1 other candidate dissolved');
+
+    state.toast!.undo!();
+    state = useCanvasStore.getState();
+    expect(state.document.wires).toHaveLength(2);
+    expect(state.document.wires.every((wire) => wire.status === 'tentative')).toBe(true);
+    expect(state.toast).toBeNull();
+  });
+});
+
+describe('canvas settings', () => {
+  it('persist to localStorage and load back', () => {
+    useCanvasStore.getState().setSettings({ density: 'compact', portLabels: 'always' });
+    const raw = JSON.parse(localStorage.getItem('nodecanvas.v2.settings')!);
+    expect(raw).toEqual({ density: 'compact', portLabels: 'always' });
+  });
+});
+
+describe('per-node accent', () => {
+  it('sets and clears the override', () => {
+    const store = useCanvasStore.getState();
+    const id = store.spawnAt('note', { x: 0, y: 0 })!;
+    useCanvasStore.getState().setNodeAccent(id, '#22d3ee');
+    expect(useCanvasStore.getState().document.nodes[0]!.data['accent']).toBe('#22d3ee');
+    useCanvasStore.getState().setNodeAccent(id, undefined);
+    expect('accent' in useCanvasStore.getState().document.nodes[0]!.data).toBe(false);
+  });
+});
+
 describe('auto-fit height (core math applied by the store)', () => {
   it('grows with content but never below the type minimum', () => {
     const store = useCanvasStore.getState();

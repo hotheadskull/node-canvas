@@ -48,6 +48,35 @@ describe('connection accessibility requirements', () => {
     expect(canvas).toMatch(/connectionRadius=\{40\}/);
   });
 
+  it('click-to-connect is enabled (no drag required)', () => {
+    expect(canvas).toContain('connectOnClick');
+  });
+
+  it('live validity coloring is wired through isValidConnection', () => {
+    expect(canvas).toContain('isValidConnection={isValidConnection}');
+  });
+
+  it('star ports keep a >=24px invisible hit area and validity colors', () => {
+    const styles = read('./styles.css');
+    expect(styles).toMatch(/\.port-star\.react-flow__handle::after\s*\{[^}]*inset:\s*-9px/s);
+    expect(styles).toContain('.port-star.react-flow__handle.valid');
+  });
+
+  it('runtime handle changes re-register node internals (RF requirement)', () => {
+    const node = read('./components/CanvasNode.tsx');
+    expect(node).toContain('useUpdateNodeInternals');
+    expect(node).toMatch(/updateNodeInternals\(id\)/);
+  });
+
+  it('tentative wires render dashed with commit/dissolve affordances', () => {
+    const wire = read('./components/WireEdge.tsx');
+    expect(wire).toContain('is-tentative');
+    expect(wire).toContain('commitWire');
+    expect(wire).toContain('dissolveWire');
+    const styles = read('./styles.css');
+    expect(styles).toMatch(/is-tentative[^}]*stroke-dasharray/s);
+  });
+
   it('nodeTypes/edgeTypes are module-level constants (perf rule)', () => {
     expect(canvas).toMatch(/const nodeTypes = \{/);
     expect(canvas).toMatch(/const edgeTypes = \{/);
