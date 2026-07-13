@@ -42,7 +42,7 @@ export function addNode(document: CanvasDocument, node: CanvasNode): CanvasDocum
   return { ...document, nodes: [...document.nodes, node] };
 }
 
-/** Removing a node also removes every edge attached to it (no dangling refs). */
+/** Removing a node also removes every edge AND wire attached to it. */
 export function removeNode(document: CanvasDocument, nodeId: string): CanvasDocument {
   if (!document.nodes.some((node) => node.id === nodeId)) {
     throw new GraphError(`node "${nodeId}" not found`);
@@ -51,6 +51,7 @@ export function removeNode(document: CanvasDocument, nodeId: string): CanvasDocu
     ...document,
     nodes: document.nodes.filter((node) => node.id !== nodeId),
     edges: document.edges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId),
+    wires: document.wires.filter((wire) => wire.source !== nodeId && wire.target !== nodeId),
   };
 }
 

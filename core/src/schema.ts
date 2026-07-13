@@ -55,6 +55,20 @@ export const PlainEdgeSchema = z.object({
   label: z.string().optional(),
 });
 
+// Data wire: a typed give->take connection between named ports. status
+// 'tentative' is a dashed candidate placement ("this might go here") that
+// carries no data until committed. storyTime stamps possession/effect wires.
+export const WireSchema = z.object({
+  id: z.string().min(1),
+  source: z.string().min(1),
+  sourcePort: z.string().min(1),
+  target: z.string().min(1),
+  targetPort: z.string().min(1),
+  status: z.enum(['live', 'tentative']),
+  label: z.string().optional(),
+  storyTime: z.number().finite().optional(),
+});
+
 export const DocumentSchema = z
   .object({
     schemaVersion: z.literal(DOCUMENT_SCHEMA_VERSION),
@@ -64,6 +78,7 @@ export const DocumentSchema = z
     createdAt: z.string().min(1),
     nodes: z.array(NodeSchema),
     edges: z.array(PlainEdgeSchema),
+    wires: z.array(WireSchema),
   })
   .superRefine((doc, ctx) => {
     const nodeIds = new Set<string>();
@@ -88,10 +103,26 @@ export const DocumentSchema = z
         }
       }
     }
+    const wireIds = new Set<string>();
+    for (const wire of doc.wires) {
+      if (wireIds.has(wire.id)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: `duplicate wire id "${wire.id}"` });
+      }
+      wireIds.add(wire.id);
+      for (const endpoint of [wire.source, wire.target]) {
+        if (!nodeIds.has(endpoint)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `wire "${wire.id}" references missing node "${endpoint}"`,
+          });
+        }
+      }
+    }
   });
 
 export type CanvasNode = z.infer<typeof NodeSchema>;
 export type PlainEdge = z.infer<typeof PlainEdgeSchema>;
+export type DataWire = z.infer<typeof WireSchema>;
 export type CanvasDocument = z.infer<typeof DocumentSchema>;
 
 export type ParseResult =
@@ -147,5 +178,6 @@ export function createEmptyDocument(name: string, canvasMode: CanvasMode = 'univ
     createdAt: new Date().toISOString(),
     nodes: [],
     edges: [],
+    wires: [],
   };
 }

@@ -13,8 +13,8 @@ master brief — see its "Revision log" for what changed and why).
 | 0 | Setup: /legacy preserved, workspaces, testing infra, governance docs, hooks | **completed** |
 | 1 | Core graph: nodes, plain edges, registry skeleton, Zod document schema, load/save round-trip golden test | **completed** |
 | 2 | Canvas baseline: legacy look (starfield, toolbar bottom-left, legend bottom-right), plain edges end-to-end, collision-free spawn, auto-fit sizing (golden-tested), I5 regression test | **completed** |
-| 3 | Ports & wires (core): port declarations in registry, wire validation, tentative wires (create/commit/dissolve, golden), story-time stamps | **current** |
-| 4 | Connection UX: handles, connectOnClick, big hit targets, valid/invalid live coloring, tentative wire rendering, "N ideas waiting" badge | not started |
+| 3 | Ports & wires (core): port declarations in registry, wire validation, tentative wires (create/commit/dissolve, golden), story-time stamps | **completed** |
+| 4 | Connection UX: handles, connectOnClick, big hit targets, valid/invalid live coloring, tentative wire rendering, "N ideas waiting" badge | **current** |
 | 5 | Derivations: compile (wire-order text) + ordered-intake reorder UI, deriveFace, readiness rollups, unsupported-claim flag. Golden tests incl. worked examples | not started |
 | 6 | Split: generic Split + template presets (beats, Toulmin, Passage→Propositions). Golden tests + UI | not started |
 | 7 | Assemblies (core): membership by reference, multi-membership, nesting, face-proxy stability, lossless collapse/expand. Golden tests are the gate for everything after | not started |
@@ -29,6 +29,15 @@ master brief — see its "Revision log" for what changed and why).
 | 16 | Onboarding: interactive tutorial (spotlight, performs-action-to-advance, Back/Next + step counter, replayable), Tips/Reference panel | not started |
 | 17 | Hardening: React Profiler pass, Playwright e2e full loop, migration + backup-before-migrate, export (JSON, compiled text/markdown, PNG/SVG canvas export) | not started |
 | 18 | Commercial: license keys, payments, Windows code signing, Tauri updater, crash reporting | not started |
+
+## Design checkpoints (user-requested — do not skip)
+
+- **Before building specialist node renderers or reworking node visuals**
+  (first hit in Chunk 4's connection UX polish, then Chunks 9/13/14/15):
+  present the user with **3–4 visual mockups** of how nodes could look and
+  what should be customizable (header treatments, density/compact modes,
+  per-node accent/theming, what the user can adjust per node vs per type).
+  The user picks/mixes BEFORE rendering code is written. Requested 2026-07-13.
 
 ## Deferred post-launch roster
 Continuity engine (`stateAt`), Word Study, Illustration, Element/Patch game-design
@@ -104,7 +113,32 @@ presentation-walk mode. All registry entries + isolated reducers (invariant I8).
   path for this project. e2e: 3 specs green. Unit: 65 green. Screenshot
   verified: starfield + nodes + edges + menu + legend all correct.
 
-**Next session: Chunk 3 — ports & wires (core).** Port declarations in the
-registry (give/take, dataKind, defaultVisible), wire creation/validation in
-core, tentative wires (create/commit/dissolve + golden tests), story-time
-stamps on wires. Remember `updateNodeInternals` for runtime handle changes.
+### 2026-07-13 — Chunk 3 (completed)
+- Registry ports declared for the core eight (≤6 per type, ≤3 visible,
+  takes carry capacity one/many). dataKinds: text, thread, person, place,
+  thing. Contract pinned in registry-ports.golden.json + discipline test.
+- `core/src/wires.ts`: isValidWire (reason codes for Chunk 4's live
+  coloring: unknown-node/self/no-such-port/wrong-direction/kind-mismatch/
+  duplicate/occupied), addWire, createTentativeWire (capacity NOT enforced
+  — candidates may pile onto a full intake), commitTentativeWire (enforces
+  capacity, converts to live, dissolves the source node's other tentative
+  wires, returns dissolvedIds for the undo toast), dissolveTentativeWire,
+  removeWire, setWireStoryTime (finite or clear), tentativeInboundCount
+  (the "N ideas waiting" badge input). removeNode drops attached wires.
+- Schema: WireSchema (id/source/sourcePort/target/targetPort/status/label?/
+  storyTime?); document gains required `wires` array; integrity checks.
+  roundtrip.golden.json EDITED intentionally: pre-release format extension
+  (schemaVersion 1 is unreleased), fixture now pins wire round-tripping.
+  tentative.golden.json pins the commit lifecycle with fixed ids.
+- Note: dev-only localStorage documents from before this chunk fail
+  validation (no wires key) → the I9 banner + corrupt-backup path handles
+  it. Acceptable pre-release; a real migration ships with the first release.
+- Suite: 83 unit tests + 3 e2e green; typecheck + lint clean.
+
+**Next session: Chunk 4 — connection UX.** Render give/take ports as handles
+(visible ones only; rest in a node inspector "more ports"), connectOnClick,
+live valid/invalid coloring from isValidWire reason codes, tentative wire
+rendering (dashed) + commit/dissolve UI with the undo toast, "N ideas
+waiting" badge from tentativeInboundCount. MUST call updateNodeInternals
+whenever a node's rendered handles change at runtime. **Design checkpoint
+applies: present 3-4 node-look/customizability mockups BEFORE building.**

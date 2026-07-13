@@ -1,0 +1,89 @@
+{
+  "note": "Golden for the tentative-wire lifecycle: a note has candidate placements into two documents; committing the first converts it to live and dissolves the sibling. Fixed ids keep this deterministic.",
+  "before": {
+    "schemaVersion": 1,
+    "id": "doc_tentative-fixture",
+    "name": "Tentative lifecycle fixture",
+    "canvasMode": "universal",
+    "createdAt": "2026-07-13T12:00:00.000Z",
+    "nodes": [
+      {
+        "id": "node_note",
+        "type": "note",
+        "position": { "x": 0, "y": 0 },
+        "data": { "title": "An idea", "content": "Maybe this goes in chapter one. Or three." }
+      },
+      {
+        "id": "node_doc-1",
+        "type": "document",
+        "position": { "x": 600, "y": -200 },
+        "data": { "title": "Chapter one" }
+      },
+      {
+        "id": "node_doc-2",
+        "type": "document",
+        "position": { "x": 600, "y": 300 },
+        "data": { "title": "Chapter three" }
+      }
+    ],
+    "edges": [],
+    "wires": [
+      {
+        "id": "wire_cand-1",
+        "source": "node_note",
+        "sourcePort": "text-out",
+        "target": "node_doc-1",
+        "targetPort": "sections-in",
+        "status": "tentative"
+      },
+      {
+        "id": "wire_cand-2",
+        "source": "node_note",
+        "sourcePort": "text-out",
+        "target": "node_doc-2",
+        "targetPort": "sections-in",
+        "status": "tentative"
+      }
+    ]
+  },
+  "commitWireId": "wire_cand-1",
+  "after": {
+    "schemaVersion": 1,
+    "id": "doc_tentative-fixture",
+    "name": "Tentative lifecycle fixture",
+    "canvasMode": "universal",
+    "createdAt": "2026-07-13T12:00:00.000Z",
+    "nodes": [
+      {
+        "id": "node_note",
+        "type": "note",
+        "position": { "x": 0, "y": 0 },
+        "data": { "title": "An idea", "content": "Maybe this goes in chapter one. Or three." }
+      },
+      {
+        "id": "node_doc-1",
+        "type": "document",
+        "position": { "x": 600, "y": -200 },
+        "data": { "title": "Chapter one" }
+      },
+      {
+        "id": "node_doc-2",
+        "type": "document",
+        "position": { "x": 600, "y": 300 },
+        "data": { "title": "Chapter three" }
+      }
+    ],
+    "edges": [],
+    "wires": [
+      {
+        "id": "wire_cand-1",
+        "source": "node_note",
+        "sourcePort": "text-out",
+        "target": "node_doc-1",
+        "targetPort": "sections-in",
+        "status": "live"
+      }
+    ]
+  },
+  "dissolvedIds": ["wire_cand-2"]
+}

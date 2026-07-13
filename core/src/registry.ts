@@ -25,13 +25,20 @@ export type NodeCategory = 'writing' | 'knowledge' | 'structure';
  */
 export type NodeSizing = 'auto-height' | 'auto' | 'fixed';
 
-/** Port declaration skeleton -- behavior lands in Chunk 3 (ports & wires). */
+/**
+ * Port declaration. Gives always feed any number of intakes; takes declare
+ * their own capacity. dataKind must match exactly for a wire to be valid:
+ * 'text' | 'thread' | 'person' | 'place' | 'thing' (packs add their own).
+ */
 export type PortDef = {
   id: string;
   direction: 'give' | 'take';
   dataKind: string;
   label: string;
+  /** Rendered as a handle by default; hidden ports live in the inspector. */
   defaultVisible: boolean;
+  /** Takes only: how many live wires the intake accepts. */
+  capacity?: 'one' | 'many';
 };
 
 export type NodeTypeDef = {
@@ -76,7 +83,11 @@ export const NODE_TYPE_DEFS: readonly NodeTypeDef[] = [
     },
     size: { width: 420, height: 320 },
     sizing: 'auto-height',
-    ports: [],
+    ports: [
+      { id: 'thread-out', direction: 'give', dataKind: 'thread', label: 'Thread', defaultVisible: true },
+      { id: 'subject-in', direction: 'take', dataKind: 'text', label: 'Subject', defaultVisible: false, capacity: 'one' },
+      { id: 'complement-in', direction: 'take', dataKind: 'text', label: 'Complement', defaultVisible: false, capacity: 'one' },
+    ],
   },
   {
     type: 'note',
@@ -91,7 +102,9 @@ export const NODE_TYPE_DEFS: readonly NodeTypeDef[] = [
     },
     size: { width: 300, height: 220 },
     sizing: 'auto-height',
-    ports: [],
+    ports: [
+      { id: 'text-out', direction: 'give', dataKind: 'text', label: 'Text', defaultVisible: true },
+    ],
   },
   {
     type: 'document',
@@ -106,7 +119,11 @@ export const NODE_TYPE_DEFS: readonly NodeTypeDef[] = [
     },
     size: { width: 500, height: 400 },
     sizing: 'auto-height',
-    ports: [],
+    ports: [
+      { id: 'sections-in', direction: 'take', dataKind: 'text', label: 'Sections', defaultVisible: true, capacity: 'many' },
+      { id: 'compiled-out', direction: 'give', dataKind: 'text', label: 'Compiled text', defaultVisible: true },
+      { id: 'thread-in', direction: 'take', dataKind: 'thread', label: 'Thread', defaultVisible: false, capacity: 'one' },
+    ],
   },
   {
     type: 'section',
@@ -121,7 +138,13 @@ export const NODE_TYPE_DEFS: readonly NodeTypeDef[] = [
     },
     size: { width: 400, height: 320 },
     sizing: 'auto-height',
-    ports: [],
+    ports: [
+      { id: 'text-out', direction: 'give', dataKind: 'text', label: 'Text', defaultVisible: true },
+      { id: 'people-in', direction: 'take', dataKind: 'person', label: 'People', defaultVisible: true, capacity: 'many' },
+      { id: 'place-in', direction: 'take', dataKind: 'place', label: 'Setting', defaultVisible: true, capacity: 'one' },
+      { id: 'pov-in', direction: 'take', dataKind: 'person', label: 'POV', defaultVisible: false, capacity: 'one' },
+      { id: 'serves-in', direction: 'take', dataKind: 'thread', label: 'Serves', defaultVisible: false, capacity: 'one' },
+    ],
   },
   {
     type: 'question',
@@ -136,7 +159,9 @@ export const NODE_TYPE_DEFS: readonly NodeTypeDef[] = [
     },
     size: { width: 320, height: 220 },
     sizing: 'auto-height',
-    ports: [],
+    ports: [
+      { id: 'answer-in', direction: 'take', dataKind: 'text', label: 'Answer', defaultVisible: true, capacity: 'one' },
+    ],
   },
 
   // ---------- Universal Core: knowledge set ----------
@@ -153,7 +178,11 @@ export const NODE_TYPE_DEFS: readonly NodeTypeDef[] = [
     },
     size: { width: 340, height: 300 },
     sizing: 'auto-height',
-    ports: [],
+    ports: [
+      { id: 'identity-out', direction: 'give', dataKind: 'person', label: 'Identity', defaultVisible: true },
+      { id: 'bond-in', direction: 'take', dataKind: 'person', label: 'Bond', defaultVisible: true, capacity: 'many' },
+      { id: 'possession-in', direction: 'take', dataKind: 'thing', label: 'Possession', defaultVisible: false, capacity: 'many' },
+    ],
   },
   {
     type: 'place',
@@ -168,7 +197,10 @@ export const NODE_TYPE_DEFS: readonly NodeTypeDef[] = [
     },
     size: { width: 340, height: 280 },
     sizing: 'auto-height',
-    ports: [],
+    ports: [
+      { id: 'identity-out', direction: 'give', dataKind: 'place', label: 'Identity', defaultVisible: true },
+      { id: 'contains-in', direction: 'take', dataKind: 'place', label: 'Contains', defaultVisible: false, capacity: 'many' },
+    ],
   },
   {
     type: 'thing',
@@ -183,7 +215,9 @@ export const NODE_TYPE_DEFS: readonly NodeTypeDef[] = [
     },
     size: { width: 320, height: 260 },
     sizing: 'auto-height',
-    ports: [],
+    ports: [
+      { id: 'identity-out', direction: 'give', dataKind: 'thing', label: 'Identity', defaultVisible: true },
+    ],
   },
 ];
 
@@ -201,6 +235,10 @@ export function getNodeDef(type: string): NodeTypeDef | undefined {
 
 export function nodeLabel(type: string, mode: CanvasMode): string {
   return NODE_REGISTRY[type]?.labels[mode] ?? type;
+}
+
+export function getPort(type: string, portId: string): PortDef | undefined {
+  return NODE_REGISTRY[type]?.ports.find((port) => port.id === portId);
 }
 
 /** The compact first-touch menu (gallery "Core" view). */

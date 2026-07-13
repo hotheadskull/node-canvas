@@ -56,5 +56,24 @@
       "target": "node_title-1",
       "label": "owns this section"
     }
+  ],
+  "wires": [
+    {
+      "id": "wire_1",
+      "source": "node_note-1",
+      "sourcePort": "text-out",
+      "target": "node_title-1",
+      "targetPort": "subject-in",
+      "status": "live"
+    },
+    {
+      "id": "wire_2",
+      "source": "node_note-1",
+      "sourcePort": "text-out",
+      "target": "node_title-1",
+      "targetPort": "complement-in",
+      "status": "tentative",
+      "storyTime": 3
+    }
   ]
 }

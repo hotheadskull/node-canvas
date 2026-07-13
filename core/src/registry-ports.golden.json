@@ -1,0 +1,37 @@
+{
+  "title": [
+    { "id": "thread-out", "direction": "give", "dataKind": "thread", "label": "Thread", "defaultVisible": true },
+    { "id": "subject-in", "direction": "take", "dataKind": "text", "label": "Subject", "defaultVisible": false, "capacity": "one" },
+    { "id": "complement-in", "direction": "take", "dataKind": "text", "label": "Complement", "defaultVisible": false, "capacity": "one" }
+  ],
+  "note": [
+    { "id": "text-out", "direction": "give", "dataKind": "text", "label": "Text", "defaultVisible": true }
+  ],
+  "document": [
+    { "id": "sections-in", "direction": "take", "dataKind": "text", "label": "Sections", "defaultVisible": true, "capacity": "many" },
+    { "id": "compiled-out", "direction": "give", "dataKind": "text", "label": "Compiled text", "defaultVisible": true },
+    { "id": "thread-in", "direction": "take", "dataKind": "thread", "label": "Thread", "defaultVisible": false, "capacity": "one" }
+  ],
+  "section": [
+    { "id": "text-out", "direction": "give", "dataKind": "text", "label": "Text", "defaultVisible": true },
+    { "id": "people-in", "direction": "take", "dataKind": "person", "label": "People", "defaultVisible": true, "capacity": "many" },
+    { "id": "place-in", "direction": "take", "dataKind": "place", "label": "Setting", "defaultVisible": true, "capacity": "one" },
+    { "id": "pov-in", "direction": "take", "dataKind": "person", "label": "POV", "defaultVisible": false, "capacity": "one" },
+    { "id": "serves-in", "direction": "take", "dataKind": "thread", "label": "Serves", "defaultVisible": false, "capacity": "one" }
+  ],
+  "question": [
+    { "id": "answer-in", "direction": "take", "dataKind": "text", "label": "Answer", "defaultVisible": true, "capacity": "one" }
+  ],
+  "person": [
+    { "id": "identity-out", "direction": "give", "dataKind": "person", "label": "Identity", "defaultVisible": true },
+    { "id": "bond-in", "direction": "take", "dataKind": "person", "label": "Bond", "defaultVisible": true, "capacity": "many" },
+    { "id": "possession-in", "direction": "take", "dataKind": "thing", "label": "Possession", "defaultVisible": false, "capacity": "many" }
+  ],
+  "place": [
+    { "id": "identity-out", "direction": "give", "dataKind": "place", "label": "Identity", "defaultVisible": true },
+    { "id": "contains-in", "direction": "take", "dataKind": "place", "label": "Contains", "defaultVisible": false, "capacity": "many" }
+  ],
+  "thing": [
+    { "id": "identity-out", "direction": "give", "dataKind": "thing", "label": "Identity", "defaultVisible": true }
+  ]
+}

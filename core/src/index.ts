@@ -5,4 +5,5 @@ export * from './ids';
 export * from './registry';
 export * from './schema';
 export * from './graph';
+export * from './wires';
 export * from './layout';

@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   allMenuTypes,
@@ -40,9 +41,28 @@ describe('universal core registry', () => {
     expect(isRegisteredType('ghost')).toBe(false);
   });
 
-  it('every def declares a ports array (skeleton for Chunk 3)', () => {
+  it('port declarations match the pinned contract (golden)', () => {
+    const golden = JSON.parse(
+      readFileSync(new URL('./registry-ports.golden.json', import.meta.url), 'utf8'),
+    );
+    const actual = Object.fromEntries(NODE_TYPE_DEFS.map((def) => [def.type, def.ports]));
+    expect(actual).toEqual(golden);
+  });
+
+  it('port discipline: at most 6 ports, at most 3 visible, takes declare capacity', () => {
     for (const def of NODE_TYPE_DEFS) {
-      expect(Array.isArray(def.ports)).toBe(true);
+      expect(def.ports.length, `${def.type} port count`).toBeLessThanOrEqual(6);
+      const visible = def.ports.filter((port) => port.defaultVisible);
+      expect(visible.length, `${def.type} visible ports`).toBeLessThanOrEqual(3);
+      for (const port of def.ports) {
+        expect(port.dataKind, `${def.type}.${port.id} dataKind`).toBeTruthy();
+        expect(port.label, `${def.type}.${port.id} label`).toBeTruthy();
+        if (port.direction === 'take') {
+          expect(port.capacity, `${def.type}.${port.id} capacity`).toMatch(/^(one|many)$/);
+        } else {
+          expect(port.capacity, `${def.type}.${port.id} gives declare no capacity`).toBeUndefined();
+        }
+      }
     }
   });
 
