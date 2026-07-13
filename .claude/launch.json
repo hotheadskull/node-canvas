@@ -2,10 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "vite-dev",
+      "name": "app-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "port": 1420
+      "runtimeArgs": ["run", "dev", "-w", "app"],
+      "port": 1421
     }
   ]
 }

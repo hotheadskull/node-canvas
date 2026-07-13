@@ -1,0 +1,15 @@
+#!/bin/sh
+# Guards locked files (see CLAUDE.md). A commit that modifies any of them must
+# carry the line INVARIANT-CHANGE-APPROVED in its message.
+
+locked=$(git diff --cached --name-only | grep -E '^(CLAUDE\.md$|docs/invariants/|legacy/)|\.golden\.' || true)
+
+if [ -n "$locked" ]; then
+  if ! grep -q 'INVARIANT-CHANGE-APPROVED' "$1"; then
+    echo "COMMIT BLOCKED: this commit modifies locked files:" >&2
+    echo "$locked" | sed 's/^/  - /' >&2
+    echo "Locked files require explicit user approval and the line" >&2
+    echo "INVARIANT-CHANGE-APPROVED in the commit message." >&2
+    exit 1
+  fi
+fi
