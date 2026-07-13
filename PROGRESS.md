@@ -11,8 +11,8 @@ master brief — see its "Revision log" for what changed and why).
 | # | Chunk | Status |
 |---|-------|--------|
 | 0 | Setup: /legacy preserved, workspaces, testing infra, governance docs, hooks | **completed** |
-| 1 | Core graph: nodes, plain edges, registry skeleton, Zod document schema, load/save round-trip golden test | **current** |
-| 2 | Canvas baseline: legacy look (starfield, toolbar bottom-left, legend bottom-right), plain edges end-to-end, collision-free spawn, auto-fit sizing (golden-tested), I5 regression test | not started |
+| 1 | Core graph: nodes, plain edges, registry skeleton, Zod document schema, load/save round-trip golden test | **completed** |
+| 2 | Canvas baseline: legacy look (starfield, toolbar bottom-left, legend bottom-right), plain edges end-to-end, collision-free spawn, auto-fit sizing (golden-tested), I5 regression test | **current** |
 | 3 | Ports & wires (core): port declarations in registry, wire validation, tentative wires (create/commit/dissolve, golden), story-time stamps | not started |
 | 4 | Connection UX: handles, connectOnClick, big hit targets, valid/invalid live coloring, tentative wire rendering, "N ideas waiting" badge | not started |
 | 5 | Derivations: compile (wire-order text) + ordered-intake reorder UI, deriveFace, readiness rollups, unsupported-claim flag. Golden tests incl. worked examples | not started |
@@ -51,5 +51,31 @@ presentation-walk mode. All registry entries + isolated reducers (invariant I8).
 - Commit guard: .githooks/commit-msg blocks changes to locked files unless the
   message contains INVARIANT-CHANGE-APPROVED; enabled via core.hooksPath.
 
-**Next session: Chunk 1 — core graph.** Start with the document schema (Zod) and
-the node/edge/registry types in core/, then the load/save round-trip golden test.
+### 2026-07-13 — Chunk 1 (completed)
+- Repo relocated to `C:\Users\hothe\Projects\node-canvas` (old scratch copy is
+  stale; desktop shortcut "Node Canvas V2" runs start-node-canvas.bat).
+- `core/src/registry.ts`: registry skeleton with the Universal Core eight
+  (title, note, document, section, question / person, place, thing), per-mode
+  labels (universal/novel/sermon), categories, coreMenu flag, empty `ports`
+  arrays awaiting Chunk 3. Helpers: coreMenuTypes, allMenuTypes (I11), nodeLabel.
+- `core/src/schema.ts`: Zod .nodecanvas document format v1. parseDocument
+  returns a Result (never throws); serializeDocument validates first and
+  throws DocumentValidationError rather than saving invalid data (I9);
+  deterministic output; node `data` is passthrough so pack payloads survive
+  without core schema changes (I8). superRefine enforces unique ids +
+  referential integrity.
+- `core/src/graph.ts`: pure ops — spawnNode (registry defaults; rejects
+  unregistered types), addNode, removeNode (drops attached edges),
+  addPlainEdge (I1: works between EVERY pair of types; rejects self/dupes),
+  removePlainEdge. All immutable.
+- Golden: `core/src/roundtrip.golden.json` — load→save reproduces the file
+  byte-exactly (line endings normalized; `.gitattributes` pins goldens to LF).
+  NEW golden created with the feature it pins, not an edit of an existing one.
+- Full suite green: 29 tests (6 files) + strict typecheck + lint (purity rule).
+- Decision: plain edges are semantically undirected; duplicates rejected in
+  either orientation. Self-edges rejected (matches v1 spiderweb behavior).
+
+**Next session: Chunk 2 — canvas baseline.** Port the starfield/toolbar/legend
+look from /legacy into app/, wire @xyflow/react with plain edges end-to-end via
+core ops, collision-free spawn, auto-fit sizing math (golden-tested), and the
+I5 "nothing moves on load" regression test.

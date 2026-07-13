@@ -1,0 +1,2 @@
+# Golden snapshots are byte-compared in tests: keep them LF on every checkout.
+*.golden.* text eol=lf

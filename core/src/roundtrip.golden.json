@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "id": "doc_golden-0001",
+  "name": "Round-trip fixture",
+  "canvasMode": "universal",
+  "createdAt": "2026-07-13T12:00:00.000Z",
+  "nodes": [
+    {
+      "id": "node_title-1",
+      "type": "title",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 420,
+        "height": 320
+      },
+      "data": {
+        "title": "A student project"
+      }
+    },
+    {
+      "id": "node_note-1",
+      "type": "note",
+      "position": {
+        "x": 520,
+        "y": 40
+      },
+      "data": {
+        "title": "Stray thought",
+        "content": "<p>Capture now, organize later.</p>"
+      }
+    },
+    {
+      "id": "node_person-1",
+      "type": "person",
+      "position": {
+        "x": -380,
+        "y": 260
+      },
+      "data": {
+        "title": "Sarah"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_1",
+      "source": "node_note-1",
+      "target": "node_title-1"
+    },
+    {
+      "id": "edge_2",
+      "source": "node_person-1",
+      "target": "node_title-1",
+      "label": "owns this section"
+    }
+  ]
+}
