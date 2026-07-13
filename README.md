@@ -17,6 +17,12 @@ logic in a pure TypeScript core.
 | `app/` | Tauri + React renderer. Renders what core decides. |
 | `db/` | App metadata (recent projects, prefs). Project content lives in per-project `.nodecanvas` files. |
 
+## Testing locally
+
+Double-click **start-node-canvas.bat** (or the "Node Canvas V2" desktop
+shortcut) — it starts the dev server in its own window and opens the app at
+http://localhost:1421. Close the server window to stop it.
+
 ## Commands
 
 ```
