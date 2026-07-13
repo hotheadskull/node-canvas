@@ -242,7 +242,7 @@ function FlowCanvas() {
   const [orphansOpen, setOrphansOpen] = useState(false);
   // Anchor-check mode: dim everything that doesn't trace back to the anchor
   const [anchorCheck, setAnchorCheck] = useState(false);
-  const { screenToFlowPosition, getIntersectingNodes, setCenter } = useReactFlow();
+  const { screenToFlowPosition, getIntersectingNodes, setCenter, getViewport } = useReactFlow();
   const dragStartPos = useRef<Record<string, { x: number; y: number }>>({});
   // Cascade counter for successive node spawns (see CreateNodeMenu onCreate)
 
@@ -878,10 +878,15 @@ function FlowCanvas() {
               // GAP is wide enough that the connection between two adjacent
               // spawns has a comfortably clickable run of line between them.
               const GAP = 80;
+              // Overlap slack is HALF the cell gap: neighbors sized a little
+              // differently than this node's estimate would otherwise reject
+              // the adjacent cell on a rounding hair and skip a whole cell
+              // further out (which is how "far to the right" kept happening)
+              const PAD = GAP / 2;
               const rects = absoluteNodeRects(useStore.getState().nodes);
               const overlaps = (px: number, py: number) => rects.some(r =>
-                px < r.rect.x + r.rect.w + GAP && r.rect.x - GAP < px + estW &&
-                py < r.rect.y + r.rect.h + GAP && r.rect.y - GAP < py + estH);
+                px < r.rect.x + r.rect.w + PAD && r.rect.x - PAD < px + estW &&
+                py < r.rect.y + r.rect.h + PAD && r.rect.y - PAD < py + estH);
               let x = centerPos.x - estW / 2;
               let y = centerPos.y - estH / 2;
               if (overlaps(x, y)) {
@@ -891,14 +896,18 @@ function FlowCanvas() {
                 for (let dx = -4; dx <= 4; dx++) {
                   for (let dy = -4; dy <= 4; dy++) {
                     if (dx === 0 && dy === 0) continue;
+                    // Rank by RING first so a spawn never jumps two cells
+                    // right while the cell just below center is free (an
+                    // absolute same-row preference marched spawns off-screen
+                    // exactly like the old rightward-only walk). Within a
+                    // ring: beside beats below/above, closer beats farther,
+                    // right beats left, below beats above.
+                    const ring = Math.max(Math.abs(dx), Math.abs(dy));
                     cands.push({
                       x: x + dx * stepX,
                       y: y + dy * stepY,
-                      // Rank: same row beats other rows, then true distance,
-                      // with right-of-center winning distance ties
-                      key: (dy !== 0 ? 1e12 : 0) +
-                        (dx * stepX) ** 2 + (dy * stepY) ** 2 +
-                        (dx < 0 ? 1 : 0),
+                      key: ring * 10000 + Math.abs(dy) * 1000 + Math.abs(dx) * 10 +
+                        (dx < 0 ? 1 : 0) + (dy < 0 ? 2 : 0),
                     });
                   }
                 }
@@ -913,6 +922,18 @@ function FlowCanvas() {
                 position: { x, y },
                 data: { label, content: '', manuscript: '' },
               });
+
+              // A new node the user can't see reads as "it didn't spawn".
+              // If the free spot landed outside the current view (crowded
+              // canvas, zoomed in), glide the camera over to it.
+              const tl = screenToFlowPosition({ x: 0, y: 0 });
+              const br = screenToFlowPosition({ x: window.innerWidth, y: window.innerHeight });
+              if (x < tl.x || x + estW > br.x || y < tl.y || y + estH > br.y) {
+                setCenter(x + estW / 2, y + estH / 2, {
+                  zoom: getViewport().zoom,
+                  duration: 500,
+                });
+              }
             }} />
             {/* Removed the old compile button here since we now use the Master Print Node */}
           </Panel>

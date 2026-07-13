@@ -57,7 +57,21 @@ test('F10-3: spawn placement searches rings around center, not rightward only', 
     'Nearest free candidate must win'
   );
   assert.ok(
+    /const ring = Math\.max\(Math\.abs\(dx\), Math\.abs\(dy\)\)/.test(app) &&
+    /key: ring \* 10000/.test(app),
+    'Ring distance must outrank same-row preference -- an absolute row ' +
+    'preference sends spawn N+3 two cells right while the cell below is free'
+  );
+  assert.ok(
     !/x = hit\.rect\.x \+ hit\.rect\.w \+ GAP/.test(app),
     'The old rightward-only walk must be gone'
+  );
+  // If the nearest free spot is outside the current view, the camera must
+  // follow -- an invisible spawn reads as "it didn't spawn" / "it went far
+  // off to the right somewhere".
+  assert.ok(
+    /if \(x < tl\.x \|\| x \+ estW > br\.x \|\| y < tl\.y \|\| y \+ estH > br\.y\)/.test(app) &&
+    /setCenter\(x \+ estW \/ 2, y \+ estH \/ 2/.test(app),
+    'Off-view spawns must pan the camera to the new node'
   );
 });
