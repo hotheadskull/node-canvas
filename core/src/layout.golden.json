@@ -1,0 +1,41 @@
+{
+  "findFreePosition": [
+    {
+      "name": "empty canvas: desired point is used as-is",
+      "occupied": [],
+      "desired": { "x": 100, "y": 100 },
+      "size": { "width": 300, "height": 200 },
+      "expected": { "x": 100, "y": 100 }
+    },
+    {
+      "name": "desired blocked: nearest ring slot above wins",
+      "occupied": [{ "x": 100, "y": 100, "width": 300, "height": 200 }],
+      "desired": { "x": 100, "y": 100 },
+      "size": { "width": 300, "height": 200 },
+      "expected": { "x": 100, "y": -140 }
+    },
+    {
+      "name": "far-away node does not disturb placement",
+      "occupied": [{ "x": 5000, "y": 5000, "width": 300, "height": 200 }],
+      "desired": { "x": 0, "y": 0 },
+      "size": { "width": 300, "height": 200 },
+      "expected": { "x": 0, "y": 0 }
+    },
+    {
+      "name": "slot above blocked too: clockwise walk settles on the slot below",
+      "occupied": [
+        { "x": 100, "y": 100, "width": 300, "height": 200 },
+        { "x": 100, "y": -140, "width": 300, "height": 200 }
+      ],
+      "desired": { "x": 100, "y": 100 },
+      "size": { "width": 300, "height": 200 },
+      "expected": { "x": 100, "y": 340 }
+    }
+  ],
+  "computeAutoHeight": [
+    { "name": "short content clamps to the type minimum", "input": { "contentHeight": 150, "minHeight": 220 }, "expected": 220 },
+    { "name": "tall content grows the node", "input": { "contentHeight": 400.6, "minHeight": 220 }, "expected": 401 },
+    { "name": "owned height wins over content", "input": { "contentHeight": 900, "minHeight": 220, "ownedHeight": 500 }, "expected": 500 },
+    { "name": "owned height still respects the minimum", "input": { "contentHeight": 100, "minHeight": 220, "ownedHeight": 180 }, "expected": 220 }
+  ]
+}

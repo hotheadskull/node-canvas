@@ -58,10 +58,20 @@ describe('plain edges always work (I1)', () => {
     expect(() => addPlainEdge(once, ids[1]!, ids[0]!)).toThrow(GraphError);
   });
 
-  it('carries an optional label and nothing else', () => {
+  it('carries an optional label', () => {
     const { doc, ids } = docWithNodes(['person', 'title']);
-    const connected = addPlainEdge(doc, ids[0]!, ids[1]!, 'wrote');
+    const connected = addPlainEdge(doc, ids[0]!, ids[1]!, { label: 'wrote' });
     expect(connected.edges[0]!.label).toBe('wrote');
+  });
+
+  it('persists which handles the user attached to (v1 F7-10a lesson)', () => {
+    const { doc, ids } = docWithNodes(['person', 'title']);
+    const connected = addPlainEdge(doc, ids[0]!, ids[1]!, {
+      sourceHandle: 'top',
+      targetHandle: 'bottom',
+    });
+    expect(connected.edges[0]!.sourceHandle).toBe('top');
+    expect(connected.edges[0]!.targetHandle).toBe('bottom');
   });
 });
 

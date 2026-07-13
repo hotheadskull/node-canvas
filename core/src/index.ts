@@ -5,3 +5,4 @@ export * from './ids';
 export * from './registry';
 export * from './schema';
 export * from './graph';
+export * from './layout';

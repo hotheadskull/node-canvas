@@ -43,10 +43,15 @@ export const NodeSchema = z.object({
 
 // Plain edge (I1): a relationship line. Carries no data beyond an optional
 // user label. Always available between any two nodes with zero setup.
+// sourceHandle/targetHandle record WHICH side of each node the user attached
+// to -- a v1 lesson (its F7-10a test): edges that don't persist their handles
+// cannot be rendered back onto multi-handle nodes.
 export const PlainEdgeSchema = z.object({
   id: z.string().min(1),
   source: z.string().min(1),
   target: z.string().min(1),
+  sourceHandle: z.string().optional(),
+  targetHandle: z.string().optional(),
   label: z.string().optional(),
 });
 

@@ -54,6 +54,13 @@ export function removeNode(document: CanvasDocument, nodeId: string): CanvasDocu
   };
 }
 
+export type PlainEdgeOptions = {
+  label?: string;
+  /** Which handle on each node the user attached to (persisted -- see schema). */
+  sourceHandle?: string;
+  targetHandle?: string;
+};
+
 /**
  * Plain edge (I1): always succeeds between any two distinct existing nodes,
  * regardless of their types, with zero setup. Plain edges are semantically
@@ -63,7 +70,7 @@ export function addPlainEdge(
   document: CanvasDocument,
   source: string,
   target: string,
-  label?: string,
+  options: PlainEdgeOptions = {},
 ): CanvasDocument {
   for (const endpoint of [source, target]) {
     if (!document.nodes.some((node) => node.id === endpoint)) {
@@ -82,9 +89,9 @@ export function addPlainEdge(
     throw new GraphError(`nodes "${source}" and "${target}" are already connected`);
   }
   const edge: PlainEdge = { id: createId('edge'), source, target };
-  if (label !== undefined) {
-    edge.label = label;
-  }
+  if (options.label !== undefined) edge.label = options.label;
+  if (options.sourceHandle !== undefined) edge.sourceHandle = options.sourceHandle;
+  if (options.targetHandle !== undefined) edge.targetHandle = options.targetHandle;
   return { ...document, edges: [...document.edges, edge] };
 }
 

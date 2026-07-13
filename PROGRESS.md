@@ -12,8 +12,8 @@ master brief — see its "Revision log" for what changed and why).
 |---|-------|--------|
 | 0 | Setup: /legacy preserved, workspaces, testing infra, governance docs, hooks | **completed** |
 | 1 | Core graph: nodes, plain edges, registry skeleton, Zod document schema, load/save round-trip golden test | **completed** |
-| 2 | Canvas baseline: legacy look (starfield, toolbar bottom-left, legend bottom-right), plain edges end-to-end, collision-free spawn, auto-fit sizing (golden-tested), I5 regression test | **current** |
-| 3 | Ports & wires (core): port declarations in registry, wire validation, tentative wires (create/commit/dissolve, golden), story-time stamps | not started |
+| 2 | Canvas baseline: legacy look (starfield, toolbar bottom-left, legend bottom-right), plain edges end-to-end, collision-free spawn, auto-fit sizing (golden-tested), I5 regression test | **completed** |
+| 3 | Ports & wires (core): port declarations in registry, wire validation, tentative wires (create/commit/dissolve, golden), story-time stamps | **current** |
 | 4 | Connection UX: handles, connectOnClick, big hit targets, valid/invalid live coloring, tentative wire rendering, "N ideas waiting" badge | not started |
 | 5 | Derivations: compile (wire-order text) + ordered-intake reorder UI, deriveFace, readiness rollups, unsupported-claim flag. Golden tests incl. worked examples | not started |
 | 6 | Split: generic Split + template presets (beats, Toulmin, Passage→Propositions). Golden tests + UI | not started |
@@ -75,7 +75,36 @@ presentation-walk mode. All registry entries + isolated reducers (invariant I8).
 - Decision: plain edges are semantically undirected; duplicates rejected in
   either orientation. Self-edges rejected (matches v1 spiderweb behavior).
 
-**Next session: Chunk 2 — canvas baseline.** Port the starfield/toolbar/legend
-look from /legacy into app/, wire @xyflow/react with plain edges end-to-end via
-core ops, collision-free spawn, auto-fit sizing math (golden-tested), and the
-I5 "nothing moves on load" regression test.
+### 2026-07-13 — Chunk 2 (completed)
+- Canvas baseline live: parallax starfield ported from /legacy (glow baked
+  into star SVGs — CSS drop-shadow filters on full-viewport layers rasterize
+  brutally), toolbar bottom-left, registry-driven legend bottom-right (I6).
+- `core/src/layout.ts` + `layout.golden.json`: findFreePosition deterministic
+  ring search (collision-free spawn) and computeAutoHeight (integer heights).
+- Gallery add-node menu: miniature cards from the registry, Writing/Knowledge
+  groups, Core/All toggle (persisted), docked hover preview with description
+  + "Known as" per-mode names.
+- Plain edges end-to-end with the anti-"works on my machine" design: BaseEdge
+  interactionWidth zoom-compensated to ~24 screen px + an always-clickable
+  label chip (EdgeLabelRenderer) opening the inline edge menu (label/delete).
+- Store: zustand wrapping core ops only; localStorage persistence through
+  parse/serialize with corrupt-payload backup + error banner (I9); viewport
+  persisted; Fit is a toolbar button only (I5).
+- docs/ui-interaction-rules.md: hit-target/feedback/consistency rules, each
+  backed by a test in app/src/interaction-rules.test.ts where possible.
+- **Bugs found by real-browser e2e (now Playwright specs + rules 12-15):**
+  (1) controlled RF handler that drops 'dimensions' changes leaves nodes
+  unmeasured → edges silently never render; fixed with applyNodeChanges/
+  applyEdgeChanges pattern. (2) auto-fit measured the flexing body → feedback
+  loop, unbounded height growth AND starved debounced saves; fixed with a
+  hidden content mirror. (3) edges must persist sourceHandle/targetHandle
+  (v1 F7-10a) — added to the core schema as optional fields.
+- Env note: the harness Browser pane doesn't fire RAF/ResizeObserver and
+  can't screenshot — Playwright (real Chromium) is the visual-verification
+  path for this project. e2e: 3 specs green. Unit: 65 green. Screenshot
+  verified: starfield + nodes + edges + menu + legend all correct.
+
+**Next session: Chunk 3 — ports & wires (core).** Port declarations in the
+registry (give/take, dataKind, defaultVisible), wire creation/validation in
+core, tentative wires (create/commit/dissolve + golden tests), story-time
+stamps on wires. Remember `updateNodeInternals` for runtime handle changes.
