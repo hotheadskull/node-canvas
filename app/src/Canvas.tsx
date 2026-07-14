@@ -60,7 +60,7 @@ export function Canvas() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [rfNodes, setRfNodes] = useState<Node<CanvasNodeData>[]>([]);
   const [rfEdges, setRfEdges] = useState<Edge[]>([]);
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, getViewport, setCenter } = useReactFlow();
 
   // Sync core document -> RF state. Existing RF node objects are merged so
   // RF-owned fields (measured dims, selection, dragging) survive the sync.
@@ -223,10 +223,37 @@ export function Canvas() {
         x: window.innerWidth / 2,
         y: window.innerHeight / 2,
       });
-      spawnAt(type, center);
+      const id = spawnAt(type, center);
       setMenuOpen(false);
+      if (!id) return;
+      // Spawning is the user's explicit action, so the camera may follow a
+      // node that landed off-view (v1 behavior; interaction rule 6 addendum).
+      // Collision-free placement can push spawns outside the viewport, and an
+      // invisible new node reads as "nothing happened".
+      const spawned = useCanvasStore.getState().document.nodes.find((node) => node.id === id);
+      if (!spawned) return;
+      const { x, y, zoom } = getViewport();
+      const view = {
+        left: -x / zoom,
+        top: -y / zoom,
+        right: (window.innerWidth - x) / zoom,
+        bottom: (window.innerHeight - y) / zoom,
+      };
+      const width = spawned.size?.width ?? 300;
+      const height = spawned.size?.height ?? 200;
+      const fullyVisible =
+        spawned.position.x >= view.left &&
+        spawned.position.y >= view.top &&
+        spawned.position.x + width <= view.right &&
+        spawned.position.y + height <= view.bottom;
+      if (!fullyVisible) {
+        void setCenter(spawned.position.x + width / 2, spawned.position.y + height / 2, {
+          zoom,
+          duration: 300,
+        });
+      }
     },
-    [screenToFlowPosition, spawnAt],
+    [screenToFlowPosition, spawnAt, getViewport, setCenter],
   );
 
   return (

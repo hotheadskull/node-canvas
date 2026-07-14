@@ -8,14 +8,14 @@
     { "id": "text-out", "direction": "give", "dataKind": "text", "label": "Text", "defaultVisible": true }
   ],
   "document": [
-    { "id": "sections-in", "direction": "take", "dataKind": "text", "label": "Sections", "defaultVisible": true, "capacity": "many" },
+    { "id": "sections-in", "direction": "take", "dataKind": "text", "label": "Sections", "defaultVisible": true, "capacity": "many", "spine": true },
     { "id": "compiled-out", "direction": "give", "dataKind": "text", "label": "Compiled text", "defaultVisible": true },
-    { "id": "thread-in", "direction": "take", "dataKind": "thread", "label": "Thread", "defaultVisible": false, "capacity": "one" }
+    { "id": "thread-in", "direction": "take", "dataKind": "thread", "label": "Thread", "defaultVisible": false, "capacity": "one", "flagWhenEmpty": true }
   ],
   "manuscript": [
-    { "id": "documents-in", "direction": "take", "dataKind": "text", "label": "Documents", "defaultVisible": true, "capacity": "many" },
+    { "id": "documents-in", "direction": "take", "dataKind": "text", "label": "Documents", "defaultVisible": true, "capacity": "many", "spine": true },
     { "id": "compiled-out", "direction": "give", "dataKind": "text", "label": "Compiled work", "defaultVisible": true },
-    { "id": "thread-in", "direction": "take", "dataKind": "thread", "label": "Thread", "defaultVisible": false, "capacity": "one" }
+    { "id": "thread-in", "direction": "take", "dataKind": "thread", "label": "Thread", "defaultVisible": false, "capacity": "one", "flagWhenEmpty": true }
   ],
   "section": [
     { "id": "text-out", "direction": "give", "dataKind": "text", "label": "Text", "defaultVisible": true },

@@ -218,6 +218,42 @@ export function removeWire(document: CanvasDocument, wireId: string): CanvasDocu
   return { ...document, wires: document.wires.filter((wire) => wire.id !== wireId) };
 }
 
+/**
+ * Move a wire within its intake's ordered list. Wire array order IS compile
+ * order, so this is "reorder wires, reorder the chapter". Only the wires
+ * targeting (nodeId, portId) reorder; every other wire keeps its position
+ * relative to the document.
+ */
+export function reorderIntakeWire(
+  document: CanvasDocument,
+  nodeId: string,
+  portId: string,
+  wireId: string,
+  newIndex: number,
+): CanvasDocument {
+  const intakeWires = document.wires.filter(
+    (wire) => wire.target === nodeId && wire.targetPort === portId,
+  );
+  const currentIndex = intakeWires.findIndex((wire) => wire.id === wireId);
+  if (currentIndex === -1) {
+    throw new GraphError(`wire "${wireId}" is not on intake "${portId}" of "${nodeId}"`);
+  }
+  const clamped = Math.max(0, Math.min(newIndex, intakeWires.length - 1));
+  if (clamped === currentIndex) return document;
+  const reordered = [...intakeWires];
+  const [moved] = reordered.splice(currentIndex, 1);
+  reordered.splice(clamped, 0, moved!);
+  // stitch the reordered subset back into the full list, preserving the
+  // positions of unrelated wires
+  let cursor = 0;
+  return {
+    ...document,
+    wires: document.wires.map((wire) =>
+      wire.target === nodeId && wire.targetPort === portId ? reordered[cursor++]! : wire,
+    ),
+  };
+}
+
 /** Stamp (or clear, with undefined) the story-time index on a wire. */
 export function setWireStoryTime(
   document: CanvasDocument,

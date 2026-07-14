@@ -7,3 +7,5 @@ export * from './schema';
 export * from './graph';
 export * from './wires';
 export * from './layout';
+export * from './derive';
+export * from './split';

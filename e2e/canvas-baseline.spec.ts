@@ -19,6 +19,9 @@ test('spawn two nodes, connect them, edge renders with both click affordances', 
   await page.getByRole('button', { name: /add node/i }).click();
   await page.locator('[data-node-type="section"]').click();
   await expect(page.locator('.react-flow__node')).toHaveCount(2);
+  // the camera follows the newest spawn; bring both nodes into view to drag
+  await page.getByRole('button', { name: 'Fit' }).click();
+  await page.waitForTimeout(450);
 
   // collision-free spawn: bounding boxes must not overlap
   const boxes = [];

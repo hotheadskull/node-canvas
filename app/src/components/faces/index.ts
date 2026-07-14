@@ -12,6 +12,7 @@
 
 import type { ComponentType } from 'react';
 import { DefaultFace } from './DefaultFace';
+import { DocumentFace } from './DocumentFace';
 import { TitleFace } from './TitleFace';
 
 export type FaceProps = {
@@ -22,6 +23,8 @@ export type FaceProps = {
 
 export const NODE_FACES: Record<string, ComponentType<FaceProps>> = {
   title: TitleFace,
+  document: DocumentFace,
+  manuscript: DocumentFace,
 };
 
 export function faceFor(coreType: string): ComponentType<FaceProps> {

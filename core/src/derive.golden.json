@@ -1,0 +1,62 @@
+{
+  "fixture": {
+    "schemaVersion": 1,
+    "id": "doc_derive-fixture",
+    "name": "Derivation fixture",
+    "canvasMode": "novel",
+    "createdAt": "2026-07-14T12:00:00.000Z",
+    "nodes": [
+      { "id": "node_chapter", "type": "document", "position": { "x": 0, "y": 0 }, "data": { "title": "Chapter One", "content": "The storm broke at midnight." } },
+      { "id": "node_scene-a", "type": "section", "position": { "x": -600, "y": -300 }, "data": { "title": "The lighthouse", "content": "Bob climbed the lighthouse stairs." } },
+      { "id": "node_scene-b", "type": "section", "position": { "x": -600, "y": 300 }, "data": { "title": "The shore", "content": "Waves swallowed the pier." } },
+      { "id": "node_bob", "type": "person", "position": { "x": -1200, "y": -300 }, "data": { "title": "Bob" } },
+      { "id": "node_draft", "type": "note", "position": { "x": -600, "y": 700 }, "data": { "title": "Loose idea", "content": "" } },
+      { "id": "node_manuscript", "type": "manuscript", "position": { "x": 700, "y": 0 }, "data": { "title": "The Book", "content": "" } }
+    ],
+    "edges": [],
+    "wires": [
+      { "id": "wire_scene-a", "source": "node_scene-a", "sourcePort": "text-out", "target": "node_chapter", "targetPort": "sections-in", "status": "live" },
+      { "id": "wire_scene-b", "source": "node_scene-b", "sourcePort": "text-out", "target": "node_chapter", "targetPort": "sections-in", "status": "live" },
+      { "id": "wire_bob-a", "source": "node_bob", "sourcePort": "identity-out", "target": "node_scene-a", "targetPort": "people-in", "status": "live" },
+      { "id": "wire_tentative", "source": "node_draft", "sourcePort": "text-out", "target": "node_chapter", "targetPort": "sections-in", "status": "tentative" },
+      { "id": "wire_chapter-ms", "source": "node_chapter", "sourcePort": "compiled-out", "target": "node_manuscript", "targetPort": "documents-in", "status": "live" }
+    ]
+  },
+  "compileChapter": {
+    "text": "The storm broke at midnight.\n\nBob climbed the lighthouse stairs.\n\nWaves swallowed the pier.",
+    "sources": ["node_chapter", "node_scene-a", "node_scene-b"],
+    "cycles": []
+  },
+  "compileChapterAfterReorder": {
+    "text": "The storm broke at midnight.\n\nWaves swallowed the pier.\n\nBob climbed the lighthouse stairs.",
+    "sources": ["node_chapter", "node_scene-b", "node_scene-a"],
+    "cycles": []
+  },
+  "compileManuscript": {
+    "text": "The storm broke at midnight.\n\nBob climbed the lighthouse stairs.\n\nWaves swallowed the pier.",
+    "sources": ["node_chapter", "node_scene-a", "node_scene-b"],
+    "cycles": []
+  },
+  "castOfChapter": [
+    { "personId": "node_bob", "name": "Bob", "appearsIn": ["node_scene-a"] }
+  ],
+  "castOfChapterAfterRename": [
+    { "personId": "node_bob", "name": "Robert", "appearsIn": ["node_scene-a"] }
+  ],
+  "deriveFaceAll": [
+    { "type": "section", "label": "Section", "count": 2 },
+    { "type": "document", "label": "Document", "count": 1 },
+    { "type": "manuscript", "label": "Manuscript", "count": 1 },
+    { "type": "note", "label": "Note", "count": 1 },
+    { "type": "person", "label": "Person", "count": 1 }
+  ],
+  "readinessRollup": {
+    "counts": { "seed": 4, "developing": 1, "ready": 1, "placed": 0 },
+    "overall": "seed",
+    "total": 6
+  },
+  "hygieneFlags": [
+    { "nodeId": "node_chapter", "portId": "thread-in", "portLabel": "Thread" },
+    { "nodeId": "node_manuscript", "portId": "thread-in", "portLabel": "Thread" }
+  ]
+}

@@ -19,8 +19,11 @@ import {
   removeNode,
   removePlainEdge,
   removeWire,
+  reorderIntakeWire,
   serializeDocument,
   spawnNode,
+  splitNode as splitNodeOp,
+  SPLIT_PRESETS,
   type CanvasDocument,
   type Rect,
 } from '@node-canvas/core';
@@ -84,6 +87,8 @@ type CanvasState = {
   commitWire: (wireId: string) => void;
   dissolveWire: (wireId: string) => void;
   deleteWire: (wireId: string) => void;
+  reorderIntake: (nodeId: string, portId: string, wireId: string, newIndex: number) => void;
+  splitNode: (nodeId: string, presetId: string) => void;
   saveViewport: (viewport: Viewport) => void;
 };
 
@@ -427,6 +432,20 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
     dissolveWire: (wireId) => tryOp(() => dissolveTentativeWire(get().document, wireId)),
 
     deleteWire: (wireId) => tryOp(() => removeWire(get().document, wireId)),
+
+    reorderIntake: (nodeId, portId, wireId, newIndex) =>
+      tryOp(() => reorderIntakeWire(get().document, nodeId, portId, wireId, newIndex)),
+
+    splitNode: (nodeId, presetId) => {
+      const doc = get().document;
+      const node = doc.nodes.find((candidate) => candidate.id === nodeId);
+      const preset = SPLIT_PRESETS.find((candidate) => candidate.id === presetId);
+      if (!node || !preset) {
+        set({ persistenceError: `Split preset "${presetId}" not available here` });
+        return;
+      }
+      tryOp(() => splitNodeOp(doc, nodeId, preset.stubs).document);
+    },
 
     saveViewport: (viewport) => {
       try {

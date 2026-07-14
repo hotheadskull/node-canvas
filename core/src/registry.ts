@@ -39,6 +39,17 @@ export type PortDef = {
   defaultVisible: boolean;
   /** Takes only: how many live wires the intake accepts. */
   capacity?: 'one' | 'many';
+  /**
+   * Takes only: this intake is the node's compile spine -- wired text
+   * concatenates through it in wire order (reorder wires, reorder the work).
+   */
+  spine?: boolean;
+  /**
+   * Takes only: the node flags itself when this intake is empty (e.g. a
+   * chapter serving no thread). Hygiene flags only fire for nodes already
+   * participating in wiring -- port-free canvases never see them (I2).
+   */
+  flagWhenEmpty?: boolean;
 };
 
 export type NodeTypeDef = {
@@ -120,9 +131,9 @@ export const NODE_TYPE_DEFS: readonly NodeTypeDef[] = [
     size: { width: 500, height: 400 },
     sizing: 'auto-height',
     ports: [
-      { id: 'sections-in', direction: 'take', dataKind: 'text', label: 'Sections', defaultVisible: true, capacity: 'many' },
+      { id: 'sections-in', direction: 'take', dataKind: 'text', label: 'Sections', defaultVisible: true, capacity: 'many', spine: true },
       { id: 'compiled-out', direction: 'give', dataKind: 'text', label: 'Compiled text', defaultVisible: true },
-      { id: 'thread-in', direction: 'take', dataKind: 'thread', label: 'Thread', defaultVisible: false, capacity: 'one' },
+      { id: 'thread-in', direction: 'take', dataKind: 'thread', label: 'Thread', defaultVisible: false, capacity: 'one', flagWhenEmpty: true },
     ],
   },
   {
@@ -143,9 +154,9 @@ export const NODE_TYPE_DEFS: readonly NodeTypeDef[] = [
     size: { width: 560, height: 440 },
     sizing: 'auto-height',
     ports: [
-      { id: 'documents-in', direction: 'take', dataKind: 'text', label: 'Documents', defaultVisible: true, capacity: 'many' },
+      { id: 'documents-in', direction: 'take', dataKind: 'text', label: 'Documents', defaultVisible: true, capacity: 'many', spine: true },
       { id: 'compiled-out', direction: 'give', dataKind: 'text', label: 'Compiled work', defaultVisible: true },
-      { id: 'thread-in', direction: 'take', dataKind: 'thread', label: 'Thread', defaultVisible: false, capacity: 'one' },
+      { id: 'thread-in', direction: 'take', dataKind: 'thread', label: 'Thread', defaultVisible: false, capacity: 'one', flagWhenEmpty: true },
     ],
   },
   {
@@ -262,6 +273,75 @@ export function nodeLabel(type: string, mode: CanvasMode): string {
 
 export function getPort(type: string, portId: string): PortDef | undefined {
   return NODE_REGISTRY[type]?.ports.find((port) => port.id === portId);
+}
+
+// ---------------------------------------------------------------------------
+// Split presets (I8: presets are registry data; Split logic never knows them)
+// ---------------------------------------------------------------------------
+
+export type SplitStubSpec = { type: string; title: string };
+
+export type SplitPreset = {
+  id: string;
+  /** Node types whose Split menu offers this preset. */
+  forTypes: readonly string[];
+  label: string;
+  description: string;
+  stubs: readonly SplitStubSpec[];
+};
+
+export const SPLIT_PRESETS: readonly SplitPreset[] = [
+  {
+    id: 'three-sections',
+    forTypes: ['document'],
+    label: '3 blank sections',
+    description: 'Three empty sections wired in, ready to write',
+    stubs: [
+      { type: 'section', title: 'Section 1' },
+      { type: 'section', title: 'Section 2' },
+      { type: 'section', title: 'Section 3' },
+    ],
+  },
+  {
+    id: 'beat-sheet',
+    forTypes: ['document'],
+    label: 'Beat sheet',
+    description: 'Classic five-beat structure as section stubs',
+    stubs: [
+      { type: 'section', title: 'Opening image' },
+      { type: 'section', title: 'Inciting incident' },
+      { type: 'section', title: 'Rising action' },
+      { type: 'section', title: 'Climax' },
+      { type: 'section', title: 'Resolution' },
+    ],
+  },
+  {
+    id: 'three-chapters',
+    forTypes: ['manuscript'],
+    label: '3 chapter stubs',
+    description: 'Three empty documents wired into the manuscript',
+    stubs: [
+      { type: 'document', title: 'Chapter 1' },
+      { type: 'document', title: 'Chapter 2' },
+      { type: 'document', title: 'Chapter 3' },
+    ],
+  },
+];
+
+export function splitPresetsFor(type: string): SplitPreset[] {
+  return SPLIT_PRESETS.filter((preset) => preset.forTypes.includes(type));
+}
+
+/** The node type's compile-spine intake, if it has one. */
+export function spineIntakeOf(type: string): PortDef | undefined {
+  return NODE_REGISTRY[type]?.ports.find((port) => port.direction === 'take' && port.spine);
+}
+
+/** The node type's first text-giving port (what Split wires stubs from). */
+export function textGiveOf(type: string): PortDef | undefined {
+  return NODE_REGISTRY[type]?.ports.find(
+    (port) => port.direction === 'give' && port.dataKind === 'text',
+  );
 }
 
 /** The compact first-touch menu (gallery "Core" view). */

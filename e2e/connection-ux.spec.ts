@@ -14,6 +14,17 @@ async function addNode(page: import('@playwright/test').Page, type: string) {
   await page.locator(`[data-node-type="${type}"]`).click();
 }
 
+/**
+ * Locate nodes by their kind tag EXACTLY -- hasText is case-insensitive and
+ * matches subtree text, so e.g. a document whose intake list says "Section 1"
+ * would also match hasText 'SECTION'.
+ */
+function nodeOfKind(page: import('@playwright/test').Page, kind: string) {
+  return page
+    .locator('.react-flow__node')
+    .filter({ has: page.locator('.canvas-node-kind', { hasText: new RegExp(`^${kind}$`) }) });
+}
+
 async function dragBetween(
   page: import('@playwright/test').Page,
   from: { x: number; y: number },
@@ -29,11 +40,18 @@ function center(box: { x: number; y: number; width: number; height: number }) {
   return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
 }
 
+/** Bring every node into view before dragging (the camera follows spawns). */
+async function fitAll(page: import('@playwright/test').Page) {
+  await page.getByRole('button', { name: 'Fit' }).click();
+  await page.waitForTimeout(450);
+}
+
 test('give star to take star creates a live wire, colored by kind', async ({ page }) => {
   await addNode(page, 'note');
   await addNode(page, 'document');
-  const note = page.locator('.react-flow__node', { hasText: 'NOTE' }).first();
-  const doc = page.locator('.react-flow__node', { hasText: 'DOCUMENT' }).first();
+  await fitAll(page);
+  const note = nodeOfKind(page, 'Note').first();
+  const doc = nodeOfKind(page, 'Document').first();
 
   const giveStar = note.locator('[data-handleid="text-out"]');
   const takeStar = doc.locator('[data-handleid="sections-in"]');
@@ -60,8 +78,9 @@ test('tentative lifecycle: loose drops, waiting badges, commit dissolves sibling
   await addNode(page, 'note');
   await addNode(page, 'document');
   await addNode(page, 'document');
-  const note = page.locator('.react-flow__node', { hasText: 'NOTE' }).first();
-  const docs = page.locator('.react-flow__node', { hasText: 'DOCUMENT' });
+  await fitAll(page);
+  const note = nodeOfKind(page, 'Note').first();
+  const docs = nodeOfKind(page, 'Document');
 
   // drop the note's give star onto each document's plain top dot -> tentative
   for (const index of [0, 1]) {

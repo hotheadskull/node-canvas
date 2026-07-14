@@ -56,6 +56,16 @@ another). Where possible each rule is enforced by a test in
 15. **Every RF canvas wires `onError`.** RF drops misconfigured elements
     silently or with console-only messages; surface them in dev.
 
+17. **The camera may follow a SPAWN, and nothing else.** Collision-free
+    placement can land a new node outside the viewport, and an invisible new
+    node reads as "nothing happened" (v1 shipped this same fix). Spawning is
+    the user's explicit action, so panning to the spawned node is a
+    consequence of it — not a violation of I5. No other derived event may
+    move the viewport.
+18. **Debounced saves flush on pagehide/beforeunload.** A quick close or
+    reload after an edit must never drop the last change (found by e2e:
+    reorder + fast reload lost the reorder).
+
 16. **Hover must never move layout.** Anything that changes on hover (preview
     panels, expanding rows) renders inside a reserved, fixed-size box. A
     bottom-anchored menu that grows on hover shifts every control upward

@@ -10,6 +10,15 @@ export default function App() {
 
   useEffect(() => {
     load();
+    // Saves are debounced; flush the pending one when the page goes away or
+    // a quick reload/close would silently drop the last edit (I9).
+    const flush = () => useCanvasStore.getState().save();
+    window.addEventListener('pagehide', flush);
+    window.addEventListener('beforeunload', flush);
+    return () => {
+      window.removeEventListener('pagehide', flush);
+      window.removeEventListener('beforeunload', flush);
+    };
   }, [load]);
 
   return (

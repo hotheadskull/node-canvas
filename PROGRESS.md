@@ -15,9 +15,9 @@ master brief — see its "Revision log" for what changed and why).
 | 2 | Canvas baseline: legacy look (starfield, toolbar bottom-left, legend bottom-right), plain edges end-to-end, collision-free spawn, auto-fit sizing (golden-tested), I5 regression test | **completed** |
 | 3 | Ports & wires (core): port declarations in registry, wire validation, tentative wires (create/commit/dissolve, golden), story-time stamps | **completed** |
 | 4 | Connection UX: handles, connectOnClick, big hit targets, valid/invalid live coloring, tentative wire rendering, "N ideas waiting" badge | **completed** |
-| 5 | Derivations: compile (wire-order text) + ordered-intake reorder UI, deriveFace, readiness rollups, unsupported-claim flag. Golden tests incl. worked examples | **current** |
-| 6 | Split: generic Split + template presets (beats, Toulmin, Passage→Propositions). Golden tests + UI | not started |
-| 7 | Assemblies (core): membership by reference, multi-membership, nesting, face-proxy stability, lossless collapse/expand. Golden tests are the gate for everything after | not started |
+| 5 | Derivations: compile (wire-order text) + ordered-intake reorder UI, deriveFace, readiness rollups, unsupported-claim flag. Golden tests incl. worked examples | **completed** |
+| 6 | Split: generic Split + template presets (beats, Toulmin, Passage→Propositions). Golden tests + UI | **completed** |
+| 7 | Assemblies (core): membership by reference, multi-membership, nesting, face-proxy stability, lossless collapse/expand. Golden tests are the gate for everything after | **current** |
 | 8 | Assembly rendering: collapsed face card, drill-in scoped canvas with breadcrumbs, gather-into-Assembly, unpack | not started |
 | 9 | Writing spine: Scene/Chapter/Manuscript (per-mode labels: Section/Document), TipTap editors, compile view, Split down the spine, cast auto-derivation | not started |
 | 10 | Semantic zoom: Assemblies collapse to star points past zoom threshold, smooth expand, onlyRenderVisibleElements | not started |
@@ -188,6 +188,52 @@ order is NOT directly manipulable in RF), deriveFace, readiness rollups,
 unsupported-claim flag. Golden tests including the worked examples from the
 brief (Chapter compile; rename propagation). Document gets its compile face
 via the new face system.
+
+### 2026-07-14 — Chunks 5 + 6 (completed, one combined commit — the compile
+face hosts both the reorder list and Split, so the code interleaves)
+
+Chunk 5 — derivations (all pure, all golden-tested in `derive.golden.json`):
+- `derive.ts`: compile (own text, then spine wires in wire order, recursive,
+  cycle-guarded, tentative wires never compile), wordCount, castOf (people
+  wired into spine sections; names read BY REFERENCE so renames propagate —
+  the worked example is pinned), deriveFace (categorized member counts for
+  Chunk 7/8 assembly faces), readiness (seed → developing → ready → placed,
+  stored in node.data.readiness, rollup = least-advanced overall), and
+  hygieneFlags (flagWhenEmpty intakes; only fire for nodes already wired —
+  port-free canvases never see one, per I2).
+- Registry: PortDef gains `spine` (document.sections-in, manuscript.
+  documents-in) and `flagWhenEmpty` (both thread-ins). Ports golden updated.
+- `reorderIntakeWire`: wire array order IS compile order; reorder moves a
+  wire within its intake subset, unrelated wires keep position. Golden.
+- DocumentFace (document + manuscript via the face system): own-text area,
+  ordered intake list (↑/↓ reorder — drag-reorder can come later), tentative
+  rows shown dimmed as "waiting", compiled preview, live word count, derived
+  cast line, hygiene dot on empty thread.
+
+Chunk 6 — Split:
+- `split.ts`: splitNode(doc, parent, stubs, idFactory?) — stubs spawn below
+  the parent, collision-free, wired live into the spine intake in order;
+  parent never moves (I5). idFactory injection keeps goldens deterministic.
+- SPLIT_PRESETS in the registry (I8): 3 blank sections + beat sheet for
+  document, 3 chapter stubs for manuscript. Toulmin lands with Chunk 13,
+  Passage→Propositions with Chunk 14. Preset validity is itself tested
+  (every preset stub can feed every declared target type).
+- Split button + preset menu on the compile face.
+
+Two REAL bugs found by e2e this session (both now interaction rules):
+- Rule 17: collision-free spawn can land a node off-viewport → "nothing
+  happened". The camera now follows spawns (spawning is the explicit user
+  action; v1 shipped this same fix). Nothing else may move the viewport.
+- Rule 18: debounced saves flushed on pagehide/beforeunload — a reorder
+  followed by a fast reload used to lose the reorder (I9 violation).
+
+Suite: 126 unit + 8 e2e green; typecheck + lint clean.
+
+**Next session: Chunk 7 — Assemblies in core.** Pure logic, no UI: membership
+by reference (I3), multi-membership, nesting, face-proxy stability (delete an
+inner node → face survives, external connections intact), lossless
+collapse/expand round-trip at 3 nesting levels (I4). These goldens gate
+everything after. UI lands in Chunk 8 (drill-in, breadcrumbs, gather/unpack).
 
 **Chunk 4 design checkpoint RESOLVED (2026-07-13).** User saw 4 mockups and
 chose a mix: **A's title bar** (tinted header band + kind tag) + **B's port
