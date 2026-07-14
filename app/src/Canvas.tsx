@@ -29,10 +29,17 @@ import {
   type NodeChange,
   type EdgeChange,
 } from '@xyflow/react';
-import { useCallback, useEffect, useState } from 'react';
-import { getPort, isValidWire } from '@node-canvas/core';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  displayEndpoint,
+  getPort,
+  hiddenIds,
+  isValidWire,
+  setAssemblyCollapsed,
+} from '@node-canvas/core';
 import { AddNodeMenu } from './components/AddNodeMenu';
-import { CanvasNode, type CanvasNodeData } from './components/CanvasNode';
+import { AssemblyFace } from './components/AssemblyFace';
+import { CanvasNode } from './components/CanvasNode';
 import { Legend } from './components/Legend';
 import { PlainEdge } from './components/PlainEdge';
 import { Starfield } from './components/Starfield';
@@ -41,7 +48,7 @@ import { Toolbar } from './components/Toolbar';
 import { WireEdge } from './components/WireEdge';
 import { firstCompatibleTake, PLAIN_HANDLES, useCanvasStore } from './store/canvasStore';
 
-const nodeTypes = { canvas: CanvasNode };
+const nodeTypes = { canvas: CanvasNode, assembly: AssemblyFace };
 const edgeTypes = { plain: PlainEdge, wire: WireEdge };
 
 export function Canvas() {
@@ -56,90 +63,168 @@ export function Canvas() {
   const connectFromHandles = useCanvasStore((state) => state.connectFromHandles);
   const spawnAt = useCanvasStore((state) => state.spawnAt);
   const saveViewport = useCanvasStore((state) => state.saveViewport);
+  const moveAssemblyTo = useCanvasStore((state) => state.moveAssemblyTo);
+  const unpack = useCanvasStore((state) => state.unpack);
+  const gatherSelection = useCanvasStore((state) => state.gatherSelection);
+  const drillTo = useCanvasStore((state) => state.drillTo);
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const [rfNodes, setRfNodes] = useState<Node<CanvasNodeData>[]>([]);
+  const [rfNodes, setRfNodes] = useState<Node[]>([]);
   const [rfEdges, setRfEdges] = useState<Edge[]>([]);
   const { screenToFlowPosition, getViewport, setCenter } = useReactFlow();
+  const drillStack = useCanvasStore((state) => state.drillStack);
+  const drilled = drillStack.length > 0 ? drillStack[drillStack.length - 1] : null;
+
+  // Visibility model:
+  // - viewDoc treats drilled assemblies as expanded (drilling into a
+  //   collapsed group must show its members)
+  // - hidden = everything inside a collapsed assembly (transitive)
+  // - drill mode additionally scopes the canvas to the drilled assembly's
+  //   DIRECT members (nested collapsed groups still render as faces)
+  const view = useMemo(() => {
+    const viewDoc = drillStack.reduce(
+      (doc, assemblyId) => setAssemblyCollapsed(doc, assemblyId, false),
+      document,
+    );
+    const hidden = hiddenIds(viewDoc);
+    const drilledAssembly = drilled
+      ? viewDoc.assemblies.find((assembly) => assembly.id === drilled)
+      : null;
+    const scope = drilledAssembly ? new Set(drilledAssembly.memberIds) : null;
+    const nodeVisible = (id: string) =>
+      !hidden.has(id) && (scope === null || scope.has(id));
+    const assemblyVisible = (id: string) =>
+      !hidden.has(id) && id !== drilled && (scope === null || scope.has(id));
+    return { viewDoc, hidden, nodeVisible, assemblyVisible };
+  }, [document, drillStack, drilled]);
 
   // Sync core document -> RF state. Existing RF node objects are merged so
   // RF-owned fields (measured dims, selection, dragging) survive the sync.
   useEffect(() => {
     setRfNodes((current) => {
       const byId = new Map(current.map((node) => [node.id, node]));
-      return document.nodes.map((docNode) => {
-        const existing = byId.get(docNode.id);
-        return {
-          ...existing,
-          id: docNode.id,
-          type: 'canvas' as const,
-          position: docNode.position,
-          ...(docNode.size
-            ? { style: { width: docNode.size.width, height: docNode.size.height } }
-            : {}),
+      const canvasNodes = document.nodes
+        .filter((docNode) => view.nodeVisible(docNode.id))
+        .map((docNode) => {
+          const existing = byId.get(docNode.id);
+          return {
+            ...existing,
+            id: docNode.id,
+            type: 'canvas' as const,
+            position: docNode.position,
+            ...(docNode.size
+              ? { style: { width: docNode.size.width, height: docNode.size.height } }
+              : {}),
+            data: {
+              coreType: docNode.type,
+              title: typeof docNode.data.title === 'string' ? docNode.data.title : '',
+              content: typeof docNode.data.content === 'string' ? docNode.data.content : '',
+              ...(typeof docNode.data['ownedHeight'] === 'number'
+                ? { ownedHeight: docNode.data['ownedHeight'] }
+                : {}),
+              ...(typeof docNode.data['accent'] === 'string'
+                ? { accent: docNode.data['accent'] }
+                : {}),
+            },
+          };
+        });
+      const faceNodes = document.assemblies
+        .filter((assembly) => view.assemblyVisible(assembly.id))
+        .map((assembly) => ({
+          ...byId.get(assembly.id),
+          id: assembly.id,
+          type: 'assembly' as const,
+          position: assembly.position,
           data: {
-            coreType: docNode.type,
-            title: typeof docNode.data.title === 'string' ? docNode.data.title : '',
-            content: typeof docNode.data.content === 'string' ? docNode.data.content : '',
-            ...(typeof docNode.data['ownedHeight'] === 'number'
-              ? { ownedHeight: docNode.data['ownedHeight'] }
-              : {}),
-            ...(typeof docNode.data['accent'] === 'string'
-              ? { accent: docNode.data['accent'] }
-              : {}),
+            assemblyId: assembly.id,
+            name: assembly.name,
+            collapsed: assembly.collapsed,
           },
-        };
-      });
+        }));
+      return [...canvasNodes, ...faceNodes];
     });
-  }, [document.nodes]);
+  }, [document.nodes, document.assemblies, view]);
 
   useEffect(() => {
     setRfEdges((current) => {
       const byId = new Map(current.map((edge) => [edge.id, edge]));
-      const plainEdges = document.edges.map((docEdge) => ({
-        ...byId.get(docEdge.id),
-        id: docEdge.id,
-        type: 'plain' as const,
-        source: docEdge.source,
-        target: docEdge.target,
-        ...(docEdge.sourceHandle !== undefined ? { sourceHandle: docEdge.sourceHandle } : {}),
-        ...(docEdge.targetHandle !== undefined ? { targetHandle: docEdge.targetHandle } : {}),
-        ...(docEdge.label !== undefined ? { label: docEdge.label } : {}),
-      }));
-      const wireEdges = document.wires.map((wire) => {
+      const endpointVisible = (id: string) =>
+        view.nodeVisible(id) || view.assemblyVisible(id);
+      // Boundary connections DRAW to the outermost collapsed face
+      // (display-only remap; storage never changes). Handle ids are dropped
+      // when an endpoint remaps -- the face resolves its unnamed handles.
+      const plainEdges = document.edges.flatMap((docEdge) => {
+        const source = displayEndpoint(view.viewDoc, docEdge.source);
+        const target = displayEndpoint(view.viewDoc, docEdge.target);
+        if (source === target) return []; // fully inside one collapsed face
+        if (!endpointVisible(source) || !endpointVisible(target)) return [];
+        const sourceRemapped = source !== docEdge.source;
+        const targetRemapped = target !== docEdge.target;
+        return [
+          {
+            ...byId.get(docEdge.id),
+            id: docEdge.id,
+            type: 'plain' as const,
+            source,
+            target,
+            ...(!sourceRemapped && docEdge.sourceHandle !== undefined
+              ? { sourceHandle: docEdge.sourceHandle }
+              : { sourceHandle: null }),
+            ...(!targetRemapped && docEdge.targetHandle !== undefined
+              ? { targetHandle: docEdge.targetHandle }
+              : { targetHandle: null }),
+            ...(docEdge.label !== undefined ? { label: docEdge.label } : {}),
+          },
+        ];
+      });
+      const wireEdges = document.wires.flatMap((wire) => {
+        const source = displayEndpoint(view.viewDoc, wire.source);
+        const target = displayEndpoint(view.viewDoc, wire.target);
+        if (source === target) return [];
+        if (!endpointVisible(source) || !endpointVisible(target)) return [];
         const sourceNode = document.nodes.find((node) => node.id === wire.source);
         const givePort = sourceNode ? getPort(sourceNode.type, wire.sourcePort) : undefined;
-        return {
-          ...byId.get(wire.id),
-          id: wire.id,
-          type: 'wire' as const,
-          source: wire.source,
-          sourceHandle: wire.sourcePort,
-          target: wire.target,
-          targetHandle: wire.targetPort,
-          data: {
-            status: wire.status,
-            dataKind: givePort?.dataKind ?? '',
-            portLabel: givePort?.label ?? wire.sourcePort,
+        return [
+          {
+            ...byId.get(wire.id),
+            id: wire.id,
+            type: 'wire' as const,
+            source,
+            sourceHandle: source === wire.source ? wire.sourcePort : null,
+            target,
+            targetHandle: target === wire.target ? wire.targetPort : null,
+            data: {
+              status: wire.status,
+              dataKind: givePort?.dataKind ?? '',
+              portLabel: givePort?.label ?? wire.sourcePort,
+            },
           },
-        };
+        ];
       });
       return [...plainEdges, ...wireEdges];
     });
-  }, [document.edges, document.wires, document.nodes]);
+  }, [document.edges, document.wires, document.nodes, view]);
+
+  const isAssemblyId = useCallback(
+    (id: string) => document.assemblies.some((assembly) => assembly.id === id),
+    [document.assemblies],
+  );
 
   const onNodesChange = useCallback(
-    (changes: NodeChange<Node<CanvasNodeData>>[]) => {
+    (changes: NodeChange<Node>[]) => {
       setRfNodes((nodes) => applyNodeChanges(changes, nodes));
       for (const change of changes) {
         if (change.type === 'position' && change.position && !Number.isNaN(change.position.x)) {
-          moveNode(change.id, change.position);
+          if (isAssemblyId(change.id)) moveAssemblyTo(change.id, change.position);
+          else moveNode(change.id, change.position);
         } else if (change.type === 'remove') {
-          deleteNode(change.id);
+          // deleting a face unpacks the group -- member nodes are sacred (I3)
+          if (isAssemblyId(change.id)) unpack(change.id);
+          else deleteNode(change.id);
         }
       }
     },
-    [moveNode, deleteNode],
+    [moveNode, deleteNode, isAssemblyId, moveAssemblyTo, unpack],
   );
 
   const onEdgesChange = useCallback(
@@ -256,6 +341,23 @@ export function Canvas() {
     [screenToFlowPosition, spawnAt, getViewport, setCenter],
   );
 
+  const selectedIds = useMemo(
+    () => rfNodes.filter((node) => node.selected).map((node) => node.id),
+    [rfNodes],
+  );
+
+  const onGather = useCallback(() => {
+    if (selectedIds.length >= 2) gatherSelection(selectedIds);
+  }, [selectedIds, gatherSelection]);
+
+  const breadcrumbNames = useMemo(
+    () =>
+      drillStack.map(
+        (id) => document.assemblies.find((assembly) => assembly.id === id)?.name ?? 'Group',
+      ),
+    [drillStack, document.assemblies],
+  );
+
   return (
     <div
       className={`canvas-root density-${settings.density} port-labels-${settings.portLabels}`}
@@ -283,7 +385,31 @@ export function Canvas() {
       >
         <Starfield />
       </ReactFlow>
-      <Toolbar menuOpen={menuOpen} onToggleMenu={() => setMenuOpen((open) => !open)} />
+      {drillStack.length > 0 && (
+        <nav className="breadcrumbs" aria-label="Group navigation">
+          <button className="breadcrumb" onClick={() => drillTo(0)}>
+            Canvas
+          </button>
+          {breadcrumbNames.map((name, index) => (
+            <span key={`${index}-${name}`} className="breadcrumb-step">
+              <span className="breadcrumb-sep">/</span>
+              <button
+                className="breadcrumb"
+                disabled={index === drillStack.length - 1}
+                onClick={() => drillTo(index + 1)}
+              >
+                {name}
+              </button>
+            </span>
+          ))}
+        </nav>
+      )}
+      <Toolbar
+        menuOpen={menuOpen}
+        onToggleMenu={() => setMenuOpen((open) => !open)}
+        selectedCount={selectedIds.length}
+        onGather={onGather}
+      />
       <Legend />
       <Toast />
       {menuOpen && <AddNodeMenu onPick={pickType} onClose={() => setMenuOpen(false)} />}

@@ -17,9 +17,9 @@ master brief — see its "Revision log" for what changed and why).
 | 4 | Connection UX: handles, connectOnClick, big hit targets, valid/invalid live coloring, tentative wire rendering, "N ideas waiting" badge | **completed** |
 | 5 | Derivations: compile (wire-order text) + ordered-intake reorder UI, deriveFace, readiness rollups, unsupported-claim flag. Golden tests incl. worked examples | **completed** |
 | 6 | Split: generic Split + template presets (beats, Toulmin, Passage→Propositions). Golden tests + UI | **completed** |
-| 7 | Assemblies (core): membership by reference, multi-membership, nesting, face-proxy stability, lossless collapse/expand. Golden tests are the gate for everything after | **current** |
-| 8 | Assembly rendering: collapsed face card, drill-in scoped canvas with breadcrumbs, gather-into-Assembly, unpack | not started |
-| 9 | Writing spine: Scene/Chapter/Manuscript (per-mode labels: Section/Document), TipTap editors, compile view, Split down the spine, cast auto-derivation | not started |
+| 7 | Assemblies (core): membership by reference, multi-membership, nesting, face-proxy stability, lossless collapse/expand. Golden tests are the gate for everything after | **completed** |
+| 8 | Assembly rendering: collapsed face card, drill-in scoped canvas with breadcrumbs, gather-into-Assembly, unpack | **completed** |
+| 9 | Writing spine: Scene/Chapter/Manuscript (per-mode labels: Section/Document), TipTap editors, compile view, Split down the spine, cast auto-derivation | **current** |
 | 10 | Semantic zoom: Assemblies collapse to star points past zoom threshold, smooth expand, onlyRenderVisibleElements | not started |
 | 11 | Workflow layer: readiness rings + rollups, Workbench inbox, ownership tags (launch scope — group projects) | not started |
 | 12 | Quick capture & palette: Ctrl+K fuzzy palette, Tauri global-shortcut capture → Workbench (launch-critical polish) | not started |
@@ -234,6 +234,61 @@ by reference (I3), multi-membership, nesting, face-proxy stability (delete an
 inner node → face survives, external connections intact), lossless
 collapse/expand round-trip at 3 nesting levels (I4). These goldens gate
 everything after. UI lands in Chunk 8 (drill-in, breadcrumbs, gather/unpack).
+
+### 2026-07-14 — Chunks 7 + 8 (completed)
+
+Chunk 7 — assemblies in core (the I3/I4 gate, all golden in
+`assemblies.golden.json`):
+- Schema: `assemblies` array — { id, name, memberIds, position, collapsed }.
+  memberIds are REFERENCES to nodes or other assemblies (nesting); schema
+  validates existence, duplicates, and rejects membership cycles on load.
+  Plain-edge endpoints may be assembly ids: connections attach to the FACE.
+- `collapsed` is a pure view flag — collapse transforms nothing, so the I4
+  lossless round-trip is structural (golden: collapse 3 levels → expand →
+  byte-identical serialize).
+- Ops: createAssembly, add/removeMember, deleteAssembly/unpack (members
+  never deleted — I3 golden), duplicateAssembly (copies the reference list,
+  zero nodes — I3 golden), setCollapsed, move, rename.
+- Derivations: memberNodeIds (transitive), hiddenIds (everything inside a
+  collapsed group), displayEndpoint (outermost collapsed face — display
+  remap only, storage untouched).
+- Face stability golden: delete an inner node → faces survive, external
+  face edges intact, document still validates.
+- All existing goldens gained `"assemblies"` (required field, intentional
+  format extension shipped with the feature).
+
+Chunk 8 — assembly rendering:
+- AssemblyFace node: collapsed = full card (name, deriveFace counts,
+  member count, Unpack) / expanded = compact pill so the group always has
+  collapse/drill affordances. Unnamed dot handles: remapped boundary
+  connections resolve on the face.
+- Canvas visibility model: hidden members filtered out; boundary edges/
+  wires DRAW to the outermost collapsed face (handles stripped on remap);
+  fully-internal connections hidden.
+- Gather: ctrl-click selection → "Group N" toolbar button → collapsed
+  assembly at the centroid. Deleting a face unpacks (members sacred).
+- Drill-in: face's Open button scopes the canvas to the group's direct
+  members (nested collapsed groups render as faces) with a breadcrumb bar;
+  drilling treats the drilled group as expanded; editing inside edits the
+  real nodes.
+- e2e: gather → counts face → expand/collapse → drill + breadcrumbs →
+  unpack; external edge to face survives deleting a member inside.
+  (Playwright notes: RF multi-select is Ctrl on Windows, not Shift; role
+  name matching is substring — scope breadcrumb queries.)
+
+Suite: 145 unit + 10 e2e green; typecheck + lint clean. Screenshot-verified
+(collapsed face: "Person: 2 · Place: 1", 3 inside, unpack/expand/open).
+
+Known limitation (revisit with semantic zoom, Chunk 10): a node belonging
+to TWO simultaneously-collapsed groups draws its boundary connections to
+whichever face the ancestor walk finds last — harmless visually, worth a
+deterministic rule later. Wire-to-face (assembly give ports derived from
+members) is deferred until the writing spine makes it meaningful.
+
+**Next session: Chunk 9 — writing spine.** TipTap editors on section/
+document/manuscript faces, full-editor view, richer compile view. The
+spine mechanics (compile, Split, cast) already exist — this chunk is
+about making writing in them feel good.
 
 **Chunk 4 design checkpoint RESOLVED (2026-07-13).** User saw 4 mockups and
 chose a mix: **A's title bar** (tinted header band + kind tag) + **B's port

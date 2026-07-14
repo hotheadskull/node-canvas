@@ -8,6 +8,7 @@ import {
   addWire,
   commitTentativeWire,
   computeAutoHeight,
+  createAssembly,
   createEmptyDocument,
   createTentativeWire,
   dissolveTentativeWire,
@@ -15,7 +16,11 @@ import {
   getNodeDef,
   getPort,
   GraphError,
+  moveAssembly,
   parseDocument,
+  renameAssembly,
+  setAssemblyCollapsed,
+  unpackAssembly,
   removeNode,
   removePlainEdge,
   removeWire,
@@ -90,6 +95,16 @@ type CanvasState = {
   reorderIntake: (nodeId: string, portId: string, wireId: string, newIndex: number) => void;
   splitNode: (nodeId: string, presetId: string) => void;
   saveViewport: (viewport: Viewport) => void;
+
+  /** Drill-in stack (UI state, not persisted): assembly ids, outermost first. */
+  drillStack: string[];
+  drillIn: (assemblyId: string) => void;
+  drillTo: (depth: number) => void;
+  gatherSelection: (memberIds: string[]) => void;
+  unpack: (assemblyId: string) => void;
+  setCollapsed: (assemblyId: string, collapsed: boolean) => void;
+  moveAssemblyTo: (assemblyId: string, position: { x: number; y: number }) => void;
+  renameAssemblyTo: (assemblyId: string, name: string) => void;
 };
 
 function nodeRect(node: CanvasDocument['nodes'][number]): Rect {
@@ -454,5 +469,55 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
         // losing viewport prefs is acceptable; losing documents is not
       }
     },
+
+    drillStack: [],
+
+    drillIn: (assemblyId) =>
+      set((state) => ({ drillStack: [...state.drillStack, assemblyId] })),
+
+    drillTo: (depth) => set((state) => ({ drillStack: state.drillStack.slice(0, depth) })),
+
+    gatherSelection: (memberIds) => {
+      const doc = get().document;
+      const rectOf = (id: string) => {
+        const node = doc.nodes.find((candidate) => candidate.id === id);
+        if (node) return nodeRect(node);
+        const assembly = doc.assemblies.find((candidate) => candidate.id === id);
+        return assembly ? { ...assembly.position, width: 260, height: 150 } : null;
+      };
+      const rects = memberIds.map(rectOf).filter((rect) => rect !== null);
+      if (rects.length === 0) return;
+      const centroid = {
+        x: Math.round(rects.reduce((sum, rect) => sum + rect.x + rect.width / 2, 0) / rects.length),
+        y: Math.round(rects.reduce((sum, rect) => sum + rect.y + rect.height / 2, 0) / rects.length),
+      };
+      try {
+        const created = createAssembly(doc, 'New group', memberIds, centroid);
+        commit(setAssemblyCollapsed(created.document, created.assemblyId, true));
+      } catch (error) {
+        if (error instanceof GraphError) {
+          set({ persistenceError: error.message });
+          return;
+        }
+        throw error;
+      }
+    },
+
+    unpack: (assemblyId) => {
+      // leaving a drill view of something that no longer exists
+      set((state) => ({
+        drillStack: state.drillStack.filter((id) => id !== assemblyId),
+      }));
+      tryOp(() => unpackAssembly(get().document, assemblyId));
+    },
+
+    setCollapsed: (assemblyId, collapsed) =>
+      tryOp(() => setAssemblyCollapsed(get().document, assemblyId, collapsed)),
+
+    moveAssemblyTo: (assemblyId, position) =>
+      tryOp(() => moveAssembly(get().document, assemblyId, position)),
+
+    renameAssemblyTo: (assemblyId, name) =>
+      tryOp(() => renameAssembly(get().document, assemblyId, name)),
   };
 });

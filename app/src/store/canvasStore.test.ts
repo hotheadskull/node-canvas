@@ -203,6 +203,70 @@ describe('per-node accent', () => {
   });
 });
 
+describe('assemblies in the store', () => {
+  function threeNodes() {
+    const store = useCanvasStore.getState();
+    const a = store.spawnAt('person', { x: 0, y: 0 })!;
+    const b = useCanvasStore.getState().spawnAt('place', { x: 900, y: 0 })!;
+    const c = useCanvasStore.getState().spawnAt('note', { x: 0, y: 900 })!;
+    return { a, b, c };
+  }
+
+  it('gather creates a COLLAPSED group referencing the selection (I3)', () => {
+    const { a, b } = threeNodes();
+    useCanvasStore.getState().gatherSelection([a, b]);
+    const doc = useCanvasStore.getState().document;
+    expect(doc.assemblies).toHaveLength(1);
+    expect(doc.assemblies[0]!.collapsed).toBe(true);
+    expect(doc.assemblies[0]!.memberIds.sort()).toEqual([a, b].sort());
+    expect(doc.nodes).toHaveLength(3); // nothing copied, nothing deleted
+  });
+
+  it('unpack dissolves the group and keeps every node', () => {
+    const { a, b } = threeNodes();
+    useCanvasStore.getState().gatherSelection([a, b]);
+    const assemblyId = useCanvasStore.getState().document.assemblies[0]!.id;
+    useCanvasStore.getState().unpack(assemblyId);
+    const doc = useCanvasStore.getState().document;
+    expect(doc.assemblies).toHaveLength(0);
+    expect(doc.nodes).toHaveLength(3);
+  });
+
+  it('collapse/expand round-trips the document losslessly (I4)', () => {
+    const { a, b } = threeNodes();
+    useCanvasStore.getState().gatherSelection([a, b]);
+    const assemblyId = useCanvasStore.getState().document.assemblies[0]!.id;
+    const before = JSON.stringify(useCanvasStore.getState().document);
+    useCanvasStore.getState().setCollapsed(assemblyId, false);
+    useCanvasStore.getState().setCollapsed(assemblyId, true);
+    expect(JSON.stringify(useCanvasStore.getState().document)).toBe(before);
+  });
+
+  it('drill stack pushes, jumps, and clears when the group unpacks', () => {
+    const { a, b } = threeNodes();
+    useCanvasStore.getState().gatherSelection([a, b]);
+    const assemblyId = useCanvasStore.getState().document.assemblies[0]!.id;
+    useCanvasStore.getState().drillIn(assemblyId);
+    expect(useCanvasStore.getState().drillStack).toEqual([assemblyId]);
+    useCanvasStore.getState().drillTo(0);
+    expect(useCanvasStore.getState().drillStack).toEqual([]);
+    useCanvasStore.getState().drillIn(assemblyId);
+    useCanvasStore.getState().unpack(assemblyId);
+    expect(useCanvasStore.getState().drillStack).toEqual([]);
+  });
+
+  it('gathering a group into a group nests by reference', () => {
+    const { a, b, c } = threeNodes();
+    useCanvasStore.getState().gatherSelection([a, b]);
+    const inner = useCanvasStore.getState().document.assemblies[0]!.id;
+    useCanvasStore.getState().gatherSelection([inner, c]);
+    const doc = useCanvasStore.getState().document;
+    expect(doc.assemblies).toHaveLength(2);
+    const outer = doc.assemblies.find((assembly) => assembly.id !== inner)!;
+    expect(outer.memberIds.sort()).toEqual([inner, c].sort());
+  });
+});
+
 describe('auto-fit height (core math applied by the store)', () => {
   it('grows with content but never below the type minimum', () => {
     const store = useCanvasStore.getState();

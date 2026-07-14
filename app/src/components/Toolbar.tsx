@@ -3,16 +3,18 @@
 // The gear opens canvas settings: density and port-label visibility.
 
 import { useReactFlow } from '@xyflow/react';
-import { Frame, Plus, Settings2 } from 'lucide-react';
+import { Boxes, Frame, Plus, Settings2 } from 'lucide-react';
 import { useState } from 'react';
 import { useCanvasStore, type PortLabelMode } from '../store/canvasStore';
 
 type Props = {
   menuOpen: boolean;
   onToggleMenu: () => void;
+  selectedCount: number;
+  onGather: () => void;
 };
 
-export function Toolbar({ menuOpen, onToggleMenu }: Props) {
+export function Toolbar({ menuOpen, onToggleMenu, selectedCount, onGather }: Props) {
   const { fitView } = useReactFlow();
   const settings = useCanvasStore((state) => state.settings);
   const setSettings = useCanvasStore((state) => state.setSettings);
@@ -36,6 +38,12 @@ export function Toolbar({ menuOpen, onToggleMenu }: Props) {
         <Frame size={15} aria-hidden />
         <span>Fit</span>
       </button>
+      {selectedCount >= 2 && (
+        <button className="toolbar-button" title="Gather the selected nodes into a group" onClick={onGather}>
+          <Boxes size={15} aria-hidden />
+          <span>Group {selectedCount}</span>
+        </button>
+      )}
       <button
         className={`toolbar-button ${settingsOpen ? 'is-active' : ''}`}
         title="Canvas settings"
