@@ -5,11 +5,12 @@ import App from './App';
 beforeEach(() => localStorage.clear());
 
 describe('App shell', () => {
-  it('boots the canvas with toolbar (bottom-left) and legend (bottom-right)', async () => {
+  it('boots the canvas: Add node top-left, toolbar bottom-left, NO legend (I6 as amended)', async () => {
     render(<App />);
     expect(screen.getByTestId('app-shell')).toBeTruthy();
     expect(await screen.findByRole('button', { name: /add node/i })).toBeTruthy();
-    expect(screen.getByLabelText('Node type legend')).toBeTruthy();
+    expect(document.querySelector('.toolbar-add .toolbar-button')).not.toBeNull();
+    expect(screen.queryByLabelText('Node type legend')).toBeNull();
   });
 
   it('shows no error banner on a clean boot', () => {

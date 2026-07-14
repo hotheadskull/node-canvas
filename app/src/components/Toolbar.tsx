@@ -52,15 +52,18 @@ export function Toolbar({ menuOpen, onToggleMenu, selectedCount, onGather }: Pro
   };
 
   return (
-    <div className="toolbar">
-      <button
-        className={`toolbar-button primary ${menuOpen ? 'is-active' : ''}`}
-        onClick={onToggleMenu}
-        aria-expanded={menuOpen}
-      >
-        <Plus size={16} aria-hidden />
-        <span>Add node</span>
-      </button>
+    <>
+      <div className="toolbar-add">
+        <button
+          className={`toolbar-button primary ${menuOpen ? 'is-active' : ''}`}
+          onClick={onToggleMenu}
+          aria-expanded={menuOpen}
+        >
+          <Plus size={16} aria-hidden />
+          <span>Add node</span>
+        </button>
+      </div>
+      <div className="toolbar">
       <button
         className="toolbar-button"
         title="Fit the view to your nodes"
@@ -117,6 +120,7 @@ export function Toolbar({ menuOpen, onToggleMenu, selectedCount, onGather }: Pro
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

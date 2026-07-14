@@ -15,9 +15,11 @@ INVARIANT-CHANGE-APPROVED in the commit message and explicit user approval.
   (any nesting depth) is a perfect round-trip. Golden-tested.
 - **I5 — Nothing moves the user's nodes without an explicit user action.**
   No auto-fit, no auto-layout, no viewport jump, no resize on load, ever.
-- **I6 — The canvas is the app.** On open: canvas, add-node button, compact
-  toolbar bottom-left, legend bottom-right, dark cosmic starfield. Minimal
+- **I6 — The canvas is the app.** On open: canvas, Add-node button top-left,
+  compact toolbar (Fit, settings) bottom-left, dark cosmic starfield. Minimal
   chrome. New UI must justify every pixel it takes from the canvas.
+  (Amended 2026-07-14 by user: Add node moved to top-left; the legend is
+  REMOVED until a better design is approved — don't reintroduce it ad hoc.)
 - **I7 — Core is pure.** All graph/port/assembly/derivation/compile logic
   lives in `core/` as pure TypeScript, fully covered by golden tests. `app/`
   renders; it never re-implements logic. Enforced by ESLint

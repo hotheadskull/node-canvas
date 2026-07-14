@@ -710,6 +710,10 @@ html, body, #root {
   position: absolute; bottom: 16px; left: 16px; z-index: 20;
   display: flex; gap: 8px; align-items: center;
 }
+/* Add node lives top-left (user decision 2026-07-14; I6 updated) */
+.toolbar-add {
+  position: absolute; top: 16px; left: 16px; z-index: 20;
+}
 .toolbar-button {
   display: inline-flex; align-items: center; gap: 7px;
   min-height: 36px; padding: 7px 13px;
@@ -739,7 +743,7 @@ html, body, #root {
 
 /* ---------- Add-node gallery menu ---------- */
 .add-menu {
-  position: absolute; bottom: 64px; left: 16px; z-index: 30;
+  position: absolute; top: 64px; left: 16px; z-index: 30;
   display: flex; gap: 12px;
   /* FIXED height: the hover preview must never resize the menu -- a
      bottom-anchored panel grows UPWARD and shifts cards under the cursor

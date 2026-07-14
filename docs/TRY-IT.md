@@ -15,7 +15,7 @@ Work through this in order — it builds on itself.
 - [ ] The app opens to the dark starfield with a subtle gold cross-grid.
       Pan around — the star layers move at different speeds (parallax).
       Watch for occasional shooting stars.
-- [ ] Toolbar sits bottom-left, the node-type legend bottom-right (I6).
+- [ ] Add node sits top-left; the Fit/settings toolbar sits bottom-left (I6).
 - [ ] Close the app and reopen: **nothing moves** — nodes and viewport come
       back exactly where you left them (I5).
 

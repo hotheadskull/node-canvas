@@ -77,5 +77,6 @@ another). Where possible each rule is enforced by a test in
 10. **The registry is the single source of truth for looks.** Menu cards,
     legend colors, node accents, and preview panels all render from registry
     data. Never hard-code a per-type color or label in a component.
-11. **Panels live where I6 says:** toolbar bottom-left, legend bottom-right,
+11. **Panels live where I6 (as amended) says:** Add-node top-left with its
+    menu anchored below it, toolbar bottom-left, no legend,
     menus anchored to the toolbar. New chrome must justify its pixels.

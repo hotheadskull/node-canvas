@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Node Canvas V2 — Try it out</title>
+<style>
+  body { max-width: 760px; margin: 2rem auto; padding: 0 1.2rem 4rem;
+         font: 15px/1.65 system-ui, "Segoe UI", sans-serif;
+         background: #0e0e12; color: #d5d5dc; }
+  h1 { color: #f0c050; font-size: 1.5rem; }
+  h2 { color: #e8e8ee; margin-top: 2rem; border-bottom: 1px solid #2a2a32;
+       padding-bottom: 4px; font-size: 1.12rem; }
+  code { background: #1c1c24; border-radius: 4px; padding: 1px 6px;
+         font-size: 0.9em; color: #ffd999; }
+  ul.checklist { list-style: none; padding-left: 0; }
+  ul.checklist li { margin: 0.55rem 0; }
+  ul.checklist label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+  ul.checklist input { margin-top: 4px; accent-color: #f0c050; }
+  ul.checklist input:checked + span { color: #6a6a72; text-decoration: line-through; }
+  strong { color: #fff; }
+</style>
+</head>
+<body>
+<h1>Try it out — everything built so far (Chunks 0–8)</h1>
+<p><strong>Launch:</strong> double-click the desktop shortcut <strong>Node Canvas V2</strong> (or run <code>start-node-canvas.bat</code> in the repo). A console shows build progress, then the <strong>Node Canvas desktop window</strong> opens (first launch compiles for a few minutes; after that it's quick). Closing the console stops the app. Your canvas auto-saves as you work and survives closing the window.</p>
+<p>Note: the desktop window keeps its own storage — a canvas you made earlier in a browser tab won't appear in it (and vice versa).</p>
+<p>Work through this in order — it builds on itself.</p>
+<h2>1. The canvas basics</h2>
+<ul class="checklist">
+<li><label><input type="checkbox"> <span>The app opens to the dark starfield with a subtle gold cross-grid. Pan around — the star layers move at different speeds (parallax). Watch for occasional shooting stars.</span></label></li>
+<li><label><input type="checkbox"> <span>Add node sits top-left; the Fit/settings toolbar sits bottom-left (I6).</span></label></li>
+<li><label><input type="checkbox"> <span>Close the app and reopen: <strong>nothing moves</strong> — nodes and viewport come back exactly where you left them (I5).</span></label></li>
+</ul>
+<h2>2. The add-node gallery</h2>
+<ul class="checklist">
+<li><label><input type="checkbox"> <span>Click <strong>+ Add node</strong>. Miniature node cards, grouped Writing / Knowledge.</span></label></li>
+<li><label><input type="checkbox"> <span>Hover cards without clicking: the right panel fills with a description, <strong>Gives/Takes</strong>, and "Known as" (Section = Scene in Novel, Sermon Point in Sermon).</span></label></li>
+<li><label><input type="checkbox"> <span>Flip the <strong>Core / All</strong> toggle — All adds the Structure group (Manuscript lives there). Close and reopen the menu: it remembered which view you used.</span></label></li>
+<li><label><input type="checkbox"> <span>Spawn several nodes rapidly — they never land on top of each other, and if one would land off-screen the camera follows it.</span></label></li>
+</ul>
+<h2>3. Nodes</h2>
+<ul class="checklist">
+<li><label><input type="checkbox"> <span>Spawn a <strong>Title</strong> node: the body IS the words. Type something, then select it and drag a corner — the text scales with the box.</span></label></li>
+<li><label><input type="checkbox"> <span>Spawn a <strong>Note</strong>: type a lot of text — the node grows with it. Drag the resizer to take ownership of the size, then click the little <strong>Fit</strong> icon in its header to hand the size back.</span></label></li>
+<li><label><input type="checkbox"> <span>Click the small type tag (e.g. "NOTE") in any node header: pick a custom accent color. Reset it with the dashed swatch.</span></label></li>
+<li><label><input type="checkbox"> <span>Toolbar gear: switch <strong>Density</strong> to Compact and <strong>Port labels</strong> to Always / Off. Both persist.</span></label></li>
+</ul>
+<h2>4. Connections (three kinds)</h2>
+<ul class="checklist">
+<li><label><input type="checkbox"> <span><strong>Plain edge (always works):</strong> drag from a top/bottom dot of any node to any other node. A gold line with a small chip appears. Click the chip (or the line) to label or delete it. This works between EVERY pair of types, zero setup (I1).</span></label></li>
+<li><label><input type="checkbox"> <span><strong>Data wire:</strong> spawn a Note and a Document. Drag the Note's glowing right-rail star ("Text") to the Document's left-rail star ("Sections"). While dragging, compatible stars glow green, incompatible red. The wire is colored by its data kind. Works dragged backwards too.</span></label></li>
+<li><label><input type="checkbox"> <span><strong>Tentative wire:</strong> drag the Note's give star onto a Document's plain top dot (not the star). You get a DASHED wire — "this might go here" — and the Document shows an amber <strong>"1 waiting"</strong> badge. Do it to a second Document too. Click ✓ on one candidate: it becomes real, the other dissolves, and a toast offers <strong>Undo</strong> (try it).</span></label></li>
+</ul>
+<h2>5. The writing spine (compile)</h2>
+<ul class="checklist">
+<li><label><input type="checkbox"> <span>Spawn a <strong>Document</strong>. Click <strong>Split → Beat sheet</strong>: five wired Section stubs appear below it.</span></label></li>
+<li><label><input type="checkbox"> <span>Write a sentence in two sections, then click <strong>Preview</strong> on the Document: the compiled text follows wire order.</span></label></li>
+<li><label><input type="checkbox"> <span>Use the ↑/↓ arrows in the Document's section list: **reordering the wires reorders the compiled text** live.</span></label></li>
+<li><label><input type="checkbox"> <span>Spawn a <strong>Person</strong>, name them, wire their Identity star into a Section's People star. The Document footer shows <strong>Cast: &lt;name&gt;</strong>. Rename the person — the cast updates instantly (derived by reference).</span></label></li>
+<li><label><input type="checkbox"> <span>Notice the small amber dot next to "Sections · wire order": the Document is wired but serves no Thread yet (a nudge, never a block).</span></label></li>
+<li><label><input type="checkbox"> <span>Word count in the footer tracks the compiled text.</span></label></li>
+</ul>
+<h2>6. Assemblies (groups)</h2>
+<ul class="checklist">
+<li><label><input type="checkbox"> <span>Spawn 2 Persons + 1 Place. Click one, <strong>Ctrl-click</strong> the others, then click <strong>Group 3</strong> in the toolbar. They collapse into one card: "Person: 2 · Place: 1 · 3 inside".</span></label></li>
+<li><label><input type="checkbox"> <span>Rename the group by typing in its header.</span></label></li>
+<li><label><input type="checkbox"> <span><strong>Expand</strong> (box icon): members return exactly where they were; the group becomes a small pill. Collapse again — lossless, every time (I4).</span></label></li>
+<li><label><input type="checkbox"> <span><strong>Open</strong> (door icon): drill into the group — scoped canvas, breadcrumb bar top-left ("Canvas / your group"). Click Canvas to come back up.</span></label></li>
+<li><label><input type="checkbox"> <span>Connect an outside Note to the collapsed group's face with a plain edge. Drill in, delete one member, come back out: the group and its edge survive (the face is a stable interface).</span></label></li>
+<li><label><input type="checkbox"> <span>Groups can contain groups: gather a group card + a node together.</span></label></li>
+<li><label><input type="checkbox"> <span><strong>Unpack</strong>: the group dissolves; every node is still there (I3 — members are references, never possessions).</span></label></li>
+</ul>
+<h2>7. Data safety (I9)</h2>
+<ul class="checklist">
+<li><label><input type="checkbox"> <span>Make an edit and immediately close the window. Reopen: the edit is there (saves flush on close).</span></label></li>
+<li><label><input type="checkbox"> <span>DevTools → Application → Local Storage: corrupt <code>nodecanvas.v2.document</code> (delete a <code>}</code>), reload. You get an error banner, a fresh canvas, and the broken payload is preserved under <code>...corrupt-backup</code> — never silently discarded.</span></label></li>
+</ul>
+<p>Found something off? Tell Claude which checklist item and what happened — each of these maps to a test that should have caught it.</p>
+<h2>8. Rich text + the focus room (new)</h2>
+<ul class="checklist">
+<li><label><input type="checkbox"> <span>Click into any Note/Section body: a small formatting toolbar fades in — bold, italic, heading, list, quote. Formatting survives reload and shows in the Document's compiled Preview.</span></label></li>
+<li><label><input type="checkbox"> <span><strong>Double-click</strong> a Section: the focus room opens — big serif editor, live word count. If the section is wired into a Document, prev/next (or Alt+←/→) walk its siblings in compile order. Esc returns.</span></label></li>
+<li><label><input type="checkbox"> <span>In the focus room, set an <strong>owner</strong> (top right). The node now wears a small owner chip on the canvas.</span></label></li>
+</ul>
+<h2>9. Semantic zoom (new)</h2>
+<ul class="checklist">
+<li><label><input type="checkbox"> <span>Collapse a group, then zoom way out: the card becomes a glowing, breathing star with its name. Double-click the star to dive back in.</span></label></li>
+</ul>
+<h2>10. Readiness + group rollups (new)</h2>
+<ul class="checklist">
+<li><label><input type="checkbox"> <span>Click the little dot at the left of any node header: it cycles seed (gray) → developing (yellow) → ready (green) → placed (purple).</span></label></li>
+<li><label><input type="checkbox"> <span>A collapsed group's face now shows readiness counts and, if owners are set, "waiting on &lt;name&gt;: N".</span></label></li>
+</ul>
+<h2>11. Ctrl+K — jump and capture (new)</h2>
+<ul class="checklist">
+<li><label><input type="checkbox"> <span>Press <strong>Ctrl+K</strong>, type a few letters of any node's title, Enter: the camera jumps to it.</span></label></li>
+<li><label><input type="checkbox"> <span>Press Ctrl+K and type a fresh thought, pick "Capture … in the Workbench": a Workbench group appears (collapsed, out of the way) holding your note, its face counting captures and their age. Your camera never moves — capture doesn't break flow.</span></label></li>
+</ul>
+<h2>12. Claims and sources (new — the argument spine)</h2>
+<ul class="checklist">
+<li><label><input type="checkbox"> <span>Menu → All → "Paper &amp; argument": spawn a <strong>Claim</strong>. Wire anything into it… actually first notice: once a Claim is wired to anything, an amber dot appears in its header — "Supports intake is empty."</span></label></li>
+<li><label><input type="checkbox"> <span>Split the Claim → <strong>Toulmin scaffold</strong>: Grounds/Warrant/Backing/ Rebuttal stubs wire into its Supports, and the amber dot goes out.</span></label></li>
+<li><label><input type="checkbox"> <span>Spawn a <strong>Source</strong>, wire its Citation star into a Document's Footnotes star (left rail, hidden ports show on hover with labels on).</span></label></li>
+</ul>
+<script>
+  // remember checked items between opens
+  const key = 'tryit-checks';
+  const boxes = [...document.querySelectorAll('input[type=checkbox]')];
+  const saved = JSON.parse(localStorage.getItem(key) ?? '[]');
+  boxes.forEach((box, index) => {
+    box.checked = saved.includes(index);
+    box.addEventListener('change', () => {
+      const checked = boxes.flatMap((candidate, i) => (candidate.checked ? [i] : []));
+      localStorage.setItem(key, JSON.stringify(checked));
+    });
+  });
+</script>
+</body>
+</html>

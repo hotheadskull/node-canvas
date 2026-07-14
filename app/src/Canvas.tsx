@@ -42,7 +42,6 @@ import { AssemblyFace } from './components/AssemblyFace';
 import { CanvasNode } from './components/CanvasNode';
 import { CommandPalette } from './components/CommandPalette';
 import { FocusEditor } from './components/FocusEditor';
-import { Legend } from './components/Legend';
 import { PlainEdge } from './components/PlainEdge';
 import { Starfield } from './components/Starfield';
 import { Toast } from './components/Toast';
@@ -433,7 +432,8 @@ export function Canvas() {
         selectedCount={selectedIds.length}
         onGather={onGather}
       />
-      <Legend />
+      {/* Legend removed at user request (2026-07-14) until a better design
+          exists -- component kept at components/Legend.tsx for its return */}
       <Toast />
       <FocusEditor />
       <CommandPalette />
