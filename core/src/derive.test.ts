@@ -2,16 +2,18 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   castOf,
+  citedSourceIds,
   compile,
   deriveFace,
   hygieneFlags,
   ownersOutstanding,
   readinessOf,
   rollupReadiness,
+  unusedSourceIds,
   wordCount,
   workbenchInfo,
 } from './derive';
-import { reorderIntakeWire } from './wires';
+import { isValidWire, reorderIntakeWire } from './wires';
 import { DocumentSchema, type CanvasDocument } from './schema';
 
 const golden = JSON.parse(readFileSync(new URL('./derive.golden.json', import.meta.url), 'utf8'));
@@ -118,6 +120,69 @@ describe('readiness (golden rollup)', () => {
 
   it('an empty set is seed with zero total', () => {
     expect(rollupReadiness(fixture, []).overall).toBe('seed');
+  });
+});
+
+describe('citations (argument spine)', () => {
+  function withSources(): CanvasDocument {
+    return {
+      ...fixture,
+      nodes: [
+        ...fixture.nodes,
+        { id: 'node_src-a', type: 'source', position: { x: -2000, y: 0 }, data: { title: 'Stevenson 1881' } },
+        { id: 'node_src-b', type: 'source', position: { x: -2000, y: 400 }, data: { title: 'Harbor Records' } },
+        { id: 'node_src-unused', type: 'source', position: { x: -2000, y: 800 }, data: { title: 'Never cited' } },
+        { id: 'node_claim', type: 'claim', position: { x: -2000, y: 1200 }, data: { title: 'Wrecks fell' } },
+      ],
+      wires: [
+        ...fixture.wires,
+        { id: 'wire_cite-a', source: 'node_src-a', sourcePort: 'citation-out', target: 'node_chapter', targetPort: 'footnotes-in', status: 'live' },
+        { id: 'wire_cite-b', source: 'node_src-b', sourcePort: 'citation-out', target: 'node_chapter', targetPort: 'footnotes-in', status: 'live' },
+        { id: 'wire_support', source: 'node_src-b', sourcePort: 'citation-out', target: 'node_claim', targetPort: 'supports-in', status: 'live' },
+      ],
+    };
+  }
+
+  it('cited sources roll up the spine in wire order', () => {
+    const doc = withSources();
+    expect(citedSourceIds(doc, 'node_chapter')).toEqual(['node_src-a', 'node_src-b']);
+    // the manuscript sees its chapter's citations
+    expect(citedSourceIds(doc, 'node_manuscript')).toEqual(['node_src-a', 'node_src-b']);
+  });
+
+  it('unused research: sources feeding nothing live', () => {
+    expect(unusedSourceIds(withSources())).toEqual(['node_src-unused']);
+  });
+
+  it("'any' intakes accept every kind; a supported claim stops flagging", () => {
+    const doc = withSources();
+    expect(
+      isValidWire(doc, {
+        source: 'node_src-a',
+        sourcePort: 'citation-out',
+        target: 'node_claim',
+        targetPort: 'supports-in',
+      }).ok,
+    ).toBe(true);
+    const flags = hygieneFlags(doc);
+    // node_claim has a live support -> NOT flagged
+    expect(flags.some((flag) => flag.nodeId === 'node_claim')).toBe(false);
+  });
+
+  it('an unsupported claim flags itself once it participates in wiring', () => {
+    const doc = withSources();
+    const rewired: CanvasDocument = {
+      ...doc,
+      wires: doc.wires.map((wire) =>
+        wire.id === 'wire_support'
+          ? { ...wire, targetPort: 'rebuts-in' } // support becomes a rebuttal
+          : wire,
+      ),
+    };
+    const flags = hygieneFlags(rewired);
+    expect(flags.some((flag) => flag.nodeId === 'node_claim' && flag.portLabel === 'Supports')).toBe(
+      true,
+    );
   });
 });
 

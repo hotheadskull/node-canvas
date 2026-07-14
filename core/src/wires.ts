@@ -79,7 +79,9 @@ export function isValidWire(
   }
   const givePort = getPort(sourceNode.type, spec.sourcePort)!;
   const takePort = getPort(targetNode.type, spec.targetPort)!;
-  if (givePort.dataKind !== takePort.dataKind) {
+  // 'any' intakes accept every kind (e.g. a Claim's Supports takes sources,
+  // other claims, or plain notes)
+  if (takePort.dataKind !== 'any' && givePort.dataKind !== takePort.dataKind) {
     return {
       ok: false,
       reason: 'kind-mismatch',

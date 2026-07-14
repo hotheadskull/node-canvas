@@ -474,7 +474,11 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
         set({ persistenceError: `Split preset "${presetId}" not available here` });
         return;
       }
-      tryOp(() => splitNodeOp(doc, nodeId, preset.stubs).document);
+      tryOp(
+        () =>
+          splitNodeOp(doc, nodeId, preset.stubs, preset.intake ? { intakeId: preset.intake } : {})
+            .document,
+      );
     },
 
     saveViewport: (viewport) => {

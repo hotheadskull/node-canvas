@@ -79,7 +79,7 @@ const same = (text: string): Record<CanvasMode, string> => ({
   sermon: text,
 });
 
-export const NODE_TYPE_DEFS: readonly NodeTypeDef[] = [
+const UNIVERSAL_CORE: readonly NodeTypeDef[] = [
   // ---------- Universal Core: writing set ----------
   {
     type: 'title',
@@ -134,6 +134,7 @@ export const NODE_TYPE_DEFS: readonly NodeTypeDef[] = [
       { id: 'sections-in', direction: 'take', dataKind: 'text', label: 'Sections', defaultVisible: true, capacity: 'many', spine: true },
       { id: 'compiled-out', direction: 'give', dataKind: 'text', label: 'Compiled text', defaultVisible: true },
       { id: 'thread-in', direction: 'take', dataKind: 'thread', label: 'Thread', defaultVisible: false, capacity: 'one', flagWhenEmpty: true },
+      { id: 'footnotes-in', direction: 'take', dataKind: 'cite', label: 'Footnotes', defaultVisible: false, capacity: 'many' },
     ],
   },
   {
@@ -255,6 +256,52 @@ export const NODE_TYPE_DEFS: readonly NodeTypeDef[] = [
   },
 ];
 
+const ACADEMIC_PACK: readonly NodeTypeDef[] = [
+  {
+    // Earns its place: page-anchored quotes flow OUT as citations; footnote
+    // and supports intakes consume them (never just a renamed Note).
+    type: 'source',
+    category: 'knowledge',
+    pack: 'academic',
+    coreMenu: false,
+    accent: '#14b8a6',
+    labels: { universal: 'Source', novel: 'Reference', sermon: 'Commentary / Source' },
+    descriptions: {
+      universal: 'Something you read; its citation flows into footnotes and claims',
+      novel: 'Research behind the story; cite it where it shaped a scene',
+      sermon: 'A commentary or work you lean on; cite it where it serves',
+    },
+    size: { width: 340, height: 260 },
+    sizing: 'auto-height',
+    ports: [
+      { id: 'citation-out', direction: 'give', dataKind: 'cite', label: 'Citation', defaultVisible: true },
+    ],
+  },
+  {
+    type: 'claim',
+    category: 'writing',
+    pack: 'academic',
+    coreMenu: false,
+    accent: '#f43f5e',
+    labels: { universal: 'Claim', novel: 'Claim', sermon: 'Point / Proposition' },
+    descriptions: {
+      universal: 'Flags itself while its Supports intake is empty',
+      novel: 'An assertion your world or plot depends on',
+      sermon: 'A point that must be supported to stand',
+    },
+    size: { width: 360, height: 240 },
+    sizing: 'auto-height',
+    ports: [
+      { id: 'claim-out', direction: 'give', dataKind: 'claim', label: 'Claim', defaultVisible: true },
+      { id: 'supports-in', direction: 'take', dataKind: 'any', label: 'Supports', defaultVisible: true, capacity: 'many', spine: true, flagWhenEmpty: true },
+      { id: 'rebuts-in', direction: 'take', dataKind: 'any', label: 'Rebuts', defaultVisible: false, capacity: 'many' },
+      { id: 'warrant-in', direction: 'take', dataKind: 'text', label: 'Warrant', defaultVisible: false, capacity: 'one' },
+    ],
+  },
+];
+
+export const NODE_TYPE_DEFS: readonly NodeTypeDef[] = [...UNIVERSAL_CORE, ...ACADEMIC_PACK];
+
 export const NODE_REGISTRY: Readonly<Record<string, NodeTypeDef>> = Object.fromEntries(
   NODE_TYPE_DEFS.map((def) => [def.type, def]),
 );
@@ -288,6 +335,8 @@ export type SplitPreset = {
   label: string;
   description: string;
   stubs: readonly SplitStubSpec[];
+  /** Intake the stubs wire into; defaults to the type's spine intake. */
+  intake?: string;
 };
 
 export const SPLIT_PRESETS: readonly SplitPreset[] = [
@@ -313,6 +362,19 @@ export const SPLIT_PRESETS: readonly SplitPreset[] = [
       { type: 'section', title: 'Rising action' },
       { type: 'section', title: 'Climax' },
       { type: 'section', title: 'Resolution' },
+    ],
+  },
+  {
+    id: 'toulmin',
+    forTypes: ['claim'],
+    label: 'Toulmin scaffold',
+    description: 'Grounds, Warrant, Backing, Rebuttal stubs wired into Supports',
+    intake: 'supports-in',
+    stubs: [
+      { type: 'note', title: 'Grounds' },
+      { type: 'note', title: 'Warrant' },
+      { type: 'note', title: 'Backing' },
+      { type: 'note', title: 'Rebuttal' },
     ],
   },
   {

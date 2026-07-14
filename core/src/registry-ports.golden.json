@@ -10,7 +10,8 @@
   "document": [
     { "id": "sections-in", "direction": "take", "dataKind": "text", "label": "Sections", "defaultVisible": true, "capacity": "many", "spine": true },
     { "id": "compiled-out", "direction": "give", "dataKind": "text", "label": "Compiled text", "defaultVisible": true },
-    { "id": "thread-in", "direction": "take", "dataKind": "thread", "label": "Thread", "defaultVisible": false, "capacity": "one", "flagWhenEmpty": true }
+    { "id": "thread-in", "direction": "take", "dataKind": "thread", "label": "Thread", "defaultVisible": false, "capacity": "one", "flagWhenEmpty": true },
+    { "id": "footnotes-in", "direction": "take", "dataKind": "cite", "label": "Footnotes", "defaultVisible": false, "capacity": "many" }
   ],
   "manuscript": [
     { "id": "documents-in", "direction": "take", "dataKind": "text", "label": "Documents", "defaultVisible": true, "capacity": "many", "spine": true },
@@ -38,5 +39,14 @@
   ],
   "thing": [
     { "id": "identity-out", "direction": "give", "dataKind": "thing", "label": "Identity", "defaultVisible": true }
+  ],
+  "source": [
+    { "id": "citation-out", "direction": "give", "dataKind": "cite", "label": "Citation", "defaultVisible": true }
+  ],
+  "claim": [
+    { "id": "claim-out", "direction": "give", "dataKind": "claim", "label": "Claim", "defaultVisible": true },
+    { "id": "supports-in", "direction": "take", "dataKind": "any", "label": "Supports", "defaultVisible": true, "capacity": "many", "spine": true, "flagWhenEmpty": true },
+    { "id": "rebuts-in", "direction": "take", "dataKind": "any", "label": "Rebuts", "defaultVisible": false, "capacity": "many" },
+    { "id": "warrant-in", "direction": "take", "dataKind": "text", "label": "Warrant", "defaultVisible": false, "capacity": "one" }
   ]
 }

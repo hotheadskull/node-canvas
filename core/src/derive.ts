@@ -201,6 +201,45 @@ export function rollupReadiness(
 }
 
 // ---------------------------------------------------------------------------
+// Citations: sources wired into footnote intakes across the spine subtree.
+// Formatting (Chicago/APA/etc.) is deliberately out of scope -- Node Canvas
+// structures and compiles; typesetting belongs to the word processor.
+// ---------------------------------------------------------------------------
+
+/** Source node ids cited by this node or anything on its spine, in wire order. */
+export function citedSourceIds(document: CanvasDocument, nodeId: string): string[] {
+  const cited: string[] = [];
+  const visit = (id: string, path: ReadonlySet<string>) => {
+    if (path.has(id)) return;
+    const nextPath = new Set(path).add(id);
+    for (const wire of document.wires) {
+      if (wire.target !== id || wire.targetPort !== 'footnotes-in' || wire.status !== 'live')
+        continue;
+      if (!cited.includes(wire.source)) cited.push(wire.source);
+    }
+    for (const wire of spineWiresInto(document, id)) {
+      visit(wire.source, nextPath);
+    }
+  };
+  visit(nodeId, new Set());
+  return cited;
+}
+
+/**
+ * "Unused research": Source nodes whose citation feeds nothing live --
+ * wired-up reading that never made it into the work.
+ */
+export function unusedSourceIds(document: CanvasDocument): string[] {
+  return document.nodes
+    .filter(
+      (node) =>
+        node.type === 'source' &&
+        !document.wires.some((wire) => wire.source === node.id && wire.status === 'live'),
+    )
+    .map((node) => node.id);
+}
+
+// ---------------------------------------------------------------------------
 // Ownership: a plain per-node tag (no accounts, no sync -- just a field).
 // Rollups answer "who is the group waiting on?"
 // ---------------------------------------------------------------------------

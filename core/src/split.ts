@@ -8,7 +8,7 @@
 import { GraphError } from './graph';
 import { createId } from './ids';
 import { findFreePosition, type Rect } from './layout';
-import { getNodeDef, spineIntakeOf, textGiveOf, type SplitStubSpec } from './registry';
+import { getNodeDef, getPort, spineIntakeOf, textGiveOf, type SplitStubSpec } from './registry';
 import type { CanvasDocument, CanvasNode, DataWire } from './schema';
 
 export type SplitResult = {
@@ -17,28 +17,37 @@ export type SplitResult = {
   createdIds: string[];
 };
 
+export type SplitOptions = {
+  /** Target intake; defaults to the parent type's spine intake. */
+  intakeId?: string;
+  /** Injectable so tests and goldens stay deterministic. */
+  idFactory?: (prefix: string) => string;
+};
+
 const STUB_GAP = 60;
 
 /**
  * Create stub children below the parent, left-to-right in reading order,
- * each wired live into the parent's spine intake. Stubs never land on
+ * each wired live into the parent's intake (spine by default; presets may
+ * target another, e.g. Toulmin -> a Claim's Supports). Stubs never land on
  * existing nodes (collision-free placement), and the parent never moves (I5).
- *
- * `idFactory` exists so tests (and goldens) can inject deterministic ids.
  */
 export function splitNode(
   document: CanvasDocument,
   parentId: string,
   stubs: readonly SplitStubSpec[],
-  idFactory: (prefix: string) => string = createId,
+  options: SplitOptions = {},
 ): SplitResult {
+  const idFactory = options.idFactory ?? createId;
   const parent = document.nodes.find((node) => node.id === parentId);
   if (!parent) {
     throw new GraphError(`node "${parentId}" not found`);
   }
-  const intake = spineIntakeOf(parent.type);
-  if (!intake) {
-    throw new GraphError(`"${parent.type}" has no spine intake to split into`);
+  const intake = options.intakeId
+    ? getPort(parent.type, options.intakeId)
+    : spineIntakeOf(parent.type);
+  if (!intake || intake.direction !== 'take') {
+    throw new GraphError(`"${parent.type}" has no such intake to split into`);
   }
   if (stubs.length === 0) {
     throw new GraphError('nothing to split into: no stubs given');
@@ -49,7 +58,7 @@ export function splitNode(
       throw new GraphError(`unregistered stub type "${stub.type}" (I8)`);
     }
     const give = textGiveOf(stub.type);
-    if (!give || give.dataKind !== intake.dataKind) {
+    if (!give || (intake.dataKind !== 'any' && give.dataKind !== intake.dataKind)) {
       throw new GraphError(
         `"${stub.type}" cannot feed the ${intake.label} intake of "${parent.type}"`,
       );

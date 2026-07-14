@@ -19,21 +19,21 @@ function makeIdFactory() {
 
 describe('splitNode (golden)', () => {
   it('creates stubs below the parent, wired into the spine intake in order', () => {
-    const result = splitNode(fixture, 'node_chapter', golden.stubs, makeIdFactory());
+    const result = splitNode(fixture, 'node_chapter', golden.stubs, { idFactory: makeIdFactory() });
     expect(result.createdIds).toEqual(golden.createdIds);
     expect(result.document).toEqual(DocumentSchema.parse(golden.after));
   });
 
   it('the parent NEVER moves (I5) and the original document is untouched', () => {
     const before = structuredClone(fixture);
-    const result = splitNode(fixture, 'node_chapter', golden.stubs, makeIdFactory());
+    const result = splitNode(fixture, 'node_chapter', golden.stubs, { idFactory: makeIdFactory() });
     expect(fixture).toEqual(before);
     const parent = result.document.nodes.find((node) => node.id === 'node_chapter')!;
     expect(parent.position).toEqual({ x: 0, y: 0 });
   });
 
   it('split then compile: stubs contribute in reading order once written', () => {
-    const result = splitNode(fixture, 'node_chapter', golden.stubs, makeIdFactory());
+    const result = splitNode(fixture, 'node_chapter', golden.stubs, { idFactory: makeIdFactory() });
     const written: CanvasDocument = {
       ...result.document,
       nodes: result.document.nodes.map((node) => {
@@ -59,7 +59,7 @@ describe('splitNode (golden)', () => {
         },
       ],
     };
-    const result = splitNode(crowded, 'node_chapter', golden.stubs, makeIdFactory());
+    const result = splitNode(crowded, 'node_chapter', golden.stubs, { idFactory: makeIdFactory() });
     const rects: Rect[] = result.document.nodes.map((node) => ({
       x: node.position.x,
       y: node.position.y,
@@ -88,7 +88,7 @@ describe('splitNode (golden)', () => {
       ],
     };
     const preset = SPLIT_PRESETS.find((candidate) => candidate.id === 'three-chapters')!;
-    const result = splitNode(withManuscript, 'node_ms', preset.stubs, makeIdFactory());
+    const result = splitNode(withManuscript, 'node_ms', preset.stubs, { idFactory: makeIdFactory() });
     expect(result.createdIds).toHaveLength(3);
     const wires = result.document.wires.filter((wire) => wire.target === 'node_ms');
     expect(wires.every((wire) => wire.targetPort === 'documents-in' && wire.status === 'live')).toBe(
@@ -126,6 +126,35 @@ describe('split presets (registry data, I8)', () => {
     expect(splitPresetsFor('note')).toEqual([]);
   });
 
+  it('Toulmin scaffolds a claim through its Supports intake', () => {
+    const doc: CanvasDocument = {
+      ...fixture,
+      nodes: [
+        {
+          id: 'node_claim',
+          type: 'claim',
+          position: { x: 0, y: 0 },
+          size: { width: 360, height: 240 },
+          data: { title: 'Lighthouses reduced wrecks' },
+        },
+      ],
+      wires: [],
+    };
+    const preset = SPLIT_PRESETS.find((candidate) => candidate.id === 'toulmin')!;
+    const result = splitNode(doc, 'node_claim', preset.stubs, {
+      intakeId: preset.intake!,
+      idFactory: makeIdFactory(),
+    });
+    expect(result.createdIds).toHaveLength(4);
+    const wires = result.document.wires.filter((wire) => wire.target === 'node_claim');
+    expect(wires.every((wire) => wire.targetPort === 'supports-in' && wire.status === 'live')).toBe(
+      true,
+    );
+    expect(
+      result.document.nodes.filter((node) => node.type === 'note').map((node) => node.data.title),
+    ).toEqual(['Grounds', 'Warrant', 'Backing', 'Rebuttal']);
+  });
+
   it('every preset stub type can actually feed its target types', () => {
     for (const preset of SPLIT_PRESETS) {
       for (const forType of preset.forTypes) {
@@ -148,7 +177,12 @@ describe('split presets (registry data, I8)', () => {
             wires: [],
             assemblies: [],
           };
-          splitNode(doc, 'node_parent', preset.stubs);
+          splitNode(
+            doc,
+            'node_parent',
+            preset.stubs,
+            preset.intake ? { intakeId: preset.intake } : {},
+          );
         }).not.toThrow();
       }
     }

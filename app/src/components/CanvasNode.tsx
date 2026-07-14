@@ -19,6 +19,7 @@ import { memo, useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import {
   getNodeDef,
+  hygieneFlags,
   nodeLabel,
   ownerOf,
   readinessOf,
@@ -43,6 +44,9 @@ export const PORT_KIND_COLORS: Record<string, string> = {
   person: '#3b82f6',
   place: '#10b981',
   thing: '#f59e0b',
+  cite: '#14b8a6',
+  claim: '#f43f5e',
+  any: '#cbd5e1',
 };
 
 export const ACCENT_PRESETS = [
@@ -115,6 +119,13 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
       };
     }),
   );
+  const flaggedPorts = useCanvasStore(
+    useShallow((state) =>
+      hygieneFlags(state.document)
+        .filter((flag) => flag.nodeId === id)
+        .map((flag) => flag.portLabel),
+    ),
+  );
   const updateNodeInternals = useUpdateNodeInternals();
 
   const [accentPickerOpen, setAccentPickerOpen] = useState(false);
@@ -166,6 +177,13 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
           <span className="owner-chip" title={`Owner: ${owner}`}>
             {owner}
           </span>
+        )}
+        {flaggedPorts.length > 0 && (
+          <span
+            className="hygiene-dot"
+            title={`${flaggedPorts.join(', ')} intake is empty`}
+            data-hygiene-flag
+          />
         )}
         {!faceOwnsTitle && (
           <input
