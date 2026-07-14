@@ -5,14 +5,17 @@
 // face is the assembly's stable interface (I3), so it has plain-edge dots.
 
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { Boxes, DoorOpen, Minimize2, PackageOpen } from 'lucide-react';
+import { Boxes, DoorOpen, Minimize2, PackageOpen, Spline } from 'lucide-react';
 import { memo, useMemo } from 'react';
 import {
+  arcOutline,
   deriveFace,
+  getArcRelation,
   memberNodeIds,
   ownersOutstanding,
   READINESS_STAGES,
   rollupReadiness,
+  stripHtml,
   workbenchInfo,
 } from '@node-canvas/core';
 import { useCanvasStore } from '../store/canvasStore';
@@ -51,6 +54,20 @@ function AssemblyFaceComponent({ data, selected }: NodeProps & { data: AssemblyF
   const rollup = useMemo(() => rollupReadiness(document, members), [document, members]);
   const owners = useMemo(() => ownersOutstanding(document, members), [document, members]);
   const workbench = useMemo(() => workbenchInfo(document, members), [document, members]);
+  // An "Arc group" is just an assembly holding >= 2 propositions -- no
+  // special entity (I3/I4 stay untouched); the outline is pure derivation.
+  const outline = useMemo(() => arcOutline(document, members), [document, members]);
+  const isArcGroup = outline.propCount >= 2;
+  const openArcRoom = useCanvasStore((state) => state.openArcRoom);
+
+  const propText = (nodeId: string): string => {
+    const node = document.nodes.find((candidate) => candidate.id === nodeId);
+    if (!node) return '…';
+    const content = typeof node.data.content === 'string' ? stripHtml(node.data.content).trim() : '';
+    if (content !== '') return content;
+    const title = typeof node.data.title === 'string' ? node.data.title.trim() : '';
+    return title !== '' ? title : 'Untitled proposition';
+  };
 
   return (
     <div
@@ -82,6 +99,16 @@ function AssemblyFaceComponent({ data, selected }: NodeProps & { data: AssemblyF
           >
             <DoorOpen size={13} aria-hidden />
           </button>
+          {isArcGroup && (
+            <button
+              className="assembly-face-button nodrag"
+              title="Arc room: work the propositions and their relationships"
+              aria-label="Open Arc room"
+              onClick={() => openArcRoom(data.assemblyId)}
+            >
+              <Spline size={13} aria-hidden />
+            </button>
+          )}
         </span>
       </header>
       {data.collapsed && (
@@ -97,6 +124,29 @@ function AssemblyFaceComponent({ data, selected }: NodeProps & { data: AssemblyF
                 </span>
               ))}
             </p>
+          )}
+          {isArcGroup && (
+            <div className="arc-face-outline nodrag" data-arc-outline>
+              {outline.entries.map((entry) => (
+                <p
+                  key={entry.nodeId}
+                  className={entry.level === 0 ? 'arc-face-main' : 'arc-face-sub'}
+                  style={{ paddingLeft: `${entry.level * 12}px` }}
+                >
+                  {entry.relationId && (
+                    <span className="arc-face-code">
+                      {getArcRelation(entry.relationId)?.code ?? '?'}
+                    </span>
+                  )}
+                  {propText(entry.nodeId)}
+                </p>
+              ))}
+              <p className="arc-face-stats">
+                {outline.mainPointIds.length} main point
+                {outline.mainPointIds.length === 1 ? '' : 's'} · {outline.arcCount} arc
+                {outline.arcCount === 1 ? '' : 's'}
+              </p>
+            </div>
           )}
           {rollup.total > 0 && rollup.counts.seed !== rollup.total && (
             <p className="assembly-face-readiness" title="Readiness of everything inside">

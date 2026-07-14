@@ -48,5 +48,14 @@
     { "id": "supports-in", "direction": "take", "dataKind": "any", "label": "Supports", "defaultVisible": true, "capacity": "many", "spine": true, "flagWhenEmpty": true },
     { "id": "rebuts-in", "direction": "take", "dataKind": "any", "label": "Rebuts", "defaultVisible": false, "capacity": "many" },
     { "id": "warrant-in", "direction": "take", "dataKind": "text", "label": "Warrant", "defaultVisible": false, "capacity": "one" }
+  ],
+  "passage": [
+    { "id": "text-out", "direction": "give", "dataKind": "text", "label": "Text", "defaultVisible": true },
+    { "id": "props-in", "direction": "take", "dataKind": "prop", "label": "Propositions", "defaultVisible": true, "capacity": "many", "spine": true }
+  ],
+  "proposition": [
+    { "id": "prop-out", "direction": "give", "dataKind": "prop", "label": "Proposition", "defaultVisible": true },
+    { "id": "arc-in", "direction": "take", "dataKind": "prop", "label": "Arcs", "defaultVisible": true, "capacity": "many" },
+    { "id": "text-out", "direction": "give", "dataKind": "text", "label": "Text", "defaultVisible": false }
   ]
 }

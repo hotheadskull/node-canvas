@@ -31,6 +31,7 @@ import {
 } from '@xyflow/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  arcOutline,
   displayEndpoint,
   getPort,
   hiddenIds,
@@ -38,6 +39,7 @@ import {
   setAssemblyCollapsed,
 } from '@node-canvas/core';
 import { AddNodeMenu } from './components/AddNodeMenu';
+import { ArcRoom } from './components/ArcRoom';
 import { AssemblyFace } from './components/AssemblyFace';
 import { CanvasNode } from './components/CanvasNode';
 import { CommandPalette } from './components/CommandPalette';
@@ -100,7 +102,20 @@ export function Canvas() {
       !hidden.has(id) && (scope === null || scope.has(id));
     const assemblyVisible = (id: string) =>
       !hidden.has(id) && id !== drilled && (scope === null || scope.has(id));
-    return { viewDoc, hidden, nodeVisible, assemblyVisible };
+    // Drilling into an Arc group shows its propositions as PHRASING STRIPS
+    // (user-picked design C): indent derived from subordination. Display
+    // positions only -- stored positions never change, dragging is off (I5).
+    let phrasing: Map<string, { level: number; order: number }> | null = null;
+    if (drilledAssembly) {
+      const outline = arcOutline(document, drilledAssembly.memberIds);
+      if (outline.propCount >= 2) {
+        phrasing = new Map(
+          outline.entries.map((entry, order) => [entry.nodeId, { level: entry.level, order }]),
+        );
+      }
+    }
+    const phrasingOrigin = drilledAssembly?.position ?? { x: 0, y: 0 };
+    return { viewDoc, hidden, nodeVisible, assemblyVisible, phrasing, phrasingOrigin };
   }, [document, drillStack, drilled]);
 
   // Sync core document -> RF state. Existing RF node objects are merged so
@@ -112,11 +127,21 @@ export function Canvas() {
         .filter((docNode) => view.nodeVisible(docNode.id))
         .map((docNode) => {
           const existing = byId.get(docNode.id);
+          const strip = view.phrasing?.get(docNode.id);
           return {
             ...existing,
             id: docNode.id,
             type: 'canvas' as const,
-            position: docNode.position,
+            // phrasing strips take a DERIVED display position; the stored
+            // position is untouched and dragging is disabled while displayed
+            position: strip
+              ? {
+                  x: view.phrasingOrigin.x + strip.level * 72,
+                  y: view.phrasingOrigin.y + strip.order * 96,
+                }
+              : docNode.position,
+            className: strip ? 'phrasing-node' : '',
+            draggable: !strip,
             ...(docNode.size
               ? { style: { width: docNode.size.width, height: docNode.size.height } }
               : {}),
@@ -189,6 +214,7 @@ export function Canvas() {
         if (!endpointVisible(source) || !endpointVisible(target)) return [];
         const sourceNode = document.nodes.find((node) => node.id === wire.source);
         const givePort = sourceNode ? getPort(sourceNode.type, wire.sourcePort) : undefined;
+        const isArc = givePort?.dataKind === 'prop' && wire.targetPort === 'arc-in';
         return [
           {
             ...byId.get(wire.id),
@@ -202,6 +228,8 @@ export function Canvas() {
               status: wire.status,
               dataKind: givePort?.dataKind ?? '',
               portLabel: givePort?.label ?? wire.sourcePort,
+              ...(isArc ? { isArc } : {}),
+              ...(wire.relation !== undefined ? { relation: wire.relation } : {}),
             },
           },
         ];
@@ -436,6 +464,7 @@ export function Canvas() {
           exists -- component kept at components/Legend.tsx for its return */}
       <Toast />
       <FocusEditor />
+      <ArcRoom />
       <CommandPalette />
       {menuOpen && <AddNodeMenu onPick={pickType} onClose={() => setMenuOpen(false)} />}
     </div>

@@ -1,0 +1,138 @@
+{
+  "document": {
+    "schemaVersion": 1,
+    "id": "doc-arcs",
+    "name": "Arc worked example",
+    "canvasMode": "sermon",
+    "createdAt": "2026-07-14T00:00:00.000Z",
+    "nodes": [
+      {
+        "id": "passage-1",
+        "type": "passage",
+        "position": { "x": 0, "y": 0 },
+        "size": { "width": 420, "height": 300 },
+        "data": { "title": "Romans 12:1-2", "content": "<p>I appeal to you therefore, brothers…</p>" }
+      },
+      {
+        "id": "prop-main",
+        "type": "proposition",
+        "position": { "x": 0, "y": 420 },
+        "size": { "width": 320, "height": 170 },
+        "data": { "title": "", "content": "<p>present your bodies as a living sacrifice</p>", "verseRef": "v.1b" }
+      },
+      {
+        "id": "prop-ground",
+        "type": "proposition",
+        "position": { "x": 0, "y": 640 },
+        "size": { "width": 320, "height": 170 },
+        "data": { "title": "", "content": "<p>by the mercies of God</p>", "verseRef": "v.1a" }
+      },
+      {
+        "id": "prop-exp",
+        "type": "proposition",
+        "position": { "x": 0, "y": 860 },
+        "size": { "width": 320, "height": 170 },
+        "data": { "title": "", "content": "<p>which is your spiritual worship</p>", "verseRef": "v.1c" }
+      },
+      {
+        "id": "prop-coord",
+        "type": "proposition",
+        "position": { "x": 0, "y": 1080 },
+        "size": { "width": 320, "height": 170 },
+        "data": { "title": "", "content": "<p>do not be conformed to this world</p>", "verseRef": "v.2a" }
+      },
+      {
+        "id": "title-1",
+        "type": "title",
+        "position": { "x": 600, "y": 0 },
+        "size": { "width": 420, "height": 320 },
+        "data": { "title": "Live as a sacrifice", "content": "" }
+      },
+      {
+        "id": "note-subject",
+        "type": "note",
+        "position": { "x": 1100, "y": 0 },
+        "size": { "width": 300, "height": 220 },
+        "data": { "title": "Subject", "content": "<p>true worship</p>" }
+      },
+      {
+        "id": "note-complement",
+        "type": "note",
+        "position": { "x": 1100, "y": 300 },
+        "size": { "width": 300, "height": 220 },
+        "data": { "title": "Complement", "content": "<p>offering your whole self</p>" }
+      }
+    ],
+    "edges": [],
+    "wires": [
+      {
+        "id": "wire-ground",
+        "source": "prop-ground",
+        "sourcePort": "prop-out",
+        "target": "prop-main",
+        "targetPort": "arc-in",
+        "status": "live",
+        "relation": "ground"
+      },
+      {
+        "id": "wire-exp",
+        "source": "prop-exp",
+        "sourcePort": "prop-out",
+        "target": "prop-ground",
+        "targetPort": "arc-in",
+        "status": "live",
+        "relation": "idea-explanation"
+      },
+      {
+        "id": "wire-series",
+        "source": "prop-coord",
+        "sourcePort": "prop-out",
+        "target": "prop-main",
+        "targetPort": "arc-in",
+        "status": "live",
+        "relation": "series"
+      },
+      {
+        "id": "wire-subject",
+        "source": "note-subject",
+        "sourcePort": "text-out",
+        "target": "title-1",
+        "targetPort": "subject-in",
+        "status": "live"
+      },
+      {
+        "id": "wire-complement",
+        "source": "note-complement",
+        "sourcePort": "text-out",
+        "target": "title-1",
+        "targetPort": "complement-in",
+        "status": "live"
+      }
+    ],
+    "assemblies": [
+      {
+        "id": "asm-arc",
+        "name": "Romans 12:1-2 arc",
+        "memberIds": ["prop-main", "prop-ground", "prop-exp", "prop-coord"],
+        "position": { "x": -40, "y": 380 },
+        "collapsed": false
+      }
+    ]
+  },
+  "outline": {
+    "entries": [
+      { "nodeId": "prop-main", "level": 0 },
+      { "nodeId": "prop-ground", "level": 1, "anchorId": "prop-main", "relationId": "ground" },
+      { "nodeId": "prop-exp", "level": 2, "anchorId": "prop-ground", "relationId": "idea-explanation" },
+      { "nodeId": "prop-coord", "level": 0, "anchorId": "prop-main", "relationId": "series" }
+    ],
+    "mainPointIds": ["prop-main", "prop-coord"],
+    "propCount": 4,
+    "arcCount": 3
+  },
+  "bigIdea": {
+    "subject": "true worship",
+    "complement": "offering your whole self",
+    "exegetical": "true worship — offering your whole self"
+  }
+}

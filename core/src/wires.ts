@@ -8,6 +8,7 @@
 // (the dissolved ids are returned so the UI can offer undo).
 // ============================================================================
 
+import { getArcRelation } from './arcs';
 import { createId } from './ids';
 import { GraphError } from './graph';
 import { getNodeDef, getPort } from './registry';
@@ -253,6 +254,31 @@ export function reorderIntakeWire(
     wires: document.wires.map((wire) =>
       wire.target === nodeId && wire.targetPort === portId ? reordered[cursor++]! : wire,
     ),
+  };
+}
+
+/** Set (or clear, with undefined) a wire's arc relationship (ARC_RELATIONS id). */
+export function setWireRelation(
+  document: CanvasDocument,
+  wireId: string,
+  relationId: string | undefined,
+): CanvasDocument {
+  if (!document.wires.some((wire) => wire.id === wireId)) {
+    throw new GraphError(`wire "${wireId}" not found`);
+  }
+  if (relationId !== undefined && !getArcRelation(relationId)) {
+    throw new GraphError(`unknown arc relationship "${relationId}"`);
+  }
+  return {
+    ...document,
+    wires: document.wires.map((wire) => {
+      if (wire.id !== wireId) return wire;
+      if (relationId === undefined) {
+        const { relation: _dropped, ...rest } = wire;
+        return rest;
+      }
+      return { ...wire, relation: relationId };
+    }),
   };
 }
 

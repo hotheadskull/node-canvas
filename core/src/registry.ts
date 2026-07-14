@@ -300,7 +300,59 @@ const ACADEMIC_PACK: readonly NodeTypeDef[] = [
   },
 ];
 
-export const NODE_TYPE_DEFS: readonly NodeTypeDef[] = [...UNIVERSAL_CORE, ...ACADEMIC_PACK];
+const SERMON_PACK: readonly NodeTypeDef[] = [
+  {
+    // Earns its place: the studied text is a real source of structure -- it
+    // splits into propositions and its props intake collects them back in
+    // reading order (spine: the phrasing text compiles through it).
+    type: 'passage',
+    category: 'writing',
+    pack: 'sermon',
+    coreMenu: false,
+    accent: '#2dd4bf',
+    labels: same('Passage'),
+    descriptions: {
+      universal: 'A text under study; split it into propositions and arc how they relate',
+      novel: 'A source text under study; break it into the assertions it makes',
+      sermon: 'The scripture under study; split it into propositions, then arc them',
+    },
+    size: { width: 420, height: 300 },
+    sizing: 'auto-height',
+    ports: [
+      { id: 'text-out', direction: 'give', dataKind: 'text', label: 'Text', defaultVisible: true },
+      { id: 'props-in', direction: 'take', dataKind: 'prop', label: 'Propositions', defaultVisible: true, capacity: 'many', spine: true },
+    ],
+  },
+  {
+    // One assertion of a text. Arc wires (prop -> prop, carrying a `relation`
+    // from ARC_RELATIONS) express how it serves another proposition; the Arc
+    // group face and Arc room derive main points and phrasing from them.
+    type: 'proposition',
+    category: 'writing',
+    pack: 'sermon',
+    coreMenu: false,
+    accent: '#34d399',
+    labels: same('Proposition'),
+    descriptions: {
+      universal: 'One assertion of a text; arc it to other propositions with the 18 relationships',
+      novel: 'A single claim a source text makes, small enough to argue with',
+      sermon: 'One assertion of the passage; arcs show how it serves the main point',
+    },
+    size: { width: 320, height: 170 },
+    sizing: 'auto-height',
+    ports: [
+      { id: 'prop-out', direction: 'give', dataKind: 'prop', label: 'Proposition', defaultVisible: true },
+      { id: 'arc-in', direction: 'take', dataKind: 'prop', label: 'Arcs', defaultVisible: true, capacity: 'many' },
+      { id: 'text-out', direction: 'give', dataKind: 'text', label: 'Text', defaultVisible: false },
+    ],
+  },
+];
+
+export const NODE_TYPE_DEFS: readonly NodeTypeDef[] = [
+  ...UNIVERSAL_CORE,
+  ...ACADEMIC_PACK,
+  ...SERMON_PACK,
+];
 
 export const NODE_REGISTRY: Readonly<Record<string, NodeTypeDef>> = Object.fromEntries(
   NODE_TYPE_DEFS.map((def) => [def.type, def]),
@@ -375,6 +427,18 @@ export const SPLIT_PRESETS: readonly SplitPreset[] = [
       { type: 'note', title: 'Warrant' },
       { type: 'note', title: 'Backing' },
       { type: 'note', title: 'Rebuttal' },
+    ],
+  },
+  {
+    id: 'passage-propositions',
+    forTypes: ['passage'],
+    label: 'Passage → Propositions',
+    description: 'Three proposition stubs wired in, ready to arc',
+    intake: 'props-in',
+    stubs: [
+      { type: 'proposition', title: 'Proposition 1' },
+      { type: 'proposition', title: 'Proposition 2' },
+      { type: 'proposition', title: 'Proposition 3' },
     ],
   },
   {

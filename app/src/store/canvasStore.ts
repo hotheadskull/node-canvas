@@ -29,6 +29,7 @@ import {
   removeWire,
   reorderIntakeWire,
   serializeDocument,
+  setWireRelation as setWireRelationOp,
   spawnNode,
   splitNode as splitNodeOp,
   SPLIT_PRESETS,
@@ -102,6 +103,20 @@ type CanvasState = {
   /** The node open in the focus editor overlay (design B); null = closed. */
   editorNodeId: string | null;
   openEditor: (nodeId: string | null) => void;
+
+  /** The assembly open in the Arc room overlay (sermon pack); null = closed. */
+  arcRoomId: string | null;
+  openArcRoom: (assemblyId: string | null) => void;
+  arcRoomView: 'arc' | 'phrasing';
+  setArcRoomView: (view: 'arc' | 'phrasing') => void;
+  /** Set or clear the arc relationship carried by a wire. */
+  setWireRelationTo: (wireId: string, relationId: string | undefined) => void;
+  /**
+   * Re-anchor a proposition: its outgoing arc wires are replaced by one arc
+   * to `targetId` carrying `relationId` (null target = un-anchor it).
+   */
+  setArc: (sourceId: string, targetId: string | null, relationId?: string) => void;
+  setVerseRef: (nodeId: string, verseRef: string) => void;
 
   cycleReadiness: (nodeId: string) => void;
   setOwner: (nodeId: string, owner: string) => void;
@@ -494,6 +509,55 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
 
     editorNodeId: null,
     openEditor: (nodeId) => set({ editorNodeId: nodeId }),
+
+    arcRoomId: null,
+    openArcRoom: (assemblyId) => set({ arcRoomId: assemblyId }),
+    arcRoomView: 'arc',
+    setArcRoomView: (view) => set({ arcRoomView: view }),
+
+    setWireRelationTo: (wireId, relationId) =>
+      tryOp(() => setWireRelationOp(get().document, wireId, relationId)),
+
+    setArc: (sourceId, targetId, relationId) => {
+      tryOp(() => {
+        let doc = get().document;
+        const outgoing = doc.wires.filter(
+          (wire) =>
+            wire.source === sourceId && wire.targetPort === 'arc-in' && wire.status === 'live',
+        );
+        for (const wire of outgoing) {
+          doc = removeWire(doc, wire.id);
+        }
+        if (targetId !== null) {
+          doc = addWire(doc, {
+            source: sourceId,
+            sourcePort: 'prop-out',
+            target: targetId,
+            targetPort: 'arc-in',
+          });
+          if (relationId) {
+            const added = doc.wires[doc.wires.length - 1]!;
+            doc = setWireRelationOp(doc, added.id, relationId);
+          }
+        }
+        return doc;
+      });
+    },
+
+    setVerseRef: (nodeId, verseRef) => {
+      const doc = get().document;
+      commit({
+        ...doc,
+        nodes: doc.nodes.map((node) => {
+          if (node.id !== nodeId) return node;
+          if (verseRef.trim() === '') {
+            const { verseRef: _dropped, ...data } = node.data;
+            return { ...node, data };
+          }
+          return { ...node, data: { ...node.data, verseRef } };
+        }),
+      });
+    },
 
     paletteOpen: false,
     setPaletteOpen: (open) => set({ paletteOpen: open }),

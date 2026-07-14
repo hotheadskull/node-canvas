@@ -8,7 +8,7 @@
 import { GraphError } from './graph';
 import { createId } from './ids';
 import { findFreePosition, type Rect } from './layout';
-import { getNodeDef, getPort, spineIntakeOf, textGiveOf, type SplitStubSpec } from './registry';
+import { getNodeDef, getPort, spineIntakeOf, type SplitStubSpec } from './registry';
 import type { CanvasDocument, CanvasNode, DataWire } from './schema';
 
 export type SplitResult = {
@@ -52,13 +52,25 @@ export function splitNode(
   if (stubs.length === 0) {
     throw new GraphError('nothing to split into: no stubs given');
   }
+  // The stub's give port must match what the intake takes: exact-kind match
+  // first; 'any' intakes take a text give (or any give as a last resort).
+  const giveForIntake = (type: string) => {
+    const ports = getNodeDef(type)?.ports ?? [];
+    if (intake.dataKind === 'any') {
+      return (
+        ports.find((port) => port.direction === 'give' && port.dataKind === 'text') ??
+        ports.find((port) => port.direction === 'give')
+      );
+    }
+    return ports.find((port) => port.direction === 'give' && port.dataKind === intake.dataKind);
+  };
+
   for (const stub of stubs) {
     const def = getNodeDef(stub.type);
     if (!def) {
       throw new GraphError(`unregistered stub type "${stub.type}" (I8)`);
     }
-    const give = textGiveOf(stub.type);
-    if (!give || (intake.dataKind !== 'any' && give.dataKind !== intake.dataKind)) {
+    if (!giveForIntake(stub.type)) {
       throw new GraphError(
         `"${stub.type}" cannot feed the ${intake.label} intake of "${parent.type}"`,
       );
@@ -104,7 +116,7 @@ export function splitNode(
     newWires.push({
       id: idFactory('wire'),
       source: node.id,
-      sourcePort: textGiveOf(stub.type)!.id,
+      sourcePort: giveForIntake(stub.type)!.id,
       target: parentId,
       targetPort: intake.id,
       status: 'live',

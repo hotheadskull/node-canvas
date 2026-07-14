@@ -10,6 +10,7 @@ import {
   useViewport,
   type EdgeProps,
 } from '@xyflow/react';
+import { arcRelationsByFamily, getArcRelation } from '@node-canvas/core';
 import { Check, Trash2, X } from 'lucide-react';
 import { memo } from 'react';
 import { useCanvasStore } from '../store/canvasStore';
@@ -19,7 +20,12 @@ export type WireEdgeData = {
   status: 'live' | 'tentative';
   dataKind: string;
   portLabel: string;
+  /** Arc wires (prop -> prop): the chip carries the relationship. */
+  isArc?: boolean;
+  relation?: string;
 };
+
+const ARC_FAMILIES = arcRelationsByFamily();
 
 function WireEdgeComponent({
   id,
@@ -36,6 +42,7 @@ function WireEdgeComponent({
   const commitWire = useCanvasStore((state) => state.commitWire);
   const dissolveWire = useCanvasStore((state) => state.dissolveWire);
   const deleteWire = useCanvasStore((state) => state.deleteWire);
+  const setWireRelationTo = useCanvasStore((state) => state.setWireRelationTo);
 
   const [path, labelX, labelY] = getBezierPath({
     sourceX,
@@ -85,9 +92,31 @@ function WireEdgeComponent({
             </span>
           ) : selected ? (
             <span className="edge-chip-menu">
-              <span className="wire-chip-kind" style={{ color }}>
-                {data?.portLabel ?? 'wire'}
-              </span>
+              {data?.isArc ? (
+                <select
+                  className="arc-relation-select nodrag"
+                  aria-label="Arc relationship"
+                  value={data.relation ?? ''}
+                  onChange={(event) =>
+                    setWireRelationTo(id, event.target.value === '' ? undefined : event.target.value)
+                  }
+                >
+                  <option value="">relationship…</option>
+                  {ARC_FAMILIES.map((group) => (
+                    <optgroup key={group.family} label={group.label}>
+                      {group.relations.map((relation) => (
+                        <option key={relation.id} value={relation.id}>
+                          {relation.code} · {relation.label} ({relation.hint})
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              ) : (
+                <span className="wire-chip-kind" style={{ color }}>
+                  {data?.portLabel ?? 'wire'}
+                </span>
+              )}
               <button
                 className="edge-chip-delete"
                 title="Remove this wire"
@@ -95,6 +124,19 @@ function WireEdgeComponent({
               >
                 <Trash2 size={13} aria-hidden />
               </button>
+            </span>
+          ) : data?.isArc ? (
+            <span
+              className="edge-chip-face wire-face arc-code"
+              style={{ ['--wire-color' as string]: color }}
+              title={
+                data.relation
+                  ? `${getArcRelation(data.relation)?.label ?? data.relation} — click to change`
+                  : 'Arc — click to pick its relationship'
+              }
+              data-arc-code
+            >
+              {data.relation ? getArcRelation(data.relation)?.code ?? '?' : '?'}
             </span>
           ) : (
             <span

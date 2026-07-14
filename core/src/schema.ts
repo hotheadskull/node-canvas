@@ -58,6 +58,8 @@ export const PlainEdgeSchema = z.object({
 // Data wire: a typed give->take connection between named ports. status
 // 'tentative' is a dashed candidate placement ("this might go here") that
 // carries no data until committed. storyTime stamps possession/effect wires.
+// relation names HOW the source serves the target (the sermon pack's 18
+// arcing relationships live here); core stores the id, arcs.ts owns the list.
 export const WireSchema = z.object({
   id: z.string().min(1),
   source: z.string().min(1),
@@ -67,6 +69,7 @@ export const WireSchema = z.object({
   status: z.enum(['live', 'tentative']),
   label: z.string().optional(),
   storyTime: z.number().finite().optional(),
+  relation: z.string().min(1).optional(),
 });
 
 // Assembly (I3): a REFERENCE list, never a copy. memberIds point at nodes or

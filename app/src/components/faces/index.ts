@@ -13,6 +13,7 @@
 import type { ComponentType } from 'react';
 import { DefaultFace } from './DefaultFace';
 import { DocumentFace } from './DocumentFace';
+import { PropositionFace } from './PropositionFace';
 import { TitleFace } from './TitleFace';
 
 export type FaceProps = {
@@ -25,6 +26,12 @@ export const NODE_FACES: Record<string, ComponentType<FaceProps>> = {
   title: TitleFace,
   document: DocumentFace,
   manuscript: DocumentFace,
+  // every spine-intake type gets the compile face: ordered intake list,
+  // Split presets, preview. claim was MISSING here -- its Toulmin split had
+  // no UI entry point (found while building the sermon pack).
+  claim: DocumentFace,
+  passage: DocumentFace,
+  proposition: PropositionFace,
 };
 
 export function faceFor(coreType: string): ComponentType<FaceProps> {

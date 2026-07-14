@@ -23,6 +23,7 @@ const GROUP_TITLES: Record<string, string> = {
   knowledge: 'Knowledge',
   structure: 'Structure',
   academic: 'Paper & argument',
+  sermon: 'Passage & propositions',
 };
 
 type Props = {

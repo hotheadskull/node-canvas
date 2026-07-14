@@ -46,6 +46,7 @@ export const PORT_KIND_COLORS: Record<string, string> = {
   thing: '#f59e0b',
   cite: '#14b8a6',
   claim: '#f43f5e',
+  prop: '#34d399',
   any: '#cbd5e1',
 };
 
@@ -70,6 +71,9 @@ function PortStars({
   side: 'left' | 'right';
 }) {
   const position = side === 'left' ? Position.Left : Position.Right;
+  // Hidden (non-defaultVisible) ports render too, but only APPEAR on node
+  // hover -- otherwise they have no handle and can never be wired (found
+  // fixing TRY-IT §12: Footnotes and Subject/Complement were unreachable).
   return (
     <>
       {ports.map((port, index) => (
@@ -78,7 +82,7 @@ function PortStars({
           id={port.id}
           type="source"
           position={position}
-          className={`port-star kind-${port.dataKind}`}
+          className={`port-star kind-${port.dataKind} ${port.defaultVisible ? '' : 'is-hidden-port'}`}
           style={{
             top: `${52 + index * 26}px`,
             ['--port-color' as string]: PORT_KIND_COLORS[port.dataKind] ?? '#94a3b8',
@@ -90,7 +94,7 @@ function PortStars({
       {ports.map((port, index) => (
         <span
           key={`${port.id}-label`}
-          className={`port-label side-${side}`}
+          className={`port-label side-${side} ${port.defaultVisible ? '' : 'is-hidden-port'}`}
           style={{ top: `${52 + index * 26}px` }}
           data-for-node={nodeId}
         >
@@ -133,13 +137,15 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
   // The title face IS the node's words -- no separate header input.
   const faceOwnsTitle = data.coreType === 'title';
 
-  const visiblePorts = (def?.ports ?? []).filter((port) => port.defaultVisible);
-  const takes = visiblePorts.filter((port) => port.direction === 'take');
-  const gives = visiblePorts.filter((port) => port.direction === 'give');
+  // ALL declared ports get handles (hidden ones appear on hover); the rails
+  // only draw for the default-visible set so quiet nodes stay quiet.
+  const allPorts = def?.ports ?? [];
+  const takes = allPorts.filter((port) => port.direction === 'take');
+  const gives = allPorts.filter((port) => port.direction === 'give');
 
   // React Flow requirement: whenever the set of rendered handles can change
   // at runtime (port visibility, size), re-register the node's internals.
-  const handleSignature = `${visiblePorts.map((port) => port.id).join(',')}:${data.ownedHeight ?? ''}`;
+  const handleSignature = `${allPorts.map((port) => port.id).join(',')}:${data.ownedHeight ?? ''}`;
   useEffect(() => {
     updateNodeInternals(id);
   }, [id, handleSignature, updateNodeInternals]);
@@ -231,8 +237,12 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
         </div>
       )}
       <Face nodeId={id} title={data.title} content={data.content} />
-      {takes.length > 0 && <span className="port-rail rail-left" aria-hidden />}
-      {gives.length > 0 && <span className="port-rail rail-right" aria-hidden />}
+      {takes.some((port) => port.defaultVisible) && (
+        <span className="port-rail rail-left" aria-hidden />
+      )}
+      {gives.some((port) => port.defaultVisible) && (
+        <span className="port-rail rail-right" aria-hidden />
+      )}
       <PortStars nodeId={id} ports={takes} side="left" />
       <PortStars nodeId={id} ports={gives} side="right" />
       <Handle id="top" type="source" position={Position.Top} className="node-handle" />
