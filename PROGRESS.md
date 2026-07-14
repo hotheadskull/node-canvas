@@ -163,11 +163,31 @@ presentation-walk mode. All registry entries + isolated reducers (invariant I8).
 - Suite: 96 unit + 6 e2e green; typecheck + lint clean. Screenshot verified
   (rails, star ports, labels, dashed tentative + commit chip all correct).
 
+### 2026-07-13 — Post-Chunk-4 addendum (user questions answered in code)
+- **Face system** (`app/src/components/faces/`): per-type node BODIES plug in
+  via a `NODE_FACES` map with a `DefaultFace` fallback — the app-side
+  counterpart of I8. Giving a type a unique look = drop a component in the
+  map; CanvasNode (chrome: header, rails, ports, resizer) is never edited.
+  Faces land with the chunk that gives the type behavior: document compile
+  face (Chunk 5), spine editors w/ TipTap (Chunk 9), dossier faces with
+  derivations, specialists (13–15).
+- **TitleFace shipped early (user spec):** the Title node IS its words — big
+  bold centered text bound to `title`, scaling with the box via container
+  queries (`clamp(20px, 14cqmin, 120px)`); no header title input, no
+  auto-fit mirror (the box size is the user's statement). Screenshot-verified.
+- **Manuscript reserved (spine level 3):** registry entry `manuscript`
+  (Manuscript / Sermon Series), ports documents-in / compiled-out / thread-in
+  mirroring Document one level up. coreMenu: false — reachable in the All
+  view, out of the beginner eight. Behavior + face in Chunk 9; Split runs the
+  spine in reverse in Chunk 6. Ports golden updated (new entry, approved).
+- Suite: 99 unit + 6 e2e green.
+
 **Next session: Chunk 5 — derivations.** compile (wire-order text) with the
 ordered-intake reorder UI (drag-to-reorder list in a node inspector — wire
 order is NOT directly manipulable in RF), deriveFace, readiness rollups,
 unsupported-claim flag. Golden tests including the worked examples from the
-brief (Chapter compile; rename propagation).
+brief (Chapter compile; rename propagation). Document gets its compile face
+via the new face system.
 
 **Chunk 4 design checkpoint RESOLVED (2026-07-13).** User saw 4 mockups and
 chose a mix: **A's title bar** (tinted header band + kind tag) + **B's port

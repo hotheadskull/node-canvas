@@ -66,6 +66,18 @@ describe('universal core registry', () => {
     }
   });
 
+  it('manuscript (spine level 3) is reserved: registered, out of the core menu, reachable in All', () => {
+    expect(isRegisteredType('manuscript')).toBe(true);
+    expect(coreMenuTypes().some((def) => def.type === 'manuscript')).toBe(false);
+    const allTypes = allMenuTypes().flatMap((group) => group.types.map((def) => def.type));
+    expect(allTypes).toContain('manuscript');
+    expect(getNodeDef('manuscript')!.ports.map((port) => port.id)).toEqual([
+      'documents-in',
+      'compiled-out',
+      'thread-in',
+    ]);
+  });
+
   it('the All view groups every registered type -- packs never gate (I11)', () => {
     const grouped = allMenuTypes().flatMap((group) => group.types.map((def) => def.type));
     expect(grouped.sort()).toEqual(NODE_TYPE_DEFS.map((def) => def.type).sort());

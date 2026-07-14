@@ -126,6 +126,29 @@ export const NODE_TYPE_DEFS: readonly NodeTypeDef[] = [
     ],
   },
   {
+    // The spine's top level (Manuscript -> Document -> Section). Registered
+    // now so the type name, ports, and menu spot are reserved; its real
+    // editor and compile face land in Chunk 9. Split (Chunk 6) runs the
+    // spine in reverse: manuscript -> document stubs -> section stubs.
+    type: 'manuscript',
+    category: 'writing',
+    coreMenu: false,
+    accent: '#7c3aed',
+    labels: { universal: 'Manuscript', novel: 'Manuscript', sermon: 'Sermon Series' },
+    descriptions: {
+      universal: 'The whole work; documents compile into it in wire order',
+      novel: 'The full book; chapters compile into it in wire order',
+      sermon: 'A series; sermons compile into it in order',
+    },
+    size: { width: 560, height: 440 },
+    sizing: 'auto-height',
+    ports: [
+      { id: 'documents-in', direction: 'take', dataKind: 'text', label: 'Documents', defaultVisible: true, capacity: 'many' },
+      { id: 'compiled-out', direction: 'give', dataKind: 'text', label: 'Compiled work', defaultVisible: true },
+      { id: 'thread-in', direction: 'take', dataKind: 'thread', label: 'Thread', defaultVisible: false, capacity: 'one' },
+    ],
+  },
+  {
     type: 'section',
     category: 'writing',
     coreMenu: true,

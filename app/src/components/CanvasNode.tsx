@@ -15,9 +15,10 @@ import {
   type NodeProps,
 } from '@xyflow/react';
 import { Maximize2 } from 'lucide-react';
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { getNodeDef, nodeLabel, tentativeInboundCount, type PortDef } from '@node-canvas/core';
 import { useCanvasStore } from '../store/canvasStore';
+import { faceFor } from './faces';
 
 export type CanvasNodeData = {
   coreType: string;
@@ -92,16 +93,16 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
   const def = getNodeDef(data.coreType);
   const accent = data.accent ?? def?.accent ?? '#94a3b8';
   const setNodeTitle = useCanvasStore((state) => state.setNodeTitle);
-  const setNodeContent = useCanvasStore((state) => state.setNodeContent);
   const setNodeAccent = useCanvasStore((state) => state.setNodeAccent);
-  const applyMeasuredHeight = useCanvasStore((state) => state.applyMeasuredHeight);
   const setOwnedSize = useCanvasStore((state) => state.setOwnedSize);
   const clearOwnedHeight = useCanvasStore((state) => state.clearOwnedHeight);
   const waiting = useCanvasStore((state) => tentativeInboundCount(state.document, id));
   const updateNodeInternals = useUpdateNodeInternals();
 
   const [accentPickerOpen, setAccentPickerOpen] = useState(false);
-  const mirrorRef = useRef<HTMLDivElement>(null);
+  const Face = faceFor(data.coreType);
+  // The title face IS the node's words -- no separate header input.
+  const faceOwnsTitle = data.coreType === 'title';
 
   const visiblePorts = (def?.ports ?? []).filter((port) => port.defaultVisible);
   const takes = visiblePorts.filter((port) => port.direction === 'take');
@@ -113,23 +114,6 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
   useEffect(() => {
     updateNodeInternals(id);
   }, [id, handleSignature, updateNodeInternals]);
-
-  // Auto-fit height: measure a hidden MIRROR of the content, never the body.
-  // The body flexes to fill the node, so measuring it feeds the node's own
-  // height back into itself -- an unbounded growth loop (found in e2e). The
-  // mirror's height depends only on the text and the node's width, so the
-  // loop is structurally impossible. Core decides the final height (golden-
-  // tested math); this only fires when text or width actually change.
-  useEffect(() => {
-    const element = mirrorRef.current;
-    if (!element || typeof ResizeObserver === 'undefined') return;
-    const chrome = 40; // header + borders; mirror already carries body padding
-    const observer = new ResizeObserver(() => {
-      applyMeasuredHeight(id, Math.ceil(element.scrollHeight) + chrome);
-    });
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [id, applyMeasuredHeight]);
 
   return (
     <div className={`canvas-node ${selected ? 'is-selected' : ''}`} style={{ ['--accent' as string]: accent }}>
@@ -154,12 +138,15 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
         >
           {def ? nodeLabel(def.type, 'universal') : data.coreType}
         </button>
-        <input
-          className="canvas-node-title nodrag"
-          value={data.title}
-          placeholder="Untitled"
-          onChange={(event) => setNodeTitle(id, event.target.value)}
-        />
+        {!faceOwnsTitle && (
+          <input
+            className="canvas-node-title nodrag"
+            value={data.title}
+            placeholder="Untitled"
+            onChange={(event) => setNodeTitle(id, event.target.value)}
+          />
+        )}
+        {faceOwnsTitle && <span className="canvas-node-title-spacer" />}
         {data.ownedHeight !== undefined && (
           <button
             className="canvas-node-fit nodrag"
@@ -196,18 +183,7 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
           </button>
         </div>
       )}
-      <div className="canvas-node-body">
-        <textarea
-          className="canvas-node-content nodrag"
-          value={data.content}
-          placeholder="Write here…"
-          onChange={(event) => setNodeContent(id, event.target.value)}
-        />
-        <div className="canvas-node-mirror" ref={mirrorRef} aria-hidden>
-          {data.content || ' '}
-          {'\n'}
-        </div>
-      </div>
+      <Face nodeId={id} title={data.title} content={data.content} />
       {takes.length > 0 && <span className="port-rail rail-left" aria-hidden />}
       {gives.length > 0 && <span className="port-rail rail-right" aria-hidden />}
       <PortStars nodeId={id} ports={takes} side="left" />

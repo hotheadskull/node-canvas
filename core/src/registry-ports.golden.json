@@ -12,6 +12,11 @@
     { "id": "compiled-out", "direction": "give", "dataKind": "text", "label": "Compiled text", "defaultVisible": true },
     { "id": "thread-in", "direction": "take", "dataKind": "thread", "label": "Thread", "defaultVisible": false, "capacity": "one" }
   ],
+  "manuscript": [
+    { "id": "documents-in", "direction": "take", "dataKind": "text", "label": "Documents", "defaultVisible": true, "capacity": "many" },
+    { "id": "compiled-out", "direction": "give", "dataKind": "text", "label": "Compiled work", "defaultVisible": true },
+    { "id": "thread-in", "direction": "take", "dataKind": "thread", "label": "Thread", "defaultVisible": false, "capacity": "one" }
+  ],
   "section": [
     { "id": "text-out", "direction": "give", "dataKind": "text", "label": "Text", "defaultVisible": true },
     { "id": "people-in", "direction": "take", "dataKind": "person", "label": "People", "defaultVisible": true, "capacity": "many" },
