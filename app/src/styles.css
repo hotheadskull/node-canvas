@@ -387,6 +387,38 @@ html, body, #root {
 .assembly-face-unpack:hover { border-color: #a855f7; color: #d8b4fe; }
 .assembly-handle.react-flow__handle { background: #a855f7; }
 
+/* ---------- Semantic zoom: constellations become stars ---------- */
+.assembly-star { display: none; }
+.zoom-far .assembly-face.is-collapsed {
+  background: transparent; border-color: transparent; box-shadow: none;
+  overflow: visible;
+}
+.zoom-far .assembly-face.is-collapsed .assembly-face-header,
+.zoom-far .assembly-face.is-collapsed .assembly-face-body,
+.zoom-far .assembly-face.is-collapsed .node-handle { display: none; }
+.zoom-far .assembly-face.is-collapsed .assembly-star {
+  display: flex; flex-direction: column; align-items: center; gap: 24px;
+  width: 260px; height: 130px; justify-content: center;
+}
+.assembly-star-point {
+  width: 26px; height: 26px; border-radius: 9999px;
+  background: radial-gradient(circle, #f5e6ff 0%, #c084fc 45%, rgba(168, 85, 247, 0) 72%);
+  box-shadow: 0 0 26px 10px rgba(192, 132, 252, 0.55), 0 0 60px 24px rgba(168, 85, 247, 0.25);
+  animation: star-breathe 3.2s ease-in-out infinite;
+}
+@keyframes star-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+}
+.assembly-star-name {
+  font-size: 34px; color: #e2d4f7; letter-spacing: 0.5px;
+  text-shadow: 0 0 18px rgba(168, 85, 247, 0.6);
+  white-space: nowrap;
+}
+/* node text is unreadable that far out anyway -- fade cards to silhouettes */
+.zoom-far .canvas-node { box-shadow: none; }
+.zoom-far .port-label { opacity: 0 !important; }
+
 /* ---------- Breadcrumbs (drill-in) ---------- */
 .breadcrumbs {
   position: absolute; top: 14px; left: 16px; z-index: 25;

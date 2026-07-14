@@ -73,6 +73,9 @@ export function Canvas() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [rfNodes, setRfNodes] = useState<Node[]>([]);
   const [rfEdges, setRfEdges] = useState<Edge[]>([]);
+  // Semantic zoom: past the far threshold, collapsed assemblies render as
+  // glowing star points (the theme made mechanical + the perf lever).
+  const [zoomBucket, setZoomBucket] = useState<'near' | 'far'>('near');
   const { screenToFlowPosition, getViewport, setCenter } = useReactFlow();
   const drillStack = useCanvasStore((state) => state.drillStack);
   const drilled = drillStack.length > 0 ? drillStack[drillStack.length - 1] : null;
@@ -362,7 +365,7 @@ export function Canvas() {
 
   return (
     <div
-      className={`canvas-root density-${settings.density} port-labels-${settings.portLabels}`}
+      className={`canvas-root density-${settings.density} port-labels-${settings.portLabels} zoom-${zoomBucket}`}
     >
       <ReactFlow
         nodes={rfNodes}
@@ -374,7 +377,12 @@ export function Canvas() {
         onConnect={onConnect}
         isValidConnection={isValidConnection}
         defaultViewport={initialViewport}
+        onMove={(_event, viewport) => {
+          const bucket = viewport.zoom < 0.25 ? 'far' : 'near';
+          setZoomBucket((current) => (current === bucket ? current : bucket));
+        }}
         onMoveEnd={(_event, viewport) => saveViewport(viewport)}
+        onlyRenderVisibleElements
         connectionMode={ConnectionMode.Loose}
         connectionRadius={40}
         connectOnClick
@@ -383,8 +391,15 @@ export function Canvas() {
         deleteKeyCode={['Delete', 'Backspace']}
         zoomOnDoubleClick={false}
         onNodeDoubleClick={(_event, node) => {
-          // double-click opens the focus editor (design B) on writing nodes
+          // double-click opens the focus editor (design B) on writing nodes;
+          // on an assembly star/face it dives toward it (explicit action)
           if (node.type === 'canvas') openEditor(node.id);
+          if (node.type === 'assembly') {
+            void setCenter(node.position.x + 130, node.position.y + 70, {
+              zoom: 1,
+              duration: 400,
+            });
+          }
         }}
         onError={(code, message) => console.warn(`[RF ${code}] ${message}`)}
         proOptions={{ hideAttribution: true }}

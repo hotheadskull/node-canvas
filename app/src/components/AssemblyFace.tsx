@@ -90,6 +90,12 @@ function AssemblyFaceComponent({ data, selected }: NodeProps & { data: AssemblyF
           </footer>
         </div>
       )}
+      {/* semantic zoom: past the far threshold the whole card renders as a
+          single glowing star (shown/hidden purely by the canvas zoom class) */}
+      <div className="assembly-star" aria-hidden>
+        <span className="assembly-star-point" />
+        <span className="assembly-star-name">{data.name}</span>
+      </div>
       {/* unnamed dot handles: remapped boundary edges resolve here */}
       <Handle type="source" position={Position.Top} className="node-handle assembly-handle" />
       <Handle type="target" position={Position.Bottom} className="node-handle assembly-handle" />

@@ -77,6 +77,15 @@ describe('connection accessibility requirements', () => {
     expect(styles).toMatch(/is-tentative[^}]*stroke-dasharray/s);
   });
 
+  it('semantic zoom: far bucket class + star rendering + visible-only rendering', () => {
+    expect(canvas).toContain('onlyRenderVisibleElements');
+    expect(canvas).toMatch(/zoom < 0\.25 \? 'far' : 'near'/);
+    const styles = read('./styles.css');
+    expect(styles).toMatch(/\.zoom-far \.assembly-face\.is-collapsed \.assembly-star\s*\{[^}]*display:\s*flex/s);
+    const face = read('./components/AssemblyFace.tsx');
+    expect(face).toContain('assembly-star-point');
+  });
+
   it('nodeTypes/edgeTypes are module-level constants (perf rule)', () => {
     expect(canvas).toMatch(/const nodeTypes = \{/);
     expect(canvas).toMatch(/const edgeTypes = \{/);
