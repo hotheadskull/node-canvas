@@ -45,6 +45,12 @@ export type PortDef = {
    */
   spine?: boolean;
   /**
+   * Gives only: the node flags itself while this give feeds nothing live
+   * (a Plant with no Payoff is the point of the mechanic -- orphans flag
+   * themselves). Spawning such a node IS the opt-in (I2).
+   */
+  flagWhenUnconsumed?: boolean;
+  /**
    * Takes only: the node flags itself when this intake is empty (e.g. a
    * chapter serving no thread). Hygiene flags only fire for nodes already
    * participating in wiring -- port-free canvases never see them (I2).
@@ -348,10 +354,73 @@ const SERMON_PACK: readonly NodeTypeDef[] = [
   },
 ];
 
+const NOVEL_PACK: readonly NodeTypeDef[] = [
+  {
+    // Earns its place: the plant/payoff pairing is REAL wiring -- an
+    // unconsumed Plant flags itself (Chekhov's gun must fire).
+    type: 'plant',
+    category: 'writing',
+    pack: 'novel',
+    coreMenu: false,
+    accent: '#84cc16',
+    labels: { universal: 'Plant', novel: 'Plant', sermon: 'Setup' },
+    descriptions: {
+      universal: 'Something set up on purpose; flags itself until a Payoff resolves it',
+      novel: "Chekhov's gun on the mantel; flags itself until it fires",
+      sermon: 'A tension planted early in the message; flags itself until resolved',
+    },
+    size: { width: 320, height: 220 },
+    sizing: 'auto-height',
+    ports: [
+      { id: 'plant-out', direction: 'give', dataKind: 'plant', label: 'Plant', defaultVisible: true, flagWhenUnconsumed: true },
+    ],
+  },
+  {
+    type: 'payoff',
+    category: 'writing',
+    pack: 'novel',
+    coreMenu: false,
+    accent: '#fb923c',
+    labels: { universal: 'Payoff', novel: 'Payoff', sermon: 'Resolution' },
+    descriptions: {
+      universal: 'The moment a Plant resolves; wire the plants it pays off',
+      novel: 'The shot in act three; wire in the plants it fires',
+      sermon: 'Where the planted tension resolves in the message',
+    },
+    size: { width: 320, height: 220 },
+    sizing: 'auto-height',
+    ports: [
+      { id: 'plants-in', direction: 'take', dataKind: 'plant', label: 'Resolves', defaultVisible: true, capacity: 'many', flagWhenEmpty: true },
+    ],
+  },
+  {
+    // Story-time fields ship NOW so the data model is ready; the continuity
+    // reducer (stateAt) is post-launch by decision (BRIEF revision log #10).
+    type: 'event',
+    category: 'knowledge',
+    pack: 'novel',
+    coreMenu: false,
+    accent: '#c084fc',
+    labels: { universal: 'Event', novel: 'Event', sermon: 'Moment' },
+    descriptions: {
+      universal: 'Something that happens at a story-time; involves people by role',
+      novel: 'A happening on the story clock; wire in who was involved, as what',
+      sermon: 'A moment in the narrative of the text',
+    },
+    size: { width: 340, height: 260 },
+    sizing: 'auto-height',
+    ports: [
+      { id: 'event-out', direction: 'give', dataKind: 'event', label: 'Event', defaultVisible: true },
+      { id: 'involves-in', direction: 'take', dataKind: 'person', label: 'Involves', defaultVisible: true, capacity: 'many' },
+    ],
+  },
+];
+
 export const NODE_TYPE_DEFS: readonly NodeTypeDef[] = [
   ...UNIVERSAL_CORE,
   ...ACADEMIC_PACK,
   ...SERMON_PACK,
+  ...NOVEL_PACK,
 ];
 
 export const NODE_REGISTRY: Readonly<Record<string, NodeTypeDef>> = Object.fromEntries(

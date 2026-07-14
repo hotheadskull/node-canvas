@@ -57,5 +57,15 @@
     { "id": "prop-out", "direction": "give", "dataKind": "prop", "label": "Proposition", "defaultVisible": true },
     { "id": "arc-in", "direction": "take", "dataKind": "prop", "label": "Arcs", "defaultVisible": true, "capacity": "many" },
     { "id": "text-out", "direction": "give", "dataKind": "text", "label": "Text", "defaultVisible": false }
+  ],
+  "plant": [
+    { "id": "plant-out", "direction": "give", "dataKind": "plant", "label": "Plant", "defaultVisible": true, "flagWhenUnconsumed": true }
+  ],
+  "payoff": [
+    { "id": "plants-in", "direction": "take", "dataKind": "plant", "label": "Resolves", "defaultVisible": true, "capacity": "many", "flagWhenEmpty": true }
+  ],
+  "event": [
+    { "id": "event-out", "direction": "give", "dataKind": "event", "label": "Event", "defaultVisible": true },
+    { "id": "involves-in", "direction": "take", "dataKind": "person", "label": "Involves", "defaultVisible": true, "capacity": "many" }
   ]
 }

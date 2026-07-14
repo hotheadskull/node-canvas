@@ -295,15 +295,20 @@ export function workbenchInfo(
 }
 
 // ---------------------------------------------------------------------------
-// Hygiene flags: a node flags itself when a flagWhenEmpty intake is empty --
-// but ONLY if the node already participates in wiring. Port-free canvases
-// never see a flag (I2: ports are opt-in).
+// Hygiene flags. Two registry-driven kinds:
+// - flagWhenEmpty takes: flag while the intake is empty, but ONLY if the node
+//   already participates in wiring -- port-free canvases never see one (I2).
+// - flagWhenUnconsumed gives: flag while the give feeds nothing live. These
+//   fire even unwired: spawning a Plant IS the opt-in (orphans flag
+//   themselves is the whole mechanic).
 // ---------------------------------------------------------------------------
 
 export type HygieneFlag = {
   nodeId: string;
   portId: string;
   portLabel: string;
+  /** Present only for unconsumed-give flags; absent = empty-intake flag. */
+  direction?: 'give';
 };
 
 export function hygieneFlags(document: CanvasDocument): HygieneFlag[] {
@@ -312,19 +317,31 @@ export function hygieneFlags(document: CanvasDocument): HygieneFlag[] {
     const def = getNodeDef(node.type);
     if (!def) continue;
     const watched = def.ports.filter((port) => port.direction === 'take' && port.flagWhenEmpty);
-    if (watched.length === 0) continue;
-    const participates = document.wires.some(
-      (wire) =>
-        wire.status === 'live' && (wire.source === node.id || wire.target === node.id),
-    );
-    if (!participates) continue;
-    for (const port of watched) {
-      const occupied = document.wires.some(
+    if (watched.length > 0) {
+      const participates = document.wires.some(
         (wire) =>
-          wire.target === node.id && wire.targetPort === port.id && wire.status === 'live',
+          wire.status === 'live' && (wire.source === node.id || wire.target === node.id),
       );
-      if (!occupied) {
-        flags.push({ nodeId: node.id, portId: port.id, portLabel: port.label });
+      if (participates) {
+        for (const port of watched) {
+          const occupied = document.wires.some(
+            (wire) =>
+              wire.target === node.id && wire.targetPort === port.id && wire.status === 'live',
+          );
+          if (!occupied) {
+            flags.push({ nodeId: node.id, portId: port.id, portLabel: port.label });
+          }
+        }
+      }
+    }
+    for (const port of def.ports) {
+      if (port.direction !== 'give' || !port.flagWhenUnconsumed) continue;
+      const consumed = document.wires.some(
+        (wire) =>
+          wire.source === node.id && wire.sourcePort === port.id && wire.status === 'live',
+      );
+      if (!consumed) {
+        flags.push({ nodeId: node.id, portId: port.id, portLabel: port.label, direction: 'give' });
       }
     }
   }

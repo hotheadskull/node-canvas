@@ -24,6 +24,7 @@ const GROUP_TITLES: Record<string, string> = {
   structure: 'Structure',
   academic: 'Paper & argument',
   sermon: 'Passage & propositions',
+  novel: 'Story & continuity',
 };
 
 type Props = {

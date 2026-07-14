@@ -23,6 +23,8 @@ export type WireEdgeData = {
   /** Arc wires (prop -> prop): the chip carries the relationship. */
   isArc?: boolean;
   relation?: string;
+  /** User label -- e.g. the ROLE on an Event's Involves wire ("bride"). */
+  label?: string;
 };
 
 const ARC_FAMILIES = arcRelationsByFamily();
@@ -43,6 +45,7 @@ function WireEdgeComponent({
   const dissolveWire = useCanvasStore((state) => state.dissolveWire);
   const deleteWire = useCanvasStore((state) => state.deleteWire);
   const setWireRelationTo = useCanvasStore((state) => state.setWireRelationTo);
+  const setWireLabel = useCanvasStore((state) => state.setWireLabel);
 
   const [path, labelX, labelY] = getBezierPath({
     sourceX,
@@ -113,9 +116,19 @@ function WireEdgeComponent({
                   ))}
                 </select>
               ) : (
-                <span className="wire-chip-kind" style={{ color }}>
-                  {data?.portLabel ?? 'wire'}
-                </span>
+                <>
+                  <span className="wire-chip-kind" style={{ color }}>
+                    {data?.portLabel ?? 'wire'}
+                  </span>
+                  <input
+                    className="wire-label-input nodrag"
+                    value={data?.label ?? ''}
+                    placeholder="label…"
+                    aria-label="Wire label"
+                    title="Label this wire (an Involves wire's label is the person's role)"
+                    onChange={(event) => setWireLabel(id, event.target.value)}
+                  />
+                </>
               )}
               <button
                 className="edge-chip-delete"
@@ -144,7 +157,7 @@ function WireEdgeComponent({
               style={{ ['--wire-color' as string]: color }}
               title={`${data?.portLabel ?? 'wire'} — click to edit`}
             >
-              ◆
+              {data?.label ?? '◆'}
             </span>
           )}
         </div>

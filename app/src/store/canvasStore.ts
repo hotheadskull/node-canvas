@@ -117,6 +117,10 @@ type CanvasState = {
    */
   setArc: (sourceId: string, targetId: string | null, relationId?: string) => void;
   setVerseRef: (nodeId: string, verseRef: string) => void;
+  /** Set or clear (null) an Event's story-time index. */
+  setStoryTime: (nodeId: string, storyTime: number | null) => void;
+  /** Set or clear ('') a wire's label (e.g. an Involves wire's role). */
+  setWireLabel: (wireId: string, label: string) => void;
 
   cycleReadiness: (nodeId: string) => void;
   setOwner: (nodeId: string, owner: string) => void;
@@ -603,6 +607,37 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
         }
         throw error;
       }
+    },
+
+    setStoryTime: (nodeId, storyTime) => {
+      if (storyTime !== null && !Number.isFinite(storyTime)) return;
+      const doc = get().document;
+      commit({
+        ...doc,
+        nodes: doc.nodes.map((node) => {
+          if (node.id !== nodeId) return node;
+          if (storyTime === null) {
+            const { storyTime: _dropped, ...data } = node.data;
+            return { ...node, data };
+          }
+          return { ...node, data: { ...node.data, storyTime } };
+        }),
+      });
+    },
+
+    setWireLabel: (wireId, label) => {
+      const doc = get().document;
+      commit({
+        ...doc,
+        wires: doc.wires.map((wire) => {
+          if (wire.id !== wireId) return wire;
+          if (label.trim() === '') {
+            const { label: _dropped, ...rest } = wire;
+            return rest;
+          }
+          return { ...wire, label };
+        }),
+      });
     },
 
     cycleReadiness: (nodeId) => {

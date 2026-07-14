@@ -1,0 +1,92 @@
+{
+  "document": {
+    "schemaVersion": 1,
+    "id": "doc-novel",
+    "name": "Plant/payoff worked example",
+    "canvasMode": "novel",
+    "createdAt": "2026-07-14T00:00:00.000Z",
+    "nodes": [
+      {
+        "id": "plant-gun",
+        "type": "plant",
+        "position": { "x": 0, "y": 0 },
+        "size": { "width": 320, "height": 220 },
+        "data": { "title": "The pistol on the mantel", "content": "" }
+      },
+      {
+        "id": "plant-locket",
+        "type": "plant",
+        "position": { "x": 0, "y": 300 },
+        "size": { "width": 320, "height": 220 },
+        "data": { "title": "Anna's locket", "content": "" }
+      },
+      {
+        "id": "payoff-shot",
+        "type": "payoff",
+        "position": { "x": 500, "y": 0 },
+        "size": { "width": 320, "height": 220 },
+        "data": { "title": "The shot in act three", "content": "" }
+      },
+      {
+        "id": "event-wedding",
+        "type": "event",
+        "position": { "x": 500, "y": 300 },
+        "size": { "width": 340, "height": 260 },
+        "data": { "title": "The wedding", "content": "", "storyTime": 14.2 }
+      },
+      {
+        "id": "event-duel",
+        "type": "event",
+        "position": { "x": 900, "y": 300 },
+        "size": { "width": 340, "height": 260 },
+        "data": { "title": "The duel", "content": "", "storyTime": 3.5 }
+      },
+      {
+        "id": "event-undated",
+        "type": "event",
+        "position": { "x": 1300, "y": 300 },
+        "size": { "width": 340, "height": 260 },
+        "data": { "title": "Someday", "content": "" }
+      },
+      {
+        "id": "person-anna",
+        "type": "person",
+        "position": { "x": 900, "y": 0 },
+        "size": { "width": 340, "height": 300 },
+        "data": { "title": "Anna", "content": "" }
+      }
+    ],
+    "edges": [],
+    "wires": [
+      {
+        "id": "wire-pays",
+        "source": "plant-gun",
+        "sourcePort": "plant-out",
+        "target": "payoff-shot",
+        "targetPort": "plants-in",
+        "status": "live"
+      },
+      {
+        "id": "wire-involves",
+        "source": "person-anna",
+        "sourcePort": "identity-out",
+        "target": "event-wedding",
+        "targetPort": "involves-in",
+        "status": "live",
+        "label": "bride"
+      }
+    ],
+    "assemblies": []
+  },
+  "payoffsOfGun": [{ "nodeId": "payoff-shot", "title": "The shot in act three" }],
+  "payoffsOfLocket": [],
+  "plantsResolvedByShot": [{ "nodeId": "plant-gun", "title": "The pistol on the mantel" }],
+  "timeline": [
+    { "nodeId": "event-duel", "storyTime": 3.5, "title": "The duel" },
+    { "nodeId": "event-wedding", "storyTime": 14.2, "title": "The wedding" }
+  ],
+  "involvedInWedding": [{ "personId": "person-anna", "name": "Anna", "role": "bride" }],
+  "hygieneFlags": [
+    { "nodeId": "plant-locket", "portId": "plant-out", "portLabel": "Plant", "direction": "give" }
+  ]
+}

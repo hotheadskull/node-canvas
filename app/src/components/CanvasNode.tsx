@@ -47,6 +47,8 @@ export const PORT_KIND_COLORS: Record<string, string> = {
   cite: '#14b8a6',
   claim: '#f43f5e',
   prop: '#34d399',
+  plant: '#84cc16',
+  event: '#c084fc',
   any: '#cbd5e1',
 };
 
@@ -127,7 +129,11 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
     useShallow((state) =>
       hygieneFlags(state.document)
         .filter((flag) => flag.nodeId === id)
-        .map((flag) => flag.portLabel),
+        .map((flag) =>
+          flag.direction === 'give'
+            ? `${flag.portLabel} feeds nothing yet`
+            : `${flag.portLabel} intake is empty`,
+        ),
     ),
   );
   const updateNodeInternals = useUpdateNodeInternals();
@@ -185,11 +191,7 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
           </span>
         )}
         {flaggedPorts.length > 0 && (
-          <span
-            className="hygiene-dot"
-            title={`${flaggedPorts.join(', ')} intake is empty`}
-            data-hygiene-flag
-          />
+          <span className="hygiene-dot" title={flaggedPorts.join('; ')} data-hygiene-flag />
         )}
         {!faceOwnsTitle && (
           <input

@@ -230,6 +230,7 @@ export function Canvas() {
               portLabel: givePort?.label ?? wire.sourcePort,
               ...(isArc ? { isArc } : {}),
               ...(wire.relation !== undefined ? { relation: wire.relation } : {}),
+              ...(wire.label !== undefined ? { label: wire.label } : {}),
             },
           },
         ];

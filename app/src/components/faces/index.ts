@@ -13,6 +13,7 @@
 import type { ComponentType } from 'react';
 import { DefaultFace } from './DefaultFace';
 import { DocumentFace } from './DocumentFace';
+import { EventFace, PayoffFace, PlantFace } from './NovelFaces';
 import { PropositionFace } from './PropositionFace';
 import { TitleFace } from './TitleFace';
 
@@ -32,6 +33,9 @@ export const NODE_FACES: Record<string, ComponentType<FaceProps>> = {
   claim: DocumentFace,
   passage: DocumentFace,
   proposition: PropositionFace,
+  plant: PlantFace,
+  payoff: PayoffFace,
+  event: EventFace,
 };
 
 export function faceFor(coreType: string): ComponentType<FaceProps> {
