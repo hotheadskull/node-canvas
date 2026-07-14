@@ -42,7 +42,11 @@ export function addNode(document: CanvasDocument, node: CanvasNode): CanvasDocum
   return { ...document, nodes: [...document.nodes, node] };
 }
 
-/** Removing a node also removes every edge AND wire attached to it. */
+/**
+ * Removing a node also removes every edge AND wire attached to it, and drops
+ * its membership references. Assemblies that contained it SURVIVE with their
+ * face-attached connections intact -- the face is a stable interface (I3).
+ */
 export function removeNode(document: CanvasDocument, nodeId: string): CanvasDocument {
   if (!document.nodes.some((node) => node.id === nodeId)) {
     throw new GraphError(`node "${nodeId}" not found`);
@@ -52,6 +56,11 @@ export function removeNode(document: CanvasDocument, nodeId: string): CanvasDocu
     nodes: document.nodes.filter((node) => node.id !== nodeId),
     edges: document.edges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId),
     wires: document.wires.filter((wire) => wire.source !== nodeId && wire.target !== nodeId),
+    assemblies: document.assemblies.map((assembly) =>
+      assembly.memberIds.includes(nodeId)
+        ? { ...assembly, memberIds: assembly.memberIds.filter((id) => id !== nodeId) }
+        : assembly,
+    ),
   };
 }
 
@@ -66,6 +75,8 @@ export type PlainEdgeOptions = {
  * Plain edge (I1): always succeeds between any two distinct existing nodes,
  * regardless of their types, with zero setup. Plain edges are semantically
  * undirected relationships, so a duplicate in either orientation is rejected.
+ * Assembly faces are valid endpoints: connecting to a group is connecting to
+ * its face, never to an inner node behind its back.
  */
 export function addPlainEdge(
   document: CanvasDocument,
@@ -74,7 +85,10 @@ export function addPlainEdge(
   options: PlainEdgeOptions = {},
 ): CanvasDocument {
   for (const endpoint of [source, target]) {
-    if (!document.nodes.some((node) => node.id === endpoint)) {
+    const exists =
+      document.nodes.some((node) => node.id === endpoint) ||
+      document.assemblies.some((assembly) => assembly.id === endpoint);
+    if (!exists) {
       throw new GraphError(`cannot connect: node "${endpoint}" not found`);
     }
   }

@@ -9,7 +9,8 @@
       { "id": "node_chapter", "type": "document", "position": { "x": 0, "y": 0 }, "size": { "width": 500, "height": 400 }, "data": { "title": "Chapter One", "content": "" } }
     ],
     "edges": [],
-    "wires": []
+    "wires": [],
+    "assemblies": []
   },
   "stubs": [
     { "type": "section", "title": "Opening image" },
@@ -30,7 +31,8 @@
     "wires": [
       { "id": "stub_wire_1", "source": "stub_1", "sourcePort": "text-out", "target": "node_chapter", "targetPort": "sections-in", "status": "live" },
       { "id": "stub_wire_2", "source": "stub_2", "sourcePort": "text-out", "target": "node_chapter", "targetPort": "sections-in", "status": "live" }
-    ]
+    ],
+    "assemblies": []
   },
   "createdIds": ["stub_1", "stub_2"]
 }

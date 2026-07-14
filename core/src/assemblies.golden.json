@@ -1,0 +1,38 @@
+{
+  "fixture": {
+    "schemaVersion": 1,
+    "id": "doc_asm-fixture",
+    "name": "Assembly fixture",
+    "canvasMode": "novel",
+    "createdAt": "2026-07-14T12:00:00.000Z",
+    "nodes": [
+      { "id": "node_king", "type": "person", "position": { "x": 0, "y": 0 }, "data": { "title": "The King" } },
+      { "id": "node_castle", "type": "place", "position": { "x": 500, "y": 0 }, "data": { "title": "Castle" } },
+      { "id": "node_smith", "type": "person", "position": { "x": 0, "y": 500 }, "data": { "title": "Blacksmith" } },
+      { "id": "node_forge", "type": "place", "position": { "x": 500, "y": 500 }, "data": { "title": "Forge" } },
+      { "id": "node_outsider", "type": "note", "position": { "x": 1200, "y": 250 }, "data": { "title": "Outside note" } }
+    ],
+    "edges": [
+      { "id": "edge_external", "source": "node_outsider", "target": "asm_town" }
+    ],
+    "wires": [],
+    "assemblies": [
+      { "id": "asm_court", "name": "The Court", "memberIds": ["node_king", "node_castle"], "position": { "x": 200, "y": -50 }, "collapsed": false },
+      { "id": "asm_guild", "name": "The Guild", "memberIds": ["node_smith", "node_forge", "node_castle"], "position": { "x": 200, "y": 550 }, "collapsed": false },
+      { "id": "asm_town", "name": "The Town", "memberIds": ["asm_court", "asm_guild"], "position": { "x": 250, "y": 250 }, "collapsed": false },
+      { "id": "asm_kingdom", "name": "The Kingdom", "memberIds": ["asm_town"], "position": { "x": 300, "y": 250 }, "collapsed": false }
+    ]
+  },
+  "memberNodeIdsOfTown": ["node_king", "node_castle", "node_smith", "node_forge"],
+  "faceCountsOfTown": [
+    { "type": "person", "label": "Person", "count": 2 },
+    { "type": "place", "label": "Place", "count": 2 }
+  ],
+  "hiddenWhenTownCollapsed": ["node_king", "node_castle", "node_smith", "node_forge", "asm_court", "asm_guild"],
+  "displayEndpointOfKingWhenTownCollapsed": "asm_town",
+  "afterDeleteCastle": {
+    "courtMembers": ["node_king"],
+    "guildMembers": ["node_smith", "node_forge"],
+    "externalEdgeSurvives": true
+  }
+}

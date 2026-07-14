@@ -146,6 +146,7 @@ describe('split presets (registry data, I8)', () => {
             ],
             edges: [],
             wires: [],
+            assemblies: [],
           };
           splitNode(doc, 'node_parent', preset.stubs);
         }).not.toThrow();

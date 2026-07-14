@@ -75,5 +75,20 @@
       "status": "tentative",
       "storyTime": 3
     }
+  ],
+  "assemblies": [
+    {
+      "id": "asm_1",
+      "name": "Cast & premise",
+      "memberIds": [
+        "node_title-1",
+        "node_person-1"
+      ],
+      "position": {
+        "x": -200,
+        "y": 80
+      },
+      "collapsed": false
+    }
   ]
 }

@@ -44,7 +44,8 @@
         "targetPort": "sections-in",
         "status": "tentative"
       }
-    ]
+    ],
+    "assemblies": []
   },
   "commitWireId": "wire_cand-1",
   "after": {
@@ -83,7 +84,8 @@
         "targetPort": "sections-in",
         "status": "live"
       }
-    ]
+    ],
+    "assemblies": []
   },
   "dissolvedIds": ["wire_cand-2"]
 }

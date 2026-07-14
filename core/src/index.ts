@@ -9,3 +9,4 @@ export * from './wires';
 export * from './layout';
 export * from './derive';
 export * from './split';
+export * from './assemblies';

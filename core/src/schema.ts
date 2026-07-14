@@ -69,6 +69,20 @@ export const WireSchema = z.object({
   storyTime: z.number().finite().optional(),
 });
 
+// Assembly (I3): a REFERENCE list, never a copy. memberIds point at nodes or
+// other assemblies (nesting); a node can belong to many assemblies at once.
+// `collapsed` is a pure view flag -- collapsing transforms NOTHING in the
+// graph, which is what makes collapse/expand structurally lossless (I4).
+// The assembly's own id can be an edge endpoint: external connections attach
+// to the FACE, so deleting inner nodes never breaks them (Blender lesson).
+export const AssemblySchema = z.object({
+  id: z.string().min(1),
+  name: z.string(),
+  memberIds: z.array(z.string().min(1)),
+  position: z.object({ x: z.number().finite(), y: z.number().finite() }),
+  collapsed: z.boolean(),
+});
+
 export const DocumentSchema = z
   .object({
     schemaVersion: z.literal(DOCUMENT_SCHEMA_VERSION),
@@ -79,6 +93,7 @@ export const DocumentSchema = z
     nodes: z.array(NodeSchema),
     edges: z.array(PlainEdgeSchema),
     wires: z.array(WireSchema),
+    assemblies: z.array(AssemblySchema),
   })
   .superRefine((doc, ctx) => {
     const nodeIds = new Set<string>();
@@ -88,6 +103,18 @@ export const DocumentSchema = z
       }
       nodeIds.add(node.id);
     }
+    const assemblyIds = new Set<string>();
+    for (const assembly of doc.assemblies) {
+      if (assemblyIds.has(assembly.id) || nodeIds.has(assembly.id)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `duplicate assembly id "${assembly.id}"`,
+        });
+      }
+      assemblyIds.add(assembly.id);
+    }
+    // plain edges may attach to nodes OR assembly faces
+    const endpointIds = new Set([...nodeIds, ...assemblyIds]);
     const edgeIds = new Set<string>();
     for (const edge of doc.edges) {
       if (edgeIds.has(edge.id)) {
@@ -95,7 +122,7 @@ export const DocumentSchema = z
       }
       edgeIds.add(edge.id);
       for (const endpoint of [edge.source, edge.target]) {
-        if (!nodeIds.has(endpoint)) {
+        if (!endpointIds.has(endpoint)) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: `edge "${edge.id}" references missing node "${endpoint}"`,
@@ -118,11 +145,48 @@ export const DocumentSchema = z
         }
       }
     }
+    // membership integrity: members exist; no membership cycles
+    for (const assembly of doc.assemblies) {
+      const seen = new Set<string>();
+      for (const memberId of assembly.memberIds) {
+        if (seen.has(memberId)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `assembly "${assembly.id}" lists member "${memberId}" twice`,
+          });
+        }
+        seen.add(memberId);
+        if (!nodeIds.has(memberId) && !assemblyIds.has(memberId)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `assembly "${assembly.id}" references missing member "${memberId}"`,
+          });
+        }
+      }
+    }
+    const byId = new Map(doc.assemblies.map((assembly) => [assembly.id, assembly]));
+    const reaches = (fromId: string, targetId: string, path: Set<string>): boolean => {
+      if (fromId === targetId) return true;
+      if (path.has(fromId)) return false;
+      path.add(fromId);
+      const assembly = byId.get(fromId);
+      if (!assembly) return false;
+      return assembly.memberIds.some((memberId) => reaches(memberId, targetId, path));
+    };
+    for (const assembly of doc.assemblies) {
+      if (assembly.memberIds.some((memberId) => reaches(memberId, assembly.id, new Set()))) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `assembly "${assembly.id}" contains itself (membership cycle)`,
+        });
+      }
+    }
   });
 
 export type CanvasNode = z.infer<typeof NodeSchema>;
 export type PlainEdge = z.infer<typeof PlainEdgeSchema>;
 export type DataWire = z.infer<typeof WireSchema>;
+export type Assembly = z.infer<typeof AssemblySchema>;
 export type CanvasDocument = z.infer<typeof DocumentSchema>;
 
 export type ParseResult =
@@ -179,5 +243,6 @@ export function createEmptyDocument(name: string, canvasMode: CanvasMode = 'univ
     nodes: [],
     edges: [],
     wires: [],
+    assemblies: [],
   };
 }

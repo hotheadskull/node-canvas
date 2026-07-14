@@ -20,7 +20,8 @@
       { "id": "wire_bob-a", "source": "node_bob", "sourcePort": "identity-out", "target": "node_scene-a", "targetPort": "people-in", "status": "live" },
       { "id": "wire_tentative", "source": "node_draft", "sourcePort": "text-out", "target": "node_chapter", "targetPort": "sections-in", "status": "tentative" },
       { "id": "wire_chapter-ms", "source": "node_chapter", "sourcePort": "compiled-out", "target": "node_manuscript", "targetPort": "documents-in", "status": "live" }
-    ]
+    ],
+    "assemblies": []
   },
   "compileChapter": {
     "text": "The storm broke at midnight.\n\nBob climbed the lighthouse stairs.\n\nWaves swallowed the pier.",
