@@ -62,6 +62,20 @@ remodel requirement (behavior items are BUGS with tests, not just styling):
   per-node accent/theming, what the user can adjust per node vs per type).
   The user picks/mixes BEFORE rendering code is written. Requested 2026-07-13.
 
+- **Standing per-node design flow (agreed 2026-07-14).** Every node type —
+  new or being refined — goes through this before its rendering code:
+  1. **Research + brainstorm**: how real tools and real practitioners handle
+     the concept; what the node should give/take/derive/flag; distilled
+     into a one-minute **node brief** for the user.
+  2. **3–4 mockups** grounded in the brief (for system-level work, each
+     shown across several node types so it reads as a family).
+  3. **User picks/mixes** → the pick is written down as a spec (zones,
+     behavior, what's customizable) BEFORE code.
+  4. **Build + tests**, behavior items with regression tests.
+  A mix of options must resolve into ONE coherent spec — Chunk 4's lesson:
+  combining mockup fragments without a written system produced the
+  "thrown together" look Chunk 17 exists to fix.
+
 ## Deferred post-launch roster
 Continuity engine (`stateAt`), Word Study, Illustration, Element/Patch game-design
 suite, academic-pack polish, merge-progress faces, citation formatting,
