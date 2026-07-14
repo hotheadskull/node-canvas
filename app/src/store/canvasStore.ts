@@ -18,6 +18,8 @@ import {
   GraphError,
   moveAssembly,
   parseDocument,
+  READINESS_STAGES,
+  readinessOf,
   renameAssembly,
   setAssemblyCollapsed,
   unpackAssembly,
@@ -99,6 +101,9 @@ type CanvasState = {
   /** The node open in the focus editor overlay (design B); null = closed. */
   editorNodeId: string | null;
   openEditor: (nodeId: string | null) => void;
+
+  cycleReadiness: (nodeId: string) => void;
+  setOwner: (nodeId: string, owner: string) => void;
 
   /** Drill-in stack (UI state, not persisted): assembly ids, outermost first. */
   drillStack: string[];
@@ -476,6 +481,38 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
 
     editorNodeId: null,
     openEditor: (nodeId) => set({ editorNodeId: nodeId }),
+
+    cycleReadiness: (nodeId) => {
+      const doc = get().document;
+      const node = doc.nodes.find((candidate) => candidate.id === nodeId);
+      if (!node) return;
+      const current = readinessOf(node);
+      const next =
+        READINESS_STAGES[(READINESS_STAGES.indexOf(current) + 1) % READINESS_STAGES.length]!;
+      commit({
+        ...doc,
+        nodes: doc.nodes.map((candidate) =>
+          candidate.id === nodeId
+            ? { ...candidate, data: { ...candidate.data, readiness: next } }
+            : candidate,
+        ),
+      });
+    },
+
+    setOwner: (nodeId, owner) => {
+      const doc = get().document;
+      commit({
+        ...doc,
+        nodes: doc.nodes.map((node) => {
+          if (node.id !== nodeId) return node;
+          if (owner.trim() === '') {
+            const { owner: _dropped, ...data } = node.data;
+            return { ...node, data };
+          }
+          return { ...node, data: { ...node.data, owner } };
+        }),
+      });
+    },
 
     drillStack: [],
 

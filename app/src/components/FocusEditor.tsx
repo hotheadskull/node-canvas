@@ -15,6 +15,7 @@ export function FocusEditor() {
   const openEditor = useCanvasStore((state) => state.openEditor);
   const setNodeContent = useCanvasStore((state) => state.setNodeContent);
   const setNodeTitle = useCanvasStore((state) => state.setNodeTitle);
+  const setOwner = useCanvasStore((state) => state.setOwner);
 
   const node = document_.nodes.find((candidate) => candidate.id === editorNodeId);
 
@@ -67,6 +68,13 @@ export function FocusEditor() {
             value={title}
             placeholder="Untitled"
             onChange={(event) => setNodeTitle(node.id, event.target.value)}
+          />
+          <input
+            className="focus-owner"
+            value={typeof node.data['owner'] === 'string' ? node.data['owner'] : ''}
+            placeholder="owner…"
+            title="Who this piece is waiting on (groups roll it up)"
+            onChange={(event) => setOwner(node.id, event.target.value)}
           />
           <span className="focus-meta">{wordCount(content)} words</span>
           <button className="focus-close" aria-label="Back to canvas (Esc)" onClick={() => openEditor(null)}>

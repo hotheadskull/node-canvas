@@ -267,6 +267,30 @@ describe('assemblies in the store', () => {
   });
 });
 
+describe('workflow: readiness + ownership', () => {
+  it('cycleReadiness walks seed -> developing -> ready -> placed -> seed', () => {
+    const id = useCanvasStore.getState().spawnAt('note', { x: 0, y: 0 })!;
+    const stageOf = () => useCanvasStore.getState().document.nodes[0]!.data['readiness'];
+    expect(stageOf()).toBeUndefined(); // absent = seed
+    useCanvasStore.getState().cycleReadiness(id);
+    expect(stageOf()).toBe('developing');
+    useCanvasStore.getState().cycleReadiness(id);
+    expect(stageOf()).toBe('ready');
+    useCanvasStore.getState().cycleReadiness(id);
+    expect(stageOf()).toBe('placed');
+    useCanvasStore.getState().cycleReadiness(id);
+    expect(stageOf()).toBe('seed');
+  });
+
+  it('setOwner writes and clears the tag', () => {
+    const id = useCanvasStore.getState().spawnAt('note', { x: 0, y: 0 })!;
+    useCanvasStore.getState().setOwner(id, 'Sarah');
+    expect(useCanvasStore.getState().document.nodes[0]!.data['owner']).toBe('Sarah');
+    useCanvasStore.getState().setOwner(id, '');
+    expect('owner' in useCanvasStore.getState().document.nodes[0]!.data).toBe(false);
+  });
+});
+
 describe('auto-fit height (core math applied by the store)', () => {
   it('grows with content but never below the type minimum', () => {
     const store = useCanvasStore.getState();

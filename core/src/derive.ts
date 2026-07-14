@@ -201,6 +201,61 @@ export function rollupReadiness(
 }
 
 // ---------------------------------------------------------------------------
+// Ownership: a plain per-node tag (no accounts, no sync -- just a field).
+// Rollups answer "who is the group waiting on?"
+// ---------------------------------------------------------------------------
+
+export function ownerOf(node: CanvasNode): string | null {
+  const value = node.data['owner'];
+  return typeof value === 'string' && value.trim() !== '' ? value.trim() : null;
+}
+
+export type OwnerRollup = { owner: string; outstanding: number };
+
+/** Per-owner counts of member nodes that are not yet 'placed'. */
+export function ownersOutstanding(
+  document: CanvasDocument,
+  memberIds: readonly string[],
+): OwnerRollup[] {
+  const counts = new Map<string, number>();
+  for (const id of memberIds) {
+    const node = document.nodes.find((candidate) => candidate.id === id);
+    if (!node) continue;
+    const owner = ownerOf(node);
+    if (!owner || readinessOf(node) === 'placed') continue;
+    counts.set(owner, (counts.get(owner) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([owner, outstanding]) => ({ owner, outstanding }))
+    .sort((a, b) => b.outstanding - a.outstanding || a.owner.localeCompare(b.owner));
+}
+
+// ---------------------------------------------------------------------------
+// Workbench: the standing inbox. Quick capture stamps notes with capturedAt;
+// the face derives "N notes · oldest X".
+// ---------------------------------------------------------------------------
+
+export type WorkbenchInfo = { count: number; oldestCapturedAt: string | null };
+
+export function workbenchInfo(
+  document: CanvasDocument,
+  memberIds: readonly string[],
+): WorkbenchInfo {
+  let count = 0;
+  let oldest: string | null = null;
+  for (const id of memberIds) {
+    const node = document.nodes.find((candidate) => candidate.id === id);
+    if (!node) continue;
+    count += 1;
+    const captured = node.data['capturedAt'];
+    if (typeof captured === 'string' && (oldest === null || captured < oldest)) {
+      oldest = captured;
+    }
+  }
+  return { count, oldestCapturedAt: oldest };
+}
+
+// ---------------------------------------------------------------------------
 // Hygiene flags: a node flags itself when a flagWhenEmpty intake is empty --
 // but ONLY if the node already participates in wiring. Port-free canvases
 // never see a flag (I2: ports are opt-in).

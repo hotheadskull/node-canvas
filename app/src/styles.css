@@ -387,6 +387,36 @@ html, body, #root {
 .assembly-face-unpack:hover { border-color: #a855f7; color: #d8b4fe; }
 .assembly-handle.react-flow__handle { background: #a855f7; }
 
+/* ---------- Workflow: readiness + ownership ---------- */
+.readiness-dot {
+  flex-shrink: 0; width: 10px; height: 10px; border-radius: 9999px;
+  border: 1.5px solid rgba(0, 0, 0, 0.45); cursor: pointer; padding: 0;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.readiness-dot:hover { transform: scale(1.35); }
+.readiness-dot.stage-seed { background: #55555e; }
+.readiness-dot.stage-developing { background: #eab308; box-shadow: 0 0 6px rgba(234, 179, 8, 0.6); }
+.readiness-dot.stage-ready { background: #22c55e; box-shadow: 0 0 6px rgba(34, 197, 94, 0.6); }
+.readiness-dot.stage-placed { background: #a855f7; box-shadow: 0 0 6px rgba(168, 85, 247, 0.6); }
+.owner-chip {
+  flex-shrink: 0; max-width: 76px; overflow: hidden; text-overflow: ellipsis;
+  padding: 1px 7px; border-radius: 9999px;
+  background: rgba(120, 140, 220, 0.16); border: 1px solid rgba(140, 160, 235, 0.35);
+  color: #aebcf0; font-size: 9.5px; white-space: nowrap;
+}
+.focus-owner {
+  width: 90px; background: transparent; outline: none;
+  border: 1px solid var(--hairline); border-radius: 6px;
+  padding: 3px 8px; color: #aebcf0; font-size: 11.5px;
+}
+.focus-owner:focus { border-color: rgba(140, 160, 235, 0.5); }
+.assembly-face-readiness, .assembly-face-owners, .assembly-face-workbench {
+  margin: 0; font-size: 10.5px; line-height: 1.5;
+}
+.assembly-face-readiness { color: #9ac79f; }
+.assembly-face-owners { color: #aebcf0; }
+.assembly-face-workbench { color: var(--gold); }
+
 /* ---------- Semantic zoom: constellations become stars ---------- */
 .assembly-star { display: none; }
 .zoom-far .assembly-face.is-collapsed {

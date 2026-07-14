@@ -5,9 +5,11 @@ import {
   compile,
   deriveFace,
   hygieneFlags,
+  ownersOutstanding,
   readinessOf,
   rollupReadiness,
   wordCount,
+  workbenchInfo,
 } from './derive';
 import { reorderIntakeWire } from './wires';
 import { DocumentSchema, type CanvasDocument } from './schema';
@@ -116,6 +118,50 @@ describe('readiness (golden rollup)', () => {
 
   it('an empty set is seed with zero total', () => {
     expect(rollupReadiness(fixture, []).overall).toBe('seed');
+  });
+});
+
+describe('ownership rollups', () => {
+  it('counts unplaced nodes per owner, placed work drops off', () => {
+    const staffed: CanvasDocument = {
+      ...fixture,
+      nodes: fixture.nodes.map((node) => {
+        if (node.id === 'node_scene-a')
+          return { ...node, data: { ...node.data, owner: 'Sarah' } };
+        if (node.id === 'node_scene-b')
+          return { ...node, data: { ...node.data, owner: 'Sarah', readiness: 'placed' } };
+        if (node.id === 'node_draft') return { ...node, data: { ...node.data, owner: 'Ben' } };
+        return node;
+      }),
+    };
+    expect(ownersOutstanding(staffed, staffed.nodes.map((node) => node.id))).toEqual([
+      { owner: 'Ben', outstanding: 1 },
+      { owner: 'Sarah', outstanding: 1 },
+    ]);
+  });
+
+  it('no owners, no rollup', () => {
+    expect(ownersOutstanding(fixture, fixture.nodes.map((node) => node.id))).toEqual([]);
+  });
+});
+
+describe('workbench info', () => {
+  it('derives count and the oldest capture', () => {
+    const captured: CanvasDocument = {
+      ...fixture,
+      nodes: fixture.nodes.map((node) => {
+        if (node.id === 'node_draft')
+          return { ...node, data: { ...node.data, capturedAt: '2026-07-10T08:00:00.000Z' } };
+        if (node.id === 'node_scene-a')
+          return { ...node, data: { ...node.data, capturedAt: '2026-07-12T08:00:00.000Z' } };
+        return node;
+      }),
+    };
+    expect(workbenchInfo(captured, ['node_draft', 'node_scene-a'])).toEqual({
+      count: 2,
+      oldestCapturedAt: '2026-07-10T08:00:00.000Z',
+    });
+    expect(workbenchInfo(captured, [])).toEqual({ count: 0, oldestCapturedAt: null });
   });
 });
 

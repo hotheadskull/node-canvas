@@ -16,7 +16,15 @@ import {
 } from '@xyflow/react';
 import { Maximize2 } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
-import { getNodeDef, nodeLabel, tentativeInboundCount, type PortDef } from '@node-canvas/core';
+import { useShallow } from 'zustand/react/shallow';
+import {
+  getNodeDef,
+  nodeLabel,
+  ownerOf,
+  readinessOf,
+  tentativeInboundCount,
+  type PortDef,
+} from '@node-canvas/core';
 import { useCanvasStore } from '../store/canvasStore';
 import { faceFor } from './faces';
 
@@ -97,6 +105,16 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
   const setOwnedSize = useCanvasStore((state) => state.setOwnedSize);
   const clearOwnedHeight = useCanvasStore((state) => state.clearOwnedHeight);
   const waiting = useCanvasStore((state) => tentativeInboundCount(state.document, id));
+  const cycleReadiness = useCanvasStore((state) => state.cycleReadiness);
+  const { readiness, owner } = useCanvasStore(
+    useShallow((state) => {
+      const docNode = state.document.nodes.find((candidate) => candidate.id === id);
+      return {
+        readiness: docNode ? readinessOf(docNode) : ('seed' as const),
+        owner: docNode ? ownerOf(docNode) : null,
+      };
+    }),
+  );
   const updateNodeInternals = useUpdateNodeInternals();
 
   const [accentPickerOpen, setAccentPickerOpen] = useState(false);
@@ -132,12 +150,23 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
       )}
       <header className="canvas-node-header">
         <button
+          className={`readiness-dot nodrag stage-${readiness}`}
+          title={`Readiness: ${readiness} — click to advance`}
+          aria-label={`Readiness: ${readiness}`}
+          onClick={() => cycleReadiness(id)}
+        />
+        <button
           className="canvas-node-kind nodrag"
           title="Change this node's color"
           onClick={() => setAccentPickerOpen((open) => !open)}
         >
           {def ? nodeLabel(def.type, 'universal') : data.coreType}
         </button>
+        {owner && (
+          <span className="owner-chip" title={`Owner: ${owner}`}>
+            {owner}
+          </span>
+        )}
         {!faceOwnsTitle && (
           <input
             className="canvas-node-title nodrag"

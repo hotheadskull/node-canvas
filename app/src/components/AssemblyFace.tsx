@@ -7,8 +7,24 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import { Boxes, DoorOpen, Minimize2, PackageOpen } from 'lucide-react';
 import { memo, useMemo } from 'react';
-import { deriveFace, memberNodeIds } from '@node-canvas/core';
+import {
+  deriveFace,
+  memberNodeIds,
+  ownersOutstanding,
+  READINESS_STAGES,
+  rollupReadiness,
+  workbenchInfo,
+} from '@node-canvas/core';
 import { useCanvasStore } from '../store/canvasStore';
+
+/** Human age for the workbench face ("2h", "12d"). */
+function ageOf(iso: string): string {
+  const ms = Date.now() - Date.parse(iso);
+  const hours = Math.floor(ms / 3_600_000);
+  if (hours < 1) return 'just now';
+  if (hours < 48) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
 
 export type AssemblyFaceData = {
   assemblyId: string;
@@ -27,10 +43,14 @@ function AssemblyFaceComponent({ data, selected }: NodeProps & { data: AssemblyF
     () => deriveFace(document, memberNodeIds(document, data.assemblyId)),
     [document, data.assemblyId],
   );
-  const memberCount = useMemo(
-    () => memberNodeIds(document, data.assemblyId).length,
+  const members = useMemo(
+    () => memberNodeIds(document, data.assemblyId),
     [document, data.assemblyId],
   );
+  const memberCount = members.length;
+  const rollup = useMemo(() => rollupReadiness(document, members), [document, members]);
+  const owners = useMemo(() => ownersOutstanding(document, members), [document, members]);
+  const workbench = useMemo(() => workbenchInfo(document, members), [document, members]);
 
   return (
     <div
@@ -76,6 +96,26 @@ function AssemblyFaceComponent({ data, selected }: NodeProps & { data: AssemblyF
                   {entry.label}: {entry.count}
                 </span>
               ))}
+            </p>
+          )}
+          {rollup.total > 0 && rollup.counts.seed !== rollup.total && (
+            <p className="assembly-face-readiness" title="Readiness of everything inside">
+              {READINESS_STAGES.filter((stage) => rollup.counts[stage] > 0)
+                .map((stage) => `${rollup.counts[stage]} ${stage}`)
+                .join(' · ')}
+            </p>
+          )}
+          {owners.length > 0 && (
+            <p className="assembly-face-owners" title="Unfinished work per owner">
+              waiting on {owners.map((entry) => `${entry.owner}: ${entry.outstanding}`).join(' · ')}
+            </p>
+          )}
+          {workbench.count > 0 && data.name.trim().toLowerCase() === 'workbench' && (
+            <p className="assembly-face-workbench">
+              {workbench.count} captured
+              {workbench.oldestCapturedAt
+                ? ` · oldest ${ageOf(workbench.oldestCapturedAt)}`
+                : ''}
             </p>
           )}
           <footer className="assembly-face-footer">
