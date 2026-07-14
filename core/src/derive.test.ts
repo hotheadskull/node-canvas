@@ -56,6 +56,12 @@ describe('compile (golden: wire-order concatenation up the spine)', () => {
     expect(wordCount('')).toBe(0);
     expect(wordCount('  one   two  ')).toBe(2);
   });
+
+  it('word count sees words, never markup (TipTap HTML content)', () => {
+    expect(wordCount('<p>Bob <strong>climbed</strong> the stairs.</p>')).toBe(4);
+    expect(wordCount('<p></p>')).toBe(0);
+    expect(wordCount('<h2>Storm</h2><p>Inside &amp; out</p>')).toBe(4);
+  });
 });
 
 describe('castOf (golden: rename Bob -> Robert propagates)', () => {

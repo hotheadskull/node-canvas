@@ -96,6 +96,10 @@ type CanvasState = {
   splitNode: (nodeId: string, presetId: string) => void;
   saveViewport: (viewport: Viewport) => void;
 
+  /** The node open in the focus editor overlay (design B); null = closed. */
+  editorNodeId: string | null;
+  openEditor: (nodeId: string | null) => void;
+
   /** Drill-in stack (UI state, not persisted): assembly ids, outermost first. */
   drillStack: string[];
   drillIn: (assemblyId: string) => void;
@@ -469,6 +473,9 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
         // losing viewport prefs is acceptable; losing documents is not
       }
     },
+
+    editorNodeId: null,
+    openEditor: (nodeId) => set({ editorNodeId: nodeId }),
 
     drillStack: [],
 

@@ -28,20 +28,24 @@ test('split -> write -> compile -> reorder, all through the real UI', async ({ p
   const sections = page
     .locator('.react-flow__node')
     .filter({ has: page.locator('.canvas-node-kind', { hasText: /^Section$/ }) });
-  await sections.nth(0).locator('textarea.canvas-node-content').fill('First words.');
-  await sections.nth(1).locator('textarea.canvas-node-content').fill('Second words.');
+  await sections.nth(0).locator('.richtext-content').click();
+  await page.keyboard.type('First words.');
+  await sections.nth(1).locator('.richtext-content').click();
+  await page.keyboard.type('Second words.');
 
-  // compiled preview follows wire order
+  // compiled preview follows wire order (rich content -> assert paragraphs)
   await page.getByRole('button', { name: 'Preview' }).click();
-  await expect(page.locator('[data-compiled-preview]')).toHaveText(
-    'First words.\n\nSecond words.',
-  );
+  await expect(page.locator('[data-compiled-preview] p')).toHaveText([
+    'First words.',
+    'Second words.',
+  ]);
 
   // reorder: move Section 2 up -> compiled text flips
   await page.getByRole('button', { name: 'Move Section 2 up' }).click();
-  await expect(page.locator('[data-compiled-preview]')).toHaveText(
-    'Second words.\n\nFirst words.',
-  );
+  await expect(page.locator('[data-compiled-preview] p')).toHaveText([
+    'Second words.',
+    'First words.',
+  ]);
   await expect(rows).toHaveText(['Section 2', 'Section 1', 'Section 3']);
 
   // word count reflects the compiled text
@@ -94,4 +98,44 @@ test('cast derives through the spine and renames propagate live', async ({ page 
   // rename -> the chapter's cast updates without touching anything else
   await person.locator('input.canvas-node-title').fill('Robert');
   await expect(page.locator('.document-cast')).toHaveText('Cast: Robert');
+});
+
+test('focus editor: double-click to write, walk the spine, Esc back (design B)', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+
+  await page.getByRole('button', { name: /add node/i }).click();
+  await page.locator('[data-node-type="document"]').click();
+  await page.getByRole('button', { name: /Split/ }).click();
+  await page.getByRole('menuitem', { name: /3 blank sections/ }).click();
+  await page.getByRole('button', { name: 'Fit' }).click();
+  await page.waitForTimeout(450);
+
+  // double-click Section 1 -> focus room opens
+  const section = page
+    .locator('.react-flow__node')
+    .filter({ has: page.locator('.canvas-node-kind', { hasText: /^Section$/ }) })
+    .first();
+  await section.dblclick();
+  const room = page.locator('[data-focus-editor]');
+  await expect(room).toBeVisible();
+  await expect(room.locator('.focus-title')).toHaveValue('Section 1');
+
+  // write rich text
+  await room.locator('.richtext-focus').click();
+  await page.keyboard.type('The storm broke at midnight.');
+  await expect(room.locator('.focus-meta')).toHaveText('5 words');
+
+  // walk the spine forward
+  await room.getByRole('button', { name: /next/i }).click();
+  await expect(room.locator('.focus-title')).toHaveValue('Section 2');
+
+  // Esc returns to the canvas; content persisted into the compile
+  await page.keyboard.press('Escape');
+  await expect(room).toHaveCount(0);
+  await page.getByRole('button', { name: 'Preview' }).click();
+  await expect(page.locator('[data-compiled-preview]')).toContainText(
+    'The storm broke at midnight.',
+  );
 });

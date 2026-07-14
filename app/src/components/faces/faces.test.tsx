@@ -88,10 +88,12 @@ describe('node faces (I8: per-type looks plug in without touching shared chrome)
     expect(doc.nodes.some((node) => node.data.title === 'Opening image')).toBe(true);
   });
 
-  it('other types keep the default face with header title input', async () => {
+  it('other types keep the default face (rich text) with header title input', async () => {
     seed(['note']);
     render(<App />);
-    expect(await screen.findByPlaceholderText('Write here…')).toBeTruthy();
+    await screen.findByTestId('app-shell');
+    await new Promise((resolve) => setTimeout(resolve, 50)); // tiptap mounts async
+    expect(document.querySelector('.richtext-content')).not.toBeNull();
     expect(document.querySelector('.canvas-node-title')).not.toBeNull();
     expect(document.querySelector('[data-face="title"]')).toBeNull();
   });

@@ -405,6 +405,85 @@ html, body, #root {
 .breadcrumb-step { display: inline-flex; align-items: center; gap: 4px; }
 .breadcrumb-sep { color: #55555e; }
 
+/* ---------- Rich text (design A: inline; design B: focus) ---------- */
+.richtext { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+.richtext-toolbar {
+  display: flex; gap: 2px; padding: 3px 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  opacity: 0; transition: opacity 0.12s ease;
+}
+.richtext:focus-within .richtext-toolbar, .richtext-wrap-focus .richtext-toolbar { opacity: 1; }
+.richtext-toolbar button {
+  display: grid; place-items: center; width: 22px; height: 22px;
+  border-radius: 4px; border: none; background: transparent;
+  color: #8b8b93; cursor: pointer;
+}
+.richtext-toolbar button:hover { color: var(--gold); background: rgba(240, 192, 80, 0.1); }
+.richtext-toolbar button.is-active { color: var(--gold); background: rgba(240, 192, 80, 0.18); }
+.richtext-editor { flex: 1; min-height: 0; overflow-y: auto; }
+.richtext-content { outline: none; padding: 8px 10px; font-size: 13px; line-height: 1.6; color: #d5d5dc; }
+.richtext-content p { margin: 0 0 0.6em; }
+.richtext-content h2 { margin: 0.4em 0; font-size: 1.15em; color: #e8e8ee; }
+.richtext-content blockquote {
+  margin: 0.5em 0; padding-left: 10px;
+  border-left: 2px solid var(--gold-soft); color: #b9b9c2;
+}
+.richtext-content ul { margin: 0.4em 0; padding-left: 20px; }
+.richtext-content.richtext-inline:first-child::before { content: none; }
+.richtext-content p.is-editor-empty:first-child::before,
+.richtext-content[data-placeholder]:empty::before {
+  content: attr(data-placeholder); color: #55555e; float: left; pointer-events: none; height: 0;
+}
+.richtext-focus { font-family: Georgia, 'Times New Roman', serif; font-size: 16px; line-height: 1.8; padding: 18px 26px; }
+
+/* ---------- Focus overlay (design B) ---------- */
+.focus-backdrop {
+  position: absolute; inset: 0; z-index: 60;
+  background: rgba(6, 6, 9, 0.78); backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center;
+}
+.focus-room {
+  width: min(820px, 90vw); height: min(78vh, 720px);
+  display: flex; flex-direction: column;
+  background: #131318; border: 1px solid var(--hairline);
+  border-radius: 12px; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+}
+.focus-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.focus-kind { font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase; }
+.focus-title {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--foreground); font-size: 16px; font-weight: 600;
+}
+.focus-meta { font-size: 11.5px; color: var(--text-dim); white-space: nowrap; }
+.focus-close {
+  display: grid; place-items: center; width: 28px; height: 28px;
+  border-radius: 6px; border: none; background: transparent;
+  color: var(--text-dim); cursor: pointer;
+}
+.focus-close:hover { color: var(--foreground); background: rgba(255, 255, 255, 0.06); }
+.focus-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 18px; border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 11.5px; color: var(--text-dim);
+}
+.focus-footer button {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 6px; font-size: 11.5px;
+  background: transparent; border: 1px solid var(--hairline);
+  color: #cfcfd8; cursor: pointer;
+}
+.focus-footer button:hover:not(:disabled) { border-color: var(--gold-soft); color: var(--gold); }
+.focus-footer button:disabled { opacity: 0.3; cursor: default; }
+
+/* compiled preview renders rich content */
+.document-preview { font-family: Georgia, 'Times New Roman', serif; }
+.document-preview p { margin: 0 0 0.6em; }
+.document-own-text { min-height: 60px; display: flex; }
+
 /* ---------- Density: compact mode ---------- */
 .density-compact .canvas-node-header { min-height: 30px; padding: 5px 8px; }
 .density-compact .canvas-node-title { font-size: 12.5px; }

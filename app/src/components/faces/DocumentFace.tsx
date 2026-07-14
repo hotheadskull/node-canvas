@@ -16,6 +16,7 @@ import {
 import { ArrowDown, ArrowUp, BookOpenText, Eye, EyeOff, Scissors } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useCanvasStore } from '../../store/canvasStore';
+import { RichText } from '../RichText';
 import type { FaceProps } from './index';
 
 export function DocumentFace({ nodeId, content }: FaceProps) {
@@ -59,12 +60,14 @@ export function DocumentFace({ nodeId, content }: FaceProps) {
 
   return (
     <div className="canvas-node-body document-face" data-face="document">
-      <textarea
-        className="canvas-node-content document-own-text nodrag"
-        value={content}
-        placeholder="Text of this level itself (optional)…"
-        onChange={(event) => setNodeContent(nodeId, event.target.value)}
-      />
+      <div className="document-own-text">
+        <RichText
+          value={content}
+          onChange={(html) => setNodeContent(nodeId, html)}
+          placeholder="Text of this level itself (optional)…"
+          variant="inline"
+        />
+      </div>
 
       <div className="document-intake nodrag">
         <p className="document-intake-title">
@@ -161,11 +164,19 @@ export function DocumentFace({ nodeId, content }: FaceProps) {
         </div>
       )}
 
-      {previewOpen && (
-        <pre className="document-preview nodrag" data-compiled-preview>
-          {compiled.text !== '' ? compiled.text : 'Nothing to compile yet.'}
-        </pre>
-      )}
+      {previewOpen &&
+        (compiled.text !== '' ? (
+          // compiled text is the user's own TipTap HTML from this document
+          <div
+            className="document-preview nodrag"
+            data-compiled-preview
+            dangerouslySetInnerHTML={{ __html: compiled.text }}
+          />
+        ) : (
+          <div className="document-preview nodrag" data-compiled-preview>
+            Nothing to compile yet.
+          </div>
+        ))}
     </div>
   );
 }

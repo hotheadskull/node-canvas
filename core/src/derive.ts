@@ -71,8 +71,22 @@ export function compile(document: CanvasDocument, nodeId: string): CompileResult
   return { text, sources, cycles };
 }
 
+/** Node content may be TipTap HTML; derivations count words, not markup. */
+export function stripHtml(text: string): string {
+  return text
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|h[1-6]|li|blockquote)>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+}
+
 export function wordCount(text: string): number {
-  const trimmed = text.trim();
+  const trimmed = stripHtml(text).trim();
   if (trimmed === '') return 0;
   return trimmed.split(/\s+/).length;
 }

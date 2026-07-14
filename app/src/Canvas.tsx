@@ -40,6 +40,7 @@ import {
 import { AddNodeMenu } from './components/AddNodeMenu';
 import { AssemblyFace } from './components/AssemblyFace';
 import { CanvasNode } from './components/CanvasNode';
+import { FocusEditor } from './components/FocusEditor';
 import { Legend } from './components/Legend';
 import { PlainEdge } from './components/PlainEdge';
 import { Starfield } from './components/Starfield';
@@ -67,6 +68,7 @@ export function Canvas() {
   const unpack = useCanvasStore((state) => state.unpack);
   const gatherSelection = useCanvasStore((state) => state.gatherSelection);
   const drillTo = useCanvasStore((state) => state.drillTo);
+  const openEditor = useCanvasStore((state) => state.openEditor);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [rfNodes, setRfNodes] = useState<Node[]>([]);
@@ -379,6 +381,11 @@ export function Canvas() {
         minZoom={0.05}
         maxZoom={2.5}
         deleteKeyCode={['Delete', 'Backspace']}
+        zoomOnDoubleClick={false}
+        onNodeDoubleClick={(_event, node) => {
+          // double-click opens the focus editor (design B) on writing nodes
+          if (node.type === 'canvas') openEditor(node.id);
+        }}
         onError={(code, message) => console.warn(`[RF ${code}] ${message}`)}
         proOptions={{ hideAttribution: true }}
         className="nodecanvas-flow"
@@ -412,6 +419,7 @@ export function Canvas() {
       />
       <Legend />
       <Toast />
+      <FocusEditor />
       {menuOpen && <AddNodeMenu onPick={pickType} onClose={() => setMenuOpen(false)} />}
     </div>
   );
