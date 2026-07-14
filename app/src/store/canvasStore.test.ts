@@ -291,6 +291,28 @@ describe('workflow: readiness + ownership', () => {
   });
 });
 
+describe('quick capture (Ctrl+K)', () => {
+  it('first capture creates the Workbench with the note inside, collapsed', () => {
+    useCanvasStore.getState().capture('read that essay about lighthouses');
+    const doc = useCanvasStore.getState().document;
+    expect(doc.assemblies).toHaveLength(1);
+    expect(doc.assemblies[0]!.name).toBe('Workbench');
+    expect(doc.assemblies[0]!.collapsed).toBe(true);
+    expect(doc.nodes).toHaveLength(1);
+    expect(doc.nodes[0]!.type).toBe('note');
+    expect(typeof doc.nodes[0]!.data['capturedAt']).toBe('string');
+  });
+
+  it('later captures file into the same Workbench', () => {
+    useCanvasStore.getState().capture('first thought');
+    useCanvasStore.getState().capture('second thought');
+    const doc = useCanvasStore.getState().document;
+    expect(doc.assemblies).toHaveLength(1);
+    expect(doc.assemblies[0]!.memberIds).toHaveLength(2);
+    expect(doc.nodes).toHaveLength(2);
+  });
+});
+
 describe('auto-fit height (core math applied by the store)', () => {
   it('grows with content but never below the type minimum', () => {
     const store = useCanvasStore.getState();

@@ -387,6 +387,42 @@ html, body, #root {
 .assembly-face-unpack:hover { border-color: #a855f7; color: #d8b4fe; }
 .assembly-handle.react-flow__handle { background: #a855f7; }
 
+/* ---------- Command palette (Ctrl+K) ---------- */
+.palette-backdrop {
+  position: absolute; inset: 0; z-index: 70;
+  background: rgba(6, 6, 9, 0.6);
+  display: flex; justify-content: center; padding-top: 12vh;
+}
+.palette {
+  width: min(560px, 90vw); max-height: 60vh; align-self: flex-start;
+  display: flex; flex-direction: column;
+  background: #141419; border: 1px solid var(--hairline);
+  border-radius: 12px; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+  overflow: hidden;
+}
+.palette-input-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; color: var(--text-dim);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.palette-input {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--foreground); font-size: 14.5px;
+}
+.palette-results { margin: 0; padding: 6px; list-style: none; overflow-y: auto; }
+.palette-row {
+  display: flex; align-items: center; gap: 9px; width: 100%;
+  padding: 8px 10px; border-radius: 7px; border: none;
+  background: transparent; color: #d5d5dc; font-size: 13px;
+  cursor: pointer; text-align: left;
+}
+.palette-row.is-highlighted { background: rgba(240, 192, 80, 0.12); }
+.palette-row-dot { width: 9px; height: 9px; border-radius: 9999px; flex-shrink: 0; }
+.palette-row-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.palette-row-kind { font-size: 10.5px; color: #6a6a72; text-transform: uppercase; letter-spacing: 0.5px; }
+.palette-capture { color: var(--gold); }
+.palette-empty { padding: 14px; font-size: 12.5px; color: #6a6a72; font-style: italic; }
+
 /* ---------- Workflow: readiness + ownership ---------- */
 .readiness-dot {
   flex-shrink: 0; width: 10px; height: 10px; border-radius: 9999px;

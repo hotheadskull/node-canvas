@@ -3,6 +3,7 @@
 
 import { create } from 'zustand';
 import {
+  addMember,
   addNode,
   addPlainEdge,
   addWire,
@@ -104,6 +105,11 @@ type CanvasState = {
 
   cycleReadiness: (nodeId: string) => void;
   setOwner: (nodeId: string, owner: string) => void;
+
+  paletteOpen: boolean;
+  setPaletteOpen: (open: boolean) => void;
+  /** Quick capture: a note stamped capturedAt, filed into the Workbench. */
+  capture: (text: string) => void;
 
   /** Drill-in stack (UI state, not persisted): assembly ids, outermost first. */
   drillStack: string[];
@@ -481,6 +487,52 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
 
     editorNodeId: null,
     openEditor: (nodeId) => set({ editorNodeId: nodeId }),
+
+    paletteOpen: false,
+    setPaletteOpen: (open) => set({ paletteOpen: open }),
+
+    capture: (text) => {
+      let doc = get().document;
+      // the Workbench is a standing inbox assembly, created on first capture
+      let workbench = doc.assemblies.find(
+        (assembly) => assembly.name.trim().toLowerCase() === 'workbench',
+      );
+      try {
+        if (!workbench) {
+          const rects = doc.nodes.map(nodeRect);
+          const spot = findFreePosition(rects, { x: 0, y: -600 }, { width: 300, height: 220 });
+          const seedNote = spawnNode('note', spot);
+          seedNote.data = {
+            title: text.length > 60 ? `${text.slice(0, 57)}…` : text,
+            content: `<p>${text}</p>`,
+            capturedAt: new Date().toISOString(),
+          };
+          doc = addNode(doc, seedNote);
+          const created = createAssembly(doc, 'Workbench', [seedNote.id], {
+            x: spot.x,
+            y: spot.y - 40,
+          });
+          commit(setAssemblyCollapsed(created.document, created.assemblyId, true));
+          return;
+        }
+        const rects = doc.nodes.map(nodeRect);
+        const near = findFreePosition(rects, workbench.position, { width: 300, height: 220 });
+        const note = spawnNode('note', near);
+        note.data = {
+          title: text.length > 60 ? `${text.slice(0, 57)}…` : text,
+          content: `<p>${text}</p>`,
+          capturedAt: new Date().toISOString(),
+        };
+        doc = addNode(doc, note);
+        commit(addMember(doc, workbench.id, note.id));
+      } catch (error) {
+        if (error instanceof GraphError) {
+          set({ persistenceError: error.message });
+          return;
+        }
+        throw error;
+      }
+    },
 
     cycleReadiness: (nodeId) => {
       const doc = get().document;

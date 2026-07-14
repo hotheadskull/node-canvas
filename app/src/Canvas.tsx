@@ -40,6 +40,7 @@ import {
 import { AddNodeMenu } from './components/AddNodeMenu';
 import { AssemblyFace } from './components/AssemblyFace';
 import { CanvasNode } from './components/CanvasNode';
+import { CommandPalette } from './components/CommandPalette';
 import { FocusEditor } from './components/FocusEditor';
 import { Legend } from './components/Legend';
 import { PlainEdge } from './components/PlainEdge';
@@ -435,6 +436,7 @@ export function Canvas() {
       <Legend />
       <Toast />
       <FocusEditor />
+      <CommandPalette />
       {menuOpen && <AddNodeMenu onPick={pickType} onClose={() => setMenuOpen(false)} />}
     </div>
   );

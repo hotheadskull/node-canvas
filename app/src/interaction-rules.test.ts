@@ -16,7 +16,7 @@ describe('I5: the canvas never moves the view on its own', () => {
 
   it('fit-to-view exists only as an explicit toolbar button', () => {
     const toolbar = read('./components/Toolbar.tsx');
-    expect(toolbar).toContain('fitView(');
+    expect(toolbar).toContain('fitBounds(');
     expect(toolbar).toContain('onClick');
   });
 });

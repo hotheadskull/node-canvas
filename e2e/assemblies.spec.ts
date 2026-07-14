@@ -107,3 +107,56 @@ test('external edge attaches to the face and survives inner deletion', async ({ 
   await expect(page.locator('.assembly-face')).toHaveCount(1);
   await expect(page.locator('.react-flow__edge')).toHaveCount(1);
 });
+
+test('Ctrl+K palette: capture files into the Workbench, jump centers a node', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+
+  // wait for the app to mount its listeners before using the hotkey
+  await expect(page.getByRole('button', { name: /add node/i })).toBeVisible();
+
+  // capture a thought
+  await page.keyboard.press('Control+k');
+  await expect(page.locator('[data-palette]')).toBeVisible();
+  await page.locator('.palette-input').fill('remember the lighthouse idea');
+  await page.keyboard.press('Enter');
+  await expect(page.locator('[data-palette]')).toHaveCount(0);
+  // capture deliberately does NOT move the camera (don't break flow) -- the
+  // model has the Workbench even though it's off-screen
+  await page.waitForFunction(() => {
+    const raw = localStorage.getItem('nodecanvas.v2.document');
+    return raw !== null && JSON.parse(raw).assemblies.length === 1;
+  });
+
+  // second capture lands in the same inbox
+  await page.keyboard.press('Control+k');
+  await page.locator('.palette-input').fill('and the harbor scene');
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => {
+    const raw = localStorage.getItem('nodecanvas.v2.document');
+    return raw !== null && JSON.parse(raw).assemblies[0].memberIds.length === 2;
+  });
+
+  // bring it into view: face shows the workbench rollup
+  await page.getByRole('button', { name: 'Fit' }).click();
+  await page.waitForTimeout(450);
+  await expect(page.locator('.assembly-face.is-collapsed')).toHaveCount(1);
+  await expect(page.locator('.assembly-face-name')).toHaveValue('Workbench');
+  await expect(page.locator('.assembly-face-workbench')).toContainText('2 captured');
+
+  // jump: spawn a named node far away, then palette-jump to it
+  await page.getByRole('button', { name: /add node/i }).click();
+  await page.locator('[data-node-type="person"]').click();
+  await page.locator('input.canvas-node-title').fill('Amara');
+  await page.keyboard.press('Control+k');
+  await page.locator('.palette-input').fill('amara');
+  await expect(page.locator('.palette-row-title').first()).toHaveText('Amara');
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(500);
+  const node = page.locator('.react-flow__node-canvas').first();
+  const box = (await node.boundingBox())!;
+  const viewport = page.viewportSize()!;
+  expect(Math.abs(box.x + box.width / 2 - viewport.width / 2)).toBeLessThan(80);
+  expect(Math.abs(box.y + box.height / 2 - viewport.height / 2)).toBeLessThan(80);
+});

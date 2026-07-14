@@ -14,10 +14,17 @@ test('split -> write -> compile -> reorder, all through the real UI', async ({ p
   await page.getByRole('button', { name: /Split/ }).click();
   await page.getByRole('menuitem', { name: /3 blank sections/ }).click();
 
-  await expect(page.locator('.react-flow__node')).toHaveCount(4);
-  await expect(page.locator('.wire-edge.is-live')).toHaveCount(3);
+  // assert the MODEL first (onlyRenderVisibleElements keeps off-screen nodes
+  // out of the DOM), then Fit and assert the rendering
+  await page.waitForFunction(() => {
+    const raw = localStorage.getItem('nodecanvas.v2.document');
+    return raw !== null && JSON.parse(raw).nodes.length === 4;
+  });
+  await page.waitForTimeout(200);
   await page.getByRole('button', { name: 'Fit' }).click();
   await page.waitForTimeout(450);
+  await expect(page.locator('.react-flow__node')).toHaveCount(4);
+  await expect(page.locator('.wire-edge.is-live')).toHaveCount(3);
 
   // the intake list shows the three stubs in order
   const rows = page.locator('.document-intake-list li .intake-row-title');
@@ -51,8 +58,15 @@ test('split -> write -> compile -> reorder, all through the real UI', async ({ p
   // word count reflects the compiled text
   await expect(page.locator('.document-stat')).toHaveText(/4/);
 
-  // everything survives a reload exactly (I5 + persistence)
+  // everything survives a reload exactly (I5 + persistence). The restored
+  // viewport may cull off-screen nodes, so Fit before counting the DOM.
   await page.reload();
+  await page.waitForFunction(() => {
+    const raw = localStorage.getItem('nodecanvas.v2.document');
+    return raw !== null && JSON.parse(raw).nodes.length === 4;
+  });
+  await page.getByRole('button', { name: 'Fit' }).click();
+  await page.waitForTimeout(450);
   await expect(page.locator('.react-flow__node')).toHaveCount(4);
   await expect(page.locator('.document-intake-list li .intake-row-title')).toHaveText([
     'Section 2',

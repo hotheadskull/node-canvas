@@ -15,10 +15,41 @@ type Props = {
 };
 
 export function Toolbar({ menuOpen, onToggleMenu, selectedCount, onGather }: Props) {
-  const { fitView } = useReactFlow();
+  const { fitBounds } = useReactFlow();
   const settings = useCanvasStore((state) => state.settings);
   const setSettings = useCanvasStore((state) => state.setSettings);
   const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // Fit computes bounds from the DOCUMENT, not from rendered nodes --
+  // onlyRenderVisibleElements culls off-screen nodes from the DOM, and RF's
+  // own fitView only fits measured (rendered) nodes, which would make Fit
+  // ignore exactly the content the user is trying to get back to.
+  const fitAll = () => {
+    const doc = useCanvasStore.getState().document;
+    const rects = [
+      ...doc.nodes.map((node) => ({
+        x: node.position.x,
+        y: node.position.y,
+        width: node.size?.width ?? 300,
+        height: node.size?.height ?? 200,
+      })),
+      ...doc.assemblies.map((assembly) => ({
+        x: assembly.position.x,
+        y: assembly.position.y,
+        width: 260,
+        height: 150,
+      })),
+    ];
+    if (rects.length === 0) return;
+    const minX = Math.min(...rects.map((rect) => rect.x));
+    const minY = Math.min(...rects.map((rect) => rect.y));
+    const maxX = Math.max(...rects.map((rect) => rect.x + rect.width));
+    const maxY = Math.max(...rects.map((rect) => rect.y + rect.height));
+    void fitBounds(
+      { x: minX, y: minY, width: maxX - minX, height: maxY - minY },
+      { padding: 0.15, duration: 300 },
+    );
+  };
 
   return (
     <div className="toolbar">
@@ -33,7 +64,7 @@ export function Toolbar({ menuOpen, onToggleMenu, selectedCount, onGather }: Pro
       <button
         className="toolbar-button"
         title="Fit the view to your nodes"
-        onClick={() => void fitView({ padding: 0.2, duration: 300 })}
+        onClick={fitAll}
       >
         <Frame size={15} aria-hidden />
         <span>Fit</span>
