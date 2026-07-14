@@ -27,8 +27,31 @@ master brief — see its "Revision log" for what changed and why).
 | 14 | Sermon pack: Propositions + arcing wire types, Arc Assembly, phrasing view, Big Idea (Word Study + Illustration are post-launch) | **completed** |
 | 15 | Novel specialists: Plant/Payoff (continuity engine deferred post-launch; story-time fields ship on Event so the data model is ready) | **completed** |
 | 16 | Onboarding: interactive tutorial (spotlight, performs-action-to-advance, Back/Next + step counter, replayable), Tips/Reference panel | **completed** |
-| 17 | Hardening: React Profiler pass, Playwright e2e full loop, migration + backup-before-migrate, export (JSON, compiled text/markdown, PNG/SVG canvas export) | **current** |
-| 18 | Commercial: license keys, payments, Windows code signing, Tauri updater, crash reporting | not started |
+| 17 | Node remodel: a NODE ANATOMY SYSTEM (one skeleton every type fills — identity zone, body, ports, status) replacing the ad-hoc Chunk-4 mix; fixes the known face bugs (see user feedback 2026-07-14 below). STARTS WITH MOCKUPS — each candidate shown as a full language across a Note + Document + Person | **current** |
+| 18 | Hardening: React Profiler pass, Playwright e2e full loop, migration + backup-before-migrate, file-per-project (.nodecanvas) persistence, export (JSON, compiled text/markdown, PNG/SVG canvas export) | not started |
+| 19 | Commercial: license keys, payments, Windows code signing, Tauri updater, crash reporting | not started |
+
+## User feedback driving Chunk 17 (verbatim intent, 2026-07-14)
+
+The current nodes "feel like they were thrown together instead of a good
+uniform look that will be custom for each node." Specifics to fix, each a
+remodel requirement (behavior items are BUGS with tests, not just styling):
+
+1. **Header title slot feels wrong** — the thin strip crams readiness dot +
+   type tag + title input + owner chip. The node's NAME deserves the
+   prominence; the chrome shouldn't compete with it.
+2. **Body doesn't grow as you type** (it did in V1). Root cause to verify:
+   the auto-fit mirror renders STRIPPED text while the editor renders
+   formatted HTML, so measured height drifts. Spec: the node grows downward
+   live with the text, V1-style. Ships with a regression test.
+3. **Side rails cut into the text box** — rails/stars paint OVER the body
+   instead of the body reserving space for them; rails read as undefined
+   clutter. The anatomy system must give ports a real, owned zone.
+4. **The Chunk-4 "mix of options" never became a system** — faces are
+   hand-built one-offs. Deliverable: one anatomy every type fills (so every
+   FUTURE node type inherits a coherent look by construction), plus a
+   repeatable per-type design flow: gives/takes/derives/flags -> which
+   anatomy slots it fills -> face.
 
 ## Design checkpoints (user-requested — do not skip)
 
