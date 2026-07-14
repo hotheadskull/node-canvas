@@ -80,7 +80,7 @@ describe('graph interactions', () => {
     useCanvasStore.getState().connect(b, a);
     const state = useCanvasStore.getState();
     expect(state.document.edges).toHaveLength(1);
-    expect(state.persistenceError).toContain('already connected');
+    expect(state.toast?.message).toContain('already connected');
   });
 
   it('edge labels write through and clear cleanly', () => {
@@ -155,7 +155,7 @@ describe('connection routing (connectFromHandles)', () => {
     useCanvasStore.getState().connectFromHandles(a, 'identity-out', b, 'top');
     const state = useCanvasStore.getState();
     expect(state.document.wires).toHaveLength(0);
-    expect(state.persistenceError).toContain('no intake');
+    expect(state.toast?.message).toContain('no intake');
   });
 });
 

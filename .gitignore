@@ -17,6 +17,10 @@ test-results/
 playwright-report/
 blob-report/
 
+# Tauri (Rust build artifacts + generated schemas)
+app/src-tauri/target/
+app/src-tauri/gen/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

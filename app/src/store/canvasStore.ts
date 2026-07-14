@@ -178,12 +178,15 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
   };
 
   /** Wrap a core op: GraphErrors surface as a banner instead of crashing. */
+  // Graph rule refusals ("already connected", "no compatible intake") are
+  // NOTICES for the user, not failures -- they show as a quiet toast. The red
+  // error banner is reserved for persistence problems (I9).
   const tryOp = (op: () => CanvasDocument) => {
     try {
       commit(op());
     } catch (error) {
       if (error instanceof GraphError) {
-        set({ persistenceError: error.message });
+        set({ toast: { message: error.message } });
         return;
       }
       throw error;
@@ -250,7 +253,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
     spawnAt: (type, desired) => {
       const def = getNodeDef(type);
       if (!def) {
-        set({ persistenceError: `Unknown node type "${type}"` });
+        set({ toast: { message: `Unknown node type "${type}"` } });
         return null;
       }
       const size = def.size ?? { width: 300, height: 200 };
@@ -388,7 +391,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
           );
           return;
         }
-        set({ persistenceError: 'Those two ports cannot connect (give must feed take).' });
+        set({ toast: { message: 'Those two ports cannot connect (give must feed take).' } });
         return;
       }
 
@@ -398,7 +401,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
         // compatible intake.
         const takePort = firstCompatibleTake(doc, source, sourceHandle, target);
         if (!takePort) {
-          set({ persistenceError: 'That node has no intake for this kind of connection.' });
+          set({ toast: { message: 'That node has no intake for this kind of connection.' } });
           return;
         }
         tryOp(() =>
@@ -452,7 +455,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
         }
       } catch (error) {
         if (error instanceof GraphError) {
-          set({ persistenceError: error.message });
+          set({ toast: { message: error.message } });
           return;
         }
         throw error;
@@ -471,7 +474,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
       const node = doc.nodes.find((candidate) => candidate.id === nodeId);
       const preset = SPLIT_PRESETS.find((candidate) => candidate.id === presetId);
       if (!node || !preset) {
-        set({ persistenceError: `Split preset "${presetId}" not available here` });
+        set({ toast: { message: `Split preset "${presetId}" not available here` } });
         return;
       }
       tryOp(
@@ -531,7 +534,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
         commit(addMember(doc, workbench.id, note.id));
       } catch (error) {
         if (error instanceof GraphError) {
-          set({ persistenceError: error.message });
+          set({ toast: { message: error.message } });
           return;
         }
         throw error;
@@ -596,7 +599,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
         commit(setAssemblyCollapsed(created.document, created.assemblyId, true));
       } catch (error) {
         if (error instanceof GraphError) {
-          set({ persistenceError: error.message });
+          set({ toast: { message: error.message } });
           return;
         }
         throw error;

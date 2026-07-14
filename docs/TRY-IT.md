@@ -1,8 +1,13 @@
 # Try it out — everything built so far (Chunks 0–8)
 
 **Launch:** double-click the desktop shortcut **Node Canvas V2** (or run
-`start-node-canvas.bat` in the repo). The app opens at `localhost:1421`.
+`start-node-canvas.bat` in the repo). A console shows build progress, then
+the **Node Canvas desktop window** opens (first launch compiles for a few
+minutes; after that it's quick). Closing the console stops the app.
 Your canvas auto-saves as you work and survives closing the window.
+
+Note: the desktop window keeps its own storage — a canvas you made earlier
+in a browser tab won't appear in it (and vice versa).
 
 Work through this in order — it builds on itself.
 
