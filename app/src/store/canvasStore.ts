@@ -127,6 +127,12 @@ type CanvasState = {
 
   paletteOpen: boolean;
   setPaletteOpen: (open: boolean) => void;
+
+  /** Onboarding tour + the Tips/Reference panel (Chunk 16). */
+  tutorialOpen: boolean;
+  setTutorialOpen: (open: boolean) => void;
+  tipsOpen: boolean;
+  setTipsOpen: (open: boolean) => void;
   /** Quick capture: a note stamped capturedAt, filed into the Workbench. */
   capture: (text: string) => void;
 
@@ -565,6 +571,11 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
 
     paletteOpen: false,
     setPaletteOpen: (open) => set({ paletteOpen: open }),
+
+    tutorialOpen: false,
+    setTutorialOpen: (open) => set({ tutorialOpen: open }),
+    tipsOpen: false,
+    setTipsOpen: (open) => set({ tipsOpen: open }),
 
     capture: (text) => {
       let doc = get().document;

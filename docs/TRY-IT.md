@@ -1,4 +1,4 @@
-# Try it out — everything built so far (Chunks 0–8)
+# Try it out — everything built so far (Chunks 0–16)
 
 **Launch:** double-click the desktop shortcut **Node Canvas V2** (or run
 `start-node-canvas.bat` in the repo). A console shows build progress, then
@@ -132,4 +132,54 @@ each of these maps to a test that should have caught it.
 - [ ] Split the Claim → **Toulmin scaffold**: Grounds/Warrant/Backing/
       Rebuttal stubs wire into its Supports, and the amber dot goes out.
 - [ ] Spawn a **Source**, wire its Citation star into a Document's Footnotes
-      star (left rail, hidden ports show on hover with labels on).
+      star (hover the Document — hidden ports fade in on its left rail).
+- [ ] The Claim now carries the same compile face as a Document: its
+      **Split → Toulmin scaffold** button lives right on the node.
+
+## 13. The sermon pack — arcing a passage (new)
+- [ ] Menu → All → "Passage & propositions": spawn a **Passage**, paste or
+      type the text you're studying, then **Split → Passage → Propositions**.
+- [ ] Write one assertion per Proposition; put the verse in its small
+      teal **v. ref** chip.
+- [ ] Ctrl-click the propositions, **Group** them. The group's face already
+      shows the outline: every proposition is a main point until you arc.
+- [ ] Wire one proposition's **Proposition** star into another's **Arcs**
+      star, then click the **?** chip on the wire: pick from the 18
+      relationships (grouped by family — Ground, Inference, Series…).
+      The chip now wears the code (G, ∴, N/P…).
+- [ ] Click the group's **spline icon** — the **Arc room**. Work the whole
+      passage here: edit text, set "serves … as …" per proposition, watch
+      the bracket diagram build. Toggle **Arc | Phrasing** for the
+      auto-indented outline. Esc returns.
+- [ ] Back on the canvas the face shows the finished work: main points bold,
+      supports indented with their codes, "N main points · N arcs".
+- [ ] **Open** (drill into) the group: propositions render as bare phrasing
+      strips, indented by subordination. Your stored layout is untouched —
+      leave the group and everything is where you put it.
+- [ ] Big Idea: spawn a **Title** and a **Note** ("true worship"). Drag the
+      Note's Text star onto the Title's top dot, commit the candidate — it
+      lands in the hidden **Subject** intake and the Title face derives the
+      exegetical line. Wire a second note into **Complement** (hover the
+      Title to see its hidden stars) for the full statement.
+
+## 14. The novel pack — plants, payoffs, events (new)
+- [ ] Menu → All → "Story & continuity": spawn a **Plant** ("the pistol on
+      the mantel"). It immediately wears the amber dot — "Plant feeds
+      nothing yet" — and its face says **Payoffs — none yet**.
+- [ ] Spawn a **Payoff**, wire the Plant's star into its **Resolves** star:
+      the flag clears and both faces list the pairing. Rename either side —
+      the other updates instantly.
+- [ ] Spawn two **Events**, give each a **story time** (any numbers — 3.5,
+      14.2). Each face draws the mini timeline of every dated event, with
+      its own dot emphasized.
+- [ ] Wire a **Person's** Identity star into an Event's **Involves** star,
+      click the wire's chip and type a role ("bride"): the Event face shows
+      the person chip with their role.
+
+## 15. The tour and the ? panel (new)
+- [ ] Wipe the canvas (or use a fresh browser profile): a small invite
+      offers the two-minute tour. Every step waits for you to actually do
+      the action; Back/Next and the step counter are always there.
+- [ ] The **?** button (bottom-left) opens **Tips & reference** — the
+      three connection kinds, shortcuts, group behavior — and **Replay the
+      tour** lives in its header.

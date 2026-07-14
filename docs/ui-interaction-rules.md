@@ -65,6 +65,14 @@ another). Where possible each rule is enforced by a test in
 18. **Debounced saves flush on pagehide/beforeunload.** A quick close or
     reload after an edit must never drop the last change (found by e2e:
     reorder + fast reload lost the reorder).
+19. **Coach marks never cover the control they point at.** The tutorial card
+    anchors to the RIGHT edge of the screen; the spotlight ring marks the
+    target. A card placed beside the target sat exactly where the add-node
+    gallery opens and swallowed its clicks (found by Chunk 16 e2e).
+20. **A declared port always has a wirable handle.** Hidden
+    (non-defaultVisible) ports render their handles and appear on node hover
+    — a port with no handle is a feature that silently doesn't exist (found
+    in Chunk 14: Footnotes and Subject/Complement could never be wired).
 
 16. **Hover must never move layout.** Anything that changes on hover (preview
     panels, expanding rows) renders inside a reserved, fixed-size box. A

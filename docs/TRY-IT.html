@@ -21,7 +21,7 @@
 </style>
 </head>
 <body>
-<h1>Try it out — everything built so far (Chunks 0–8)</h1>
+<h1>Try it out — everything built so far (Chunks 0–16)</h1>
 <p><strong>Launch:</strong> double-click the desktop shortcut <strong>Node Canvas V2</strong> (or run <code>start-node-canvas.bat</code> in the repo). A console shows build progress, then the <strong>Node Canvas desktop window</strong> opens (first launch compiles for a few minutes; after that it's quick). Closing the console stops the app. Your canvas auto-saves as you work and survives closing the window.</p>
 <p>Note: the desktop window keeps its own storage — a canvas you made earlier in a browser tab won't appear in it (and vice versa).</p>
 <p>Work through this in order — it builds on itself.</p>
@@ -100,7 +100,31 @@
 <ul class="checklist">
 <li><label><input type="checkbox"> <span>Menu → All → "Paper &amp; argument": spawn a <strong>Claim</strong>. Wire anything into it… actually first notice: once a Claim is wired to anything, an amber dot appears in its header — "Supports intake is empty."</span></label></li>
 <li><label><input type="checkbox"> <span>Split the Claim → <strong>Toulmin scaffold</strong>: Grounds/Warrant/Backing/ Rebuttal stubs wire into its Supports, and the amber dot goes out.</span></label></li>
-<li><label><input type="checkbox"> <span>Spawn a <strong>Source</strong>, wire its Citation star into a Document's Footnotes star (left rail, hidden ports show on hover with labels on).</span></label></li>
+<li><label><input type="checkbox"> <span>Spawn a <strong>Source</strong>, wire its Citation star into a Document's Footnotes star (hover the Document — hidden ports fade in on its left rail).</span></label></li>
+<li><label><input type="checkbox"> <span>The Claim now carries the same compile face as a Document: its <strong>Split → Toulmin scaffold</strong> button lives right on the node.</span></label></li>
+</ul>
+<h2>13. The sermon pack — arcing a passage (new)</h2>
+<ul class="checklist">
+<li><label><input type="checkbox"> <span>Menu → All → "Passage &amp; propositions": spawn a <strong>Passage</strong>, paste or type the text you're studying, then <strong>Split → Passage → Propositions</strong>.</span></label></li>
+<li><label><input type="checkbox"> <span>Write one assertion per Proposition; put the verse in its small teal <strong>v. ref</strong> chip.</span></label></li>
+<li><label><input type="checkbox"> <span>Ctrl-click the propositions, <strong>Group</strong> them. The group's face already shows the outline: every proposition is a main point until you arc.</span></label></li>
+<li><label><input type="checkbox"> <span>Wire one proposition's <strong>Proposition</strong> star into another's <strong>Arcs</strong> star, then click the <strong>?</strong> chip on the wire: pick from the 18 relationships (grouped by family — Ground, Inference, Series…). The chip now wears the code (G, ∴, N/P…).</span></label></li>
+<li><label><input type="checkbox"> <span>Click the group's <strong>spline icon</strong> — the <strong>Arc room</strong>. Work the whole passage here: edit text, set "serves … as …" per proposition, watch the bracket diagram build. Toggle <strong>Arc | Phrasing</strong> for the auto-indented outline. Esc returns.</span></label></li>
+<li><label><input type="checkbox"> <span>Back on the canvas the face shows the finished work: main points bold, supports indented with their codes, "N main points · N arcs".</span></label></li>
+<li><label><input type="checkbox"> <span><strong>Open</strong> (drill into) the group: propositions render as bare phrasing strips, indented by subordination. Your stored layout is untouched — leave the group and everything is where you put it.</span></label></li>
+<li><label><input type="checkbox"> <span>Big Idea: spawn a <strong>Title</strong> and a <strong>Note</strong> ("true worship"). Drag the Note's Text star onto the Title's top dot, commit the candidate — it lands in the hidden <strong>Subject</strong> intake and the Title face derives the exegetical line. Wire a second note into <strong>Complement</strong> (hover the Title to see its hidden stars) for the full statement.</span></label></li>
+</ul>
+<h2>14. The novel pack — plants, payoffs, events (new)</h2>
+<ul class="checklist">
+<li><label><input type="checkbox"> <span>Menu → All → "Story &amp; continuity": spawn a <strong>Plant</strong> ("the pistol on the mantel"). It immediately wears the amber dot — "Plant feeds nothing yet" — and its face says <strong>Payoffs — none yet</strong>.</span></label></li>
+<li><label><input type="checkbox"> <span>Spawn a <strong>Payoff</strong>, wire the Plant's star into its <strong>Resolves</strong> star: the flag clears and both faces list the pairing. Rename either side — the other updates instantly.</span></label></li>
+<li><label><input type="checkbox"> <span>Spawn two <strong>Events</strong>, give each a <strong>story time</strong> (any numbers — 3.5, 14.2). Each face draws the mini timeline of every dated event, with its own dot emphasized.</span></label></li>
+<li><label><input type="checkbox"> <span>Wire a <strong>Person's</strong> Identity star into an Event's <strong>Involves</strong> star, click the wire's chip and type a role ("bride"): the Event face shows the person chip with their role.</span></label></li>
+</ul>
+<h2>15. The tour and the ? panel (new)</h2>
+<ul class="checklist">
+<li><label><input type="checkbox"> <span>Wipe the canvas (or use a fresh browser profile): a small invite offers the two-minute tour. Every step waits for you to actually do the action; Back/Next and the step counter are always there.</span></label></li>
+<li><label><input type="checkbox"> <span>The <strong>?</strong> button (bottom-left) opens <strong>Tips &amp; reference</strong> — the three connection kinds, shortcuts, group behavior — and **Replay the tour** lives in its header.</span></label></li>
 </ul>
 <script>
   // remember checked items between opens

@@ -24,10 +24,10 @@ master brief — see its "Revision log" for what changed and why).
 | 11 | Workflow layer: readiness rings + rollups, Workbench inbox, ownership tags (launch scope — group projects) | **completed** |
 | 12 | Quick capture & palette: Ctrl+K fuzzy palette, Tauri global-shortcut capture → Workbench (launch-critical polish) | **completed** (global shortcut awaits the Tauri shell) |
 | 13 | Argument spine: Source/Claim/Thesis/Prose Section, footnote WIRING (no citation formatting — export markdown), unused-research face | **completed** |
-| 14 | Sermon pack: Propositions + arcing wire types, Arc Assembly, phrasing view, Big Idea (Word Study + Illustration are post-launch) | **current** |
-| 15 | Novel specialists: Plant/Payoff (continuity engine deferred post-launch; story-time fields ship on Event so the data model is ready) | not started |
-| 16 | Onboarding: interactive tutorial (spotlight, performs-action-to-advance, Back/Next + step counter, replayable), Tips/Reference panel | not started |
-| 17 | Hardening: React Profiler pass, Playwright e2e full loop, migration + backup-before-migrate, export (JSON, compiled text/markdown, PNG/SVG canvas export) | not started |
+| 14 | Sermon pack: Propositions + arcing wire types, Arc Assembly, phrasing view, Big Idea (Word Study + Illustration are post-launch) | **completed** |
+| 15 | Novel specialists: Plant/Payoff (continuity engine deferred post-launch; story-time fields ship on Event so the data model is ready) | **completed** |
+| 16 | Onboarding: interactive tutorial (spotlight, performs-action-to-advance, Back/Next + step counter, replayable), Tips/Reference panel | **completed** |
+| 17 | Hardening: React Profiler pass, Playwright e2e full loop, migration + backup-before-migrate, export (JSON, compiled text/markdown, PNG/SVG canvas export) | **current** |
 | 18 | Commercial: license keys, payments, Windows code signing, Tauri updater, crash reporting | not started |
 
 ## Design checkpoints (user-requested — do not skip)
@@ -342,6 +342,71 @@ Bugs found and fixed by e2e this session:
 Suite at session end: 160 unit + 13 e2e green; typecheck + lint clean.
 Commits: 503818f, d6c4bab, e86c932, 8db20fb, 69d1ad4.
 
-**Next session: Chunk 14 — sermon pack.** Propositions + the arcing wire
-types, Arc Assembly, phrasing view, Big Idea flow. Design checkpoint
-applies (specialist renderers): show mockups first.
+### 2026-07-14 — Chunks 14–16 (completed, one session)
+
+**Design checkpoints RESOLVED (both with mockups first, per the standing
+rule).** Arc visuals: user picked **A+B+C combined, no tabs** (D rejected —
+"we do not need to two tab them at all"): relation chips on wires + the
+finished outline always on the group face (A), the Arc room overlay as the
+workspace (B), drill-in renders propositions as phrasing strips (C).
+Plant/Payoff/Event/Big Idea: user picked **Rich faces** (option 3).
+
+- 14 Sermon pack. Core: `passage` + `proposition` types (new `prop`
+  dataKind); wires gain optional `relation`; `arcs.ts` ships the 18
+  Biblearc relationships in four families, `arcOutline` (coordinating joins
+  equals, subordinating indents one level, cycle-safe, reading order =
+  canvas position), `bigIdeaOf` (Subject + Complement wires -> exegetical
+  statement, read by reference); `setWireRelation`; splitNode now matches
+  the stub's give to the intake's kind; Passage -> Propositions preset.
+  App: PropositionFace (teal verse chip), relation picker on wire chips
+  (grouped by family), arc outline + Arc room button on assembly faces,
+  ArcRoom overlay (bracket SVG + Arc|Phrasing toggle, serves/as selects
+  edit the real wires), drill-in phrasing strips (DISPLAY positions only,
+  dragging disabled — stored positions untouched, I5), Title face derives
+  Exegetical/Homiletical lines when wired (unwired shows nothing, I2).
+- 15 Novel pack. Core: `plant`/`payoff`/`event` types; PortDef gains
+  `flagWhenUnconsumed` (gives) — hygieneFlags honors it generically, and
+  these flags fire even unwired (spawning a Plant IS the opt-in; HygieneFlag
+  gains an OPTIONAL `direction` field so existing goldens stayed
+  byte-identical); `novel.ts`: payoffsOf/plantsResolvedBy (titles read
+  live), eventTimeline, involvedIn, storyTimeOf. App: rich faces (payoff
+  lists, mini event timeline with self-dot, role chips), wire chips carry
+  an editable label (an Involves wire's label IS the role), story-time
+  input, "Story & continuity" menu group.
+- 16 Onboarding. `tutorial/steps.ts`: 8 steps with PURE done() predicates
+  (unit-tested without a DOM); Tutorial.tsx: spotlight (pointer-events
+  none — never blocks the canvas), performs-action-to-advance, Back/Next +
+  counter, first-run invite (dismiss remembered), replayable; TipsPanel
+  from the new ? toolbar button (connection kinds, shortcuts, groups,
+  nudges) with "Replay the tour". Nothing ever moves the viewport.
+
+Real gaps found and fixed while building:
+- **Claim's Toulmin split had no UI entry point** (Split lives on the
+  compile face; claim wasn't registered to it). claim + passage now carry
+  DocumentFace — intake list, Split, preview, all free.
+- **Hidden ports could never be wired** (no handle rendered): Footnotes and
+  Subject/Complement were unreachable — TRY-IT §12 promised otherwise.
+  Hidden ports now render handles that appear on node hover (rule 20).
+- **Tutorial card swallowed the gallery's clicks** (anchored card sat where
+  the menu opens). Cards anchor to the RIGHT edge; the spotlight marks the
+  target (rule 19, found by e2e).
+- **Back must stick**: the auto-advance predicate re-fired when returning
+  to a completed step; entry state is snapshotted in-render (ref) so a
+  revisited step only advances on a fresh false->true transition.
+
+Testing notes: React Flow wraps nodes aria-hidden in jsdom (no measurement
+pass), so accessible-name queries can't reach ASSEMBLY face buttons — unit
+tests address those by attribute; e2e covers real-browser names. RF also
+culls some off-origin nodes in jsdom — faces that must be unit-tested in
+isolation render directly (they only need the store).
+
+Suite: 194 unit across 22 files + 20 e2e green; typecheck + lint clean.
+Goldens: arcs.golden.json + novel.golden.json NEW (shipped with their
+features); registry-ports.golden.json extended additively (both commits
+carry INVARIANT-CHANGE-APPROVED with existing entries byte-identical).
+
+**Next session: Chunk 17 — hardening.** React Profiler pass, full-loop
+Playwright e2e, schema migration + backup-before-migrate, export (JSON,
+compiled text/markdown, PNG/SVG canvas export). File-per-project
+(.nodecanvas) persistence should ride along with the migration work —
+that's also where the Tauri shell earns its file dialogs.

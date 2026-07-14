@@ -46,8 +46,10 @@ import { CommandPalette } from './components/CommandPalette';
 import { FocusEditor } from './components/FocusEditor';
 import { PlainEdge } from './components/PlainEdge';
 import { Starfield } from './components/Starfield';
+import { TipsPanel } from './components/TipsPanel';
 import { Toast } from './components/Toast';
 import { Toolbar } from './components/Toolbar';
+import { Tutorial } from './components/Tutorial';
 import { WireEdge } from './components/WireEdge';
 import { firstCompatibleTake, PLAIN_HANDLES, useCanvasStore } from './store/canvasStore';
 
@@ -467,6 +469,8 @@ export function Canvas() {
       <FocusEditor />
       <ArcRoom />
       <CommandPalette />
+      <Tutorial />
+      <TipsPanel />
       {menuOpen && <AddNodeMenu onPick={pickType} onClose={() => setMenuOpen(false)} />}
     </div>
   );

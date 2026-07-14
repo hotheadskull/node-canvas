@@ -3,7 +3,7 @@
 // The gear opens canvas settings: density and port-label visibility.
 
 import { useReactFlow } from '@xyflow/react';
-import { Boxes, Frame, Plus, Settings2 } from 'lucide-react';
+import { Boxes, Frame, HelpCircle, Plus, Settings2 } from 'lucide-react';
 import { useState } from 'react';
 import { useCanvasStore, type PortLabelMode } from '../store/canvasStore';
 
@@ -18,6 +18,7 @@ export function Toolbar({ menuOpen, onToggleMenu, selectedCount, onGather }: Pro
   const { fitBounds } = useReactFlow();
   const settings = useCanvasStore((state) => state.settings);
   const setSettings = useCanvasStore((state) => state.setSettings);
+  const setTipsOpen = useCanvasStore((state) => state.setTipsOpen);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Fit computes bounds from the DOCUMENT, not from rendered nodes --
@@ -86,6 +87,14 @@ export function Toolbar({ menuOpen, onToggleMenu, selectedCount, onGather }: Pro
         onClick={() => setSettingsOpen((open) => !open)}
       >
         <Settings2 size={15} aria-hidden />
+      </button>
+      <button
+        className="toolbar-button"
+        title="Tips, reference, and the tour"
+        aria-label="Help"
+        onClick={() => setTipsOpen(true)}
+      >
+        <HelpCircle size={15} aria-hidden />
       </button>
       {settingsOpen && (
         <div className="settings-popover" role="dialog" aria-label="Canvas settings">
