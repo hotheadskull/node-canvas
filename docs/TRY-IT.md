@@ -91,3 +91,40 @@ Work through this in order — it builds on itself.
 
 Found something off? Tell Claude which checklist item and what happened —
 each of these maps to a test that should have caught it.
+
+## 8. Rich text + the focus room (new)
+- [ ] Click into any Note/Section body: a small formatting toolbar fades in —
+      bold, italic, heading, list, quote. Formatting survives reload and
+      shows in the Document's compiled Preview.
+- [ ] **Double-click** a Section: the focus room opens — big serif editor,
+      live word count. If the section is wired into a Document, prev/next
+      (or Alt+←/→) walk its siblings in compile order. Esc returns.
+- [ ] In the focus room, set an **owner** (top right). The node now wears a
+      small owner chip on the canvas.
+
+## 9. Semantic zoom (new)
+- [ ] Collapse a group, then zoom way out: the card becomes a glowing,
+      breathing star with its name. Double-click the star to dive back in.
+
+## 10. Readiness + group rollups (new)
+- [ ] Click the little dot at the left of any node header: it cycles
+      seed (gray) → developing (yellow) → ready (green) → placed (purple).
+- [ ] A collapsed group's face now shows readiness counts and, if owners are
+      set, "waiting on <name>: N".
+
+## 11. Ctrl+K — jump and capture (new)
+- [ ] Press **Ctrl+K**, type a few letters of any node's title, Enter: the
+      camera jumps to it.
+- [ ] Press Ctrl+K and type a fresh thought, pick "Capture … in the
+      Workbench": a Workbench group appears (collapsed, out of the way)
+      holding your note, its face counting captures and their age. Your
+      camera never moves — capture doesn't break flow.
+
+## 12. Claims and sources (new — the argument spine)
+- [ ] Menu → All → "Paper & argument": spawn a **Claim**. Wire anything into
+      it… actually first notice: once a Claim is wired to anything, an amber
+      dot appears in its header — "Supports intake is empty."
+- [ ] Split the Claim → **Toulmin scaffold**: Grounds/Warrant/Backing/
+      Rebuttal stubs wire into its Supports, and the amber dot goes out.
+- [ ] Spawn a **Source**, wire its Citation star into a Document's Footnotes
+      star (left rail, hidden ports show on hover with labels on).

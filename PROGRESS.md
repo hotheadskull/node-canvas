@@ -19,12 +19,12 @@ master brief — see its "Revision log" for what changed and why).
 | 6 | Split: generic Split + template presets (beats, Toulmin, Passage→Propositions). Golden tests + UI | **completed** |
 | 7 | Assemblies (core): membership by reference, multi-membership, nesting, face-proxy stability, lossless collapse/expand. Golden tests are the gate for everything after | **completed** |
 | 8 | Assembly rendering: collapsed face card, drill-in scoped canvas with breadcrumbs, gather-into-Assembly, unpack | **completed** |
-| 9 | Writing spine: Scene/Chapter/Manuscript (per-mode labels: Section/Document), TipTap editors, compile view, Split down the spine, cast auto-derivation | **current** |
-| 10 | Semantic zoom: Assemblies collapse to star points past zoom threshold, smooth expand, onlyRenderVisibleElements | not started |
-| 11 | Workflow layer: readiness rings + rollups, Workbench inbox, ownership tags (launch scope — group projects) | not started |
-| 12 | Quick capture & palette: Ctrl+K fuzzy palette, Tauri global-shortcut capture → Workbench (launch-critical polish) | not started |
-| 13 | Argument spine: Source/Claim/Thesis/Prose Section, footnote WIRING (no citation formatting — export markdown), unused-research face | not started |
-| 14 | Sermon pack: Propositions + arcing wire types, Arc Assembly, phrasing view, Big Idea (Word Study + Illustration are post-launch) | not started |
+| 9 | Writing spine: Scene/Chapter/Manuscript (per-mode labels: Section/Document), TipTap editors, compile view, Split down the spine, cast auto-derivation | **completed** |
+| 10 | Semantic zoom: Assemblies collapse to star points past zoom threshold, smooth expand, onlyRenderVisibleElements | **completed** |
+| 11 | Workflow layer: readiness rings + rollups, Workbench inbox, ownership tags (launch scope — group projects) | **completed** |
+| 12 | Quick capture & palette: Ctrl+K fuzzy palette, Tauri global-shortcut capture → Workbench (launch-critical polish) | **completed** (global shortcut awaits the Tauri shell) |
+| 13 | Argument spine: Source/Claim/Thesis/Prose Section, footnote WIRING (no citation formatting — export markdown), unused-research face | **completed** |
+| 14 | Sermon pack: Propositions + arcing wire types, Arc Assembly, phrasing view, Big Idea (Word Study + Illustration are post-launch) | **current** |
 | 15 | Novel specialists: Plant/Payoff (continuity engine deferred post-launch; story-time fields ship on Event so the data model is ready) | not started |
 | 16 | Onboarding: interactive tutorial (spotlight, performs-action-to-advance, Back/Next + step counter, replayable), Tips/Reference panel | not started |
 | 17 | Hardening: React Profiler pass, Playwright e2e full loop, migration + backup-before-migrate, export (JSON, compiled text/markdown, PNG/SVG canvas export) | not started |
@@ -298,3 +298,50 @@ hit areas stay ≥24px invisible per interaction rule 1). Customizable:
 per-node accent override, density mode (comfortable/compact per canvas),
 port-label visibility (hover/always/off per canvas). Spatial grammar:
 top/bottom dots = plain relationship edges; left/right rails = dataflow.
+
+### 2026-07-14 — Chunks 9–13 (completed, one session)
+
+**Chunk 9 design checkpoint RESOLVED:** user saw 4 editor mockups (inline
+rich card / focus overlay / side drawer / typewriter strip), liked all four;
+shipped A+B (inline + focus overlay) because C/D answer the same question
+with more chrome. ONE RichText component behind openEditor() keeps C and D
+a preference toggle away. Logged as liked-but-deferred, not rejected.
+
+- 9 Writing spine: TipTap everywhere text is written (toolbar on focus:
+  bold/italic/H2/list/quote; content stored as HTML; stripHtml + HTML-aware
+  wordCount in core). FocusEditor: double-click -> serif writing room, live
+  word count, owner field, Esc back, prev/next + Alt+arrows walk spine
+  siblings in wire order. zoomOnDoubleClick off.
+- 10 Semantic zoom: zoom-far class below 0.25; collapsed faces render as
+  breathing glowing stars with their name; double-click dives to zoom 1
+  (explicit action). onlyRenderVisibleElements on.
+- 11 Workflow: readiness dot on every header (click cycles seed ->
+  developing -> ready -> placed), owner chip + focus-editor field,
+  assembly faces roll up readiness counts + "waiting on <owner>: N" +
+  workbench "N captured / oldest age". Core: ownerOf, ownersOutstanding,
+  workbenchInfo.
+- 12 Palette: Ctrl/Cmd+K — jump to any node by title/kind/content words
+  (Enter centers it), or capture the typed text as a capturedAt-stamped
+  note filed into the standing Workbench assembly (created collapsed on
+  first capture; capture NEVER moves the camera). Tauri global shortcut
+  deferred until a Tauri shell chunk exists (note: V2 has no desktop shell
+  yet — add a Tauri-shell work item before Chunk 17 hardening).
+- 13 Argument spine: academic pack (source + claim) as registry-only
+  entries; 'any' dataKind intakes; document footnotes-in; Toulmin preset
+  (SplitPreset.intake + splitNode options); citedSourceIds/unusedSourceIds
+  derivations; generic hygiene dot on node headers (unsupported claims
+  flag visibly). Citation formatting stays out of scope by decision.
+
+Bugs found and fixed by e2e this session:
+- RF fitView only fits MEASURED nodes; with onlyRenderVisibleElements the
+  toolbar Fit ignored off-screen content entirely. Fit now computes bounds
+  from the DOCUMENT and calls fitBounds.
+- e2e pattern: with visibility culling, assert the model (localStorage)
+  first, then Fit, then the DOM.
+
+Suite at session end: 160 unit + 13 e2e green; typecheck + lint clean.
+Commits: 503818f, d6c4bab, e86c932, 8db20fb, 69d1ad4.
+
+**Next session: Chunk 14 — sermon pack.** Propositions + the arcing wire
+types, Arc Assembly, phrasing view, Big Idea flow. Design checkpoint
+applies (specialist renderers): show mockups first.
