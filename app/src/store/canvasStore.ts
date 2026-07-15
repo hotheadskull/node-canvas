@@ -8,7 +8,6 @@ import {
   addPlainEdge,
   addWire,
   commitTentativeWire,
-  computeAutoHeight,
   createAssembly,
   createEmptyDocument,
   createTentativeWire,
@@ -74,7 +73,13 @@ type CanvasState = {
   setNodeTitle: (nodeId: string, title: string) => void;
   setNodeContent: (nodeId: string, content: string) => void;
   setNodeAccent: (nodeId: string, accent: string | undefined) => void;
-  applyMeasuredHeight: (nodeId: string, contentHeight: number) => void;
+  /**
+   * Record the card's REAL rendered height (Chunk 17 anatomy: auto height is
+   * the resting state -- CSS grows the card; this only keeps the document's
+   * size in sync for layout math). Measurement NEVER feeds back into
+   * rendering, so there is no loop and nothing to lag (the v1 rule).
+   */
+  recordMeasuredHeight: (nodeId: string, height: number) => void;
   setOwnedSize: (nodeId: string, width: number, height: number) => void;
   clearOwnedHeight: (nodeId: string) => void;
   deleteNode: (nodeId: string) => void;
@@ -332,26 +337,22 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
       });
     },
 
-    applyMeasuredHeight: (nodeId, contentHeight) => {
+    recordMeasuredHeight: (nodeId, height) => {
       const doc = get().document;
       const node = doc.nodes.find((candidate) => candidate.id === nodeId);
       if (!node) return;
       const def = getNodeDef(node.type);
       if (def?.sizing !== 'auto-height') return;
-      const minHeight = def.size?.height ?? 200;
-      const owned = node.data['ownedHeight'];
-      const height = computeAutoHeight({
-        contentHeight,
-        minHeight,
-        ...(typeof owned === 'number' ? { ownedHeight: owned } : {}),
-      });
+      // user-owned heights are the user's statement -- never overwrite (I5)
+      if (typeof node.data['ownedHeight'] === 'number') return;
+      const rounded = Math.max(Math.round(height), 60);
       const current = node.size?.height;
-      if (current !== undefined && Math.abs(current - height) < 1) return;
+      if (current !== undefined && Math.abs(current - rounded) < 2) return;
       commit({
         ...doc,
         nodes: doc.nodes.map((candidate) =>
           candidate.id === nodeId
-            ? { ...candidate, size: { width: candidate.size?.width ?? 300, height } }
+            ? { ...candidate, size: { width: candidate.size?.width ?? 300, height: rounded } }
             : candidate,
         ),
       });

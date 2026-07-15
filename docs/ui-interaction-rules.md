@@ -46,11 +46,16 @@ another). Where possible each rule is enforced by a test in
     ever renders (RF's getEdgePosition bails without an error). Always run
     `applyNodeChanges`/`applyEdgeChanges` over RF-side state, and write back
     to the core document separately.
-13. **Auto-fit measures a hidden content mirror, never the flexing body.**
-    Measuring a container that fills the node feeds the node's height back
-    into itself — unbounded growth (300 → 1080px in seconds) and the endless
-    commits also starve the debounced save. The mirror's height depends only
-    on text + width, so the loop is structurally impossible.
+13. **Auto height is the resting state — measurement records, never renders.**
+    (Rewritten for the Chunk 17 anatomy; the mirror system is gone.) A node
+    gets NO inline height unless the user owns one (`ownedHeight` via manual
+    resize; Fit clears it). CSS grows the card with its content natively, so
+    growth can never lag or fight the editor. A ResizeObserver on the real
+    card writes measured heights into the document for layout math ONLY
+    (spawn collision, Fit bounds, split placement) — that value must never
+    flow back into a style, which is what makes a feedback loop structurally
+    impossible. History: v1 worked this way; V2's mirror system inverted it
+    and caused the "text box doesn't grow" bug (user, 2026-07-14).
 14. **Edges persist their handles.** Multi-handle nodes cannot re-render an
     edge that doesn't record sourceHandle/targetHandle (v1 F7-10a).
 15. **Every RF canvas wires `onError`.** RF drops misconfigured elements

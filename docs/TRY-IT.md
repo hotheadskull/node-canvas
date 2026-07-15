@@ -33,11 +33,17 @@ Work through this in order — it builds on itself.
 ## 3. Nodes
 - [ ] Spawn a **Title** node: the body IS the words. Type something, then
       select it and drag a corner — the text scales with the box.
-- [ ] Spawn a **Note**: type a lot of text — the node grows with it.
-      Drag the resizer to take ownership of the size, then click the little
-      **Fit** icon in its header to hand the size back.
-- [ ] Click the small type tag (e.g. "NOTE") in any node header: pick a
-      custom accent color. Reset it with the dashed swatch.
+- [ ] Every node wears a small **tab** above its top-left corner — icon,
+      type name, readiness dot. The title is the bold colored first line of
+      the card itself.
+- [ ] Spawn a **Note**: type a lot of text — the card grows downward live,
+      with every keystroke. Select it and drag a corner to take ownership of
+      the size, then click the **Fit** arrows on its tab to hand the size
+      back to the text.
+- [ ] Click the type name on any tab (e.g. "NOTE"): pick a custom accent
+      color. Reset it with the dashed swatch.
+- [ ] Hover a wired node: port labels appear OUTSIDE the card — they never
+      sit on top of your text.
 - [ ] Toolbar gear: switch **Density** to Compact and **Port labels** to
       Always / Off. Both persist.
 

@@ -130,10 +130,17 @@ export function Canvas() {
         .map((docNode) => {
           const existing = byId.get(docNode.id);
           const strip = view.phrasing?.get(docNode.id);
+          // Drop RF-owned explicit dims on every sync: the NodeResizer writes
+          // node.width/height during a resize, and a stale height would pin
+          // the card after Fit hands ownership back to auto-growth.
+          const { width: _staleW, height: _staleH, ...existingBase } = existing ?? ({} as Node);
+          const owned = typeof docNode.data['ownedHeight'] === 'number';
           return {
-            ...existing,
+            ...existingBase,
             id: docNode.id,
             type: 'canvas' as const,
+            ...(docNode.size ? { width: docNode.size.width } : {}),
+            ...(owned && docNode.size ? { height: docNode.size.height } : {}),
             // phrasing strips take a DERIVED display position; the stored
             // position is untouched and dragging is disabled while displayed
             position: strip
@@ -144,9 +151,6 @@ export function Canvas() {
               : docNode.position,
             className: strip ? 'phrasing-node' : '',
             draggable: !strip,
-            ...(docNode.size
-              ? { style: { width: docNode.size.width, height: docNode.size.height } }
-              : {}),
             data: {
               coreType: docNode.type,
               title: typeof docNode.data.title === 'string' ? docNode.data.title : '',

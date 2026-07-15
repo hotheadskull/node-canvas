@@ -9,34 +9,16 @@ import {
   involvedIn,
   payoffsOf,
   plantsResolvedBy,
-  stripHtml,
 } from '@node-canvas/core';
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import { useCanvasStore } from '../../store/canvasStore';
 import { RichText } from '../RichText';
 import type { FaceProps } from './index';
-
-/** Rule 13: auto-fit measures a hidden mirror, never the flexing body. */
-function useAutoFitMirror(nodeId: string, chrome: number) {
-  const mirrorRef = useRef<HTMLDivElement>(null);
-  const applyMeasuredHeight = useCanvasStore((state) => state.applyMeasuredHeight);
-  useEffect(() => {
-    const element = mirrorRef.current;
-    if (!element || typeof ResizeObserver === 'undefined') return;
-    const observer = new ResizeObserver(() => {
-      applyMeasuredHeight(nodeId, Math.ceil(element.scrollHeight) + chrome);
-    });
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [nodeId, chrome, applyMeasuredHeight]);
-  return mirrorRef;
-}
 
 export function PlantFace({ nodeId, content }: FaceProps) {
   const setNodeContent = useCanvasStore((state) => state.setNodeContent);
   const document = useCanvasStore((state) => state.document);
   const payoffs = useMemo(() => payoffsOf(document, nodeId), [document, nodeId]);
-  const mirrorRef = useAutoFitMirror(nodeId, 96);
   return (
     <div className="canvas-node-body pair-face" data-face="plant">
       <RichText
@@ -59,11 +41,6 @@ export function PlantFace({ nodeId, content }: FaceProps) {
           </>
         )}
       </div>
-      <div className="canvas-node-mirror" ref={mirrorRef} aria-hidden>
-        {stripHtml(content) || ' '}
-        {'\n'}
-        {payoffs.map((entry) => entry.title).join('\n')}
-      </div>
     </div>
   );
 }
@@ -72,7 +49,6 @@ export function PayoffFace({ nodeId, content }: FaceProps) {
   const setNodeContent = useCanvasStore((state) => state.setNodeContent);
   const document = useCanvasStore((state) => state.document);
   const plants = useMemo(() => plantsResolvedBy(document, nodeId), [document, nodeId]);
-  const mirrorRef = useAutoFitMirror(nodeId, 96);
   return (
     <div className="canvas-node-body pair-face" data-face="payoff">
       <RichText
@@ -95,11 +71,6 @@ export function PayoffFace({ nodeId, content }: FaceProps) {
           </>
         )}
       </div>
-      <div className="canvas-node-mirror" ref={mirrorRef} aria-hidden>
-        {stripHtml(content) || ' '}
-        {'\n'}
-        {plants.map((entry) => entry.title).join('\n')}
-      </div>
     </div>
   );
 }
@@ -115,7 +86,6 @@ export function EventFace({ nodeId, content }: FaceProps) {
   });
   const involved = useMemo(() => involvedIn(document, nodeId), [document, nodeId]);
   const timeline = useMemo(() => eventTimeline(document), [document]);
-  const mirrorRef = useAutoFitMirror(nodeId, 118);
 
   const span = useMemo(() => {
     if (timeline.length === 0) return null;
@@ -179,11 +149,6 @@ export function EventFace({ nodeId, content }: FaceProps) {
           })}
         </svg>
       )}
-      <div className="canvas-node-mirror" ref={mirrorRef} aria-hidden>
-        {stripHtml(content) || ' '}
-        {'\n'}
-        {involved.map((entry) => entry.name).join(' ')}
-      </div>
     </div>
   );
 }

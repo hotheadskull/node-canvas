@@ -313,28 +313,39 @@ describe('quick capture (Ctrl+K)', () => {
   });
 });
 
-describe('auto-fit height (core math applied by the store)', () => {
-  it('grows with content but never below the type minimum', () => {
+describe('sizing under the Tab Card anatomy (Chunk 17): measurement records, never renders', () => {
+  it('records the real card height into the document (layout math truth)', () => {
     const store = useCanvasStore.getState();
     const id = store.spawnAt('note', { x: 0, y: 0 })!;
-    useCanvasStore.getState().applyMeasuredHeight(id, 90);
-    let node = useCanvasStore.getState().document.nodes[0]!;
-    expect(node.size!.height).toBe(220); // note minimum
-    useCanvasStore.getState().applyMeasuredHeight(id, 512.4);
-    node = useCanvasStore.getState().document.nodes[0]!;
+    useCanvasStore.getState().recordMeasuredHeight(id, 512.4);
+    const node = useCanvasStore.getState().document.nodes[0]!;
     expect(node.size!.height).toBe(512);
+    // never forces a rendered height: ownership stays with CSS auto-growth
+    expect(node.data['ownedHeight']).toBeUndefined();
   });
 
-  it('user-owned height wins until Fit clears it', () => {
+  it('ignores sub-2px jitter so typing does not thrash saves', () => {
+    const store = useCanvasStore.getState();
+    const id = store.spawnAt('note', { x: 0, y: 0 })!;
+    useCanvasStore.getState().recordMeasuredHeight(id, 300);
+    const before = useCanvasStore.getState().document;
+    useCanvasStore.getState().recordMeasuredHeight(id, 301.2);
+    expect(useCanvasStore.getState().document).toBe(before);
+  });
+
+  it('user-owned height is never overwritten by measurement (I5)', () => {
     const store = useCanvasStore.getState();
     const id = store.spawnAt('note', { x: 0, y: 0 })!;
     useCanvasStore.getState().setOwnedSize(id, 340, 480);
-    useCanvasStore.getState().applyMeasuredHeight(id, 900);
+    useCanvasStore.getState().recordMeasuredHeight(id, 900);
     let node = useCanvasStore.getState().document.nodes[0]!;
     expect(node.size!.height).toBe(480);
+    expect(node.data['ownedHeight']).toBe(480);
+    // Fit hands ownership back -- measurement records again
     useCanvasStore.getState().clearOwnedHeight(id);
-    useCanvasStore.getState().applyMeasuredHeight(id, 900);
+    useCanvasStore.getState().recordMeasuredHeight(id, 900);
     node = useCanvasStore.getState().document.nodes[0]!;
     expect(node.size!.height).toBe(900);
+    expect(node.data['ownedHeight']).toBeUndefined();
   });
 });

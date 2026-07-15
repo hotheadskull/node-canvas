@@ -27,8 +27,8 @@ master brief — see its "Revision log" for what changed and why).
 | 14 | Sermon pack: Propositions + arcing wire types, Arc Assembly, phrasing view, Big Idea (Word Study + Illustration are post-launch) | **completed** |
 | 15 | Novel specialists: Plant/Payoff (continuity engine deferred post-launch; story-time fields ship on Event so the data model is ready) | **completed** |
 | 16 | Onboarding: interactive tutorial (spotlight, performs-action-to-advance, Back/Next + step counter, replayable), Tips/Reference panel | **completed** |
-| 17 | Node remodel: a NODE ANATOMY SYSTEM (one skeleton every type fills — identity zone, body, ports, status) replacing the ad-hoc Chunk-4 mix; fixes the known face bugs (see user feedback 2026-07-14 below). STARTS WITH MOCKUPS — each candidate shown as a full language across a Note + Document + Person | **current** |
-| 18 | Hardening: React Profiler pass, Playwright e2e full loop, migration + backup-before-migrate, file-per-project (.nodecanvas) persistence, export (JSON, compiled text/markdown, PNG/SVG canvas export) | not started |
+| 17 | Node remodel: the TAB CARD anatomy system (docs/design/node-anatomy.md) — user picked mockup C; fixes all reported node bugs with regression tests | **completed** |
+| 18 | Hardening: React Profiler pass, Playwright e2e full loop, migration + backup-before-migrate, file-per-project (.nodecanvas) persistence, export (JSON, compiled text/markdown, PNG/SVG canvas export) | **current** |
 | 19 | Commercial: license keys, payments, Windows code signing, Tauri updater, crash reporting | not started |
 
 ## User feedback driving Chunk 17 (verbatim intent, 2026-07-14)
@@ -82,6 +82,41 @@ suite, academic-pack polish, merge-progress faces, citation formatting,
 presentation-walk mode. All registry entries + isolated reducers (invariant I8).
 
 ## Session log
+
+### 2026-07-14 (evening) — Chunk 17: the Tab Card anatomy (completed)
+- **Pre-flight:** the v1 side project (`Projects\node-canvas-v1`) pointed at
+  the SAME GitHub repo on `main`. Renamed its branch to `v1-main` with its
+  own upstream — origin/main stays reserved for V2. Old scratch copy is
+  stale/harmless.
+- **Research → brief → mockups → pick (standing flow, first full run):**
+  legacy BaseNode read (V1 never stored a height until manual resize — CSS
+  auto-growth was the whole trick; V2's mirror system inverted it, causing
+  the grow bug) + canvas-tool survey. Four anatomy languages mocked across
+  Note/Document/Person/Proposition; user picked **C — Tab card**; spec
+  written to docs/design/node-anatomy.md.
+- **Built:** tab (glyph + type + readiness + hygiene + owner + Fit) above
+  the card; title = bold accent first line of the body; port stars on the
+  border with labels floating OUTSIDE; rails deleted; mirrors deleted
+  everywhere (DefaultFace/PropositionFace/NovelFaces); store
+  `applyMeasuredHeight` → `recordMeasuredHeight` (records real card height
+  for layout math, NEVER renders); Canvas applies an inline height only for
+  user-owned sizes and strips RF-resizer dims on every sync (stale explicit
+  height pinned the card after Fit — found by the new e2e).
+- **Upgrade rule (user-approved):** machine-computed heights release to
+  auto-growth; user-owned sizes keep exactly (I5). No migration needed —
+  `ownedHeight` already marked ownership.
+- e2e/node-anatomy.spec.ts pins all three reported bugs: types 300+ chars
+  and asserts live downward growth from a fixed top edge (+ reload
+  stability), asserts body width == card width and port labels outside the
+  card, and walks resize→ownership→Fit→auto. Interaction rule 13 rewritten.
+- Regression caught by diff-review: my CanvasNode rewrite briefly dropped
+  two post-14 fixes (hidden-port hover handles; give-vs-take hygiene
+  wording) — restored; NovelFaces test caught it. Screenshot-verified.
+- Suite: 195 unit + 23 e2e green; typecheck + lint clean.
+
+**Next session: Chunk 18 — hardening** (perf profile, file-per-project
+persistence, migrations + backups, exports). Per-node design passes
+continue under the standing flow whenever a type comes up.
 
 ### 2026-07-13 — Chunk 0 (completed)
 - v1 app moved to `/legacy` with git history; `npm run build` verified green there
