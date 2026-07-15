@@ -38,24 +38,32 @@ becomes a block-sequence editor where spine wires can be PLACED as inline
 embeds between owned-prose blocks. Block order IS wire order (one ordering,
 two views of it — reorder inline, the compile reorders, and vice versa).
 
-## Open questions (brainstorm agenda)
-1. Do dropzones REPLACE the intake list as how sections live in the
-   document, or complement it (sections in the spine list; dropzones for
-   quotes/sources/notes embedded mid-prose)?
-2. Keep v1's write-back transclusion rule in V2? (Powerful, but surprising;
-   V2 compile is currently one-way. If kept: editing an embed edits the
-   section node everywhere — needs to be visibly signaled.)
-3. Unique shape: does Document earn a "page" look (paper margins, wider
-   default, subtle page edge) distinct from the standard card?
-4. Fullscreen: v1 has a fullscreen portal; V2 has the focus room. Merge
-   into one surface or keep both (focus = one section; fullscreen = whole
-   document with embeds)?
-5. What does the document GIVE beyond compiled text — should embeds be
-   addressable (deep-link a paragraph)? (Probably post-launch; note only.)
+## Decisions (brainstorm settled with the user, 2026-07-14/15)
+1. **Blocks REPLACE the sections list.** The block sequence IS the document:
+   spine wires land as embed blocks, block order is compile order (drag a
+   block, the compiled work reorders). No separate intake panel.
+2. **No live write-back. Fork on first in-document edit.** An embed mirrors
+   its source (LIVE) until edited inside the document, then FORKS: the
+   document keeps its version; the source node keeps the original and
+   "basically becomes a note" — freely editable without affecting the
+   document unless deliberately synced. Per-embed actions: view original /
+   apply to source / revert to source (update from source). The source node
+   shows one quiet "edited in <doc>" line, not the full variant text.
+3. **No unique shape.** The Document is a (typically large) Tab Card and
+   "earns the fullscreen mechanic" for real writing sessions.
+4. **SEAMLESSNESS is the ruling constraint (user, verbatim intent):**
+   inserted text must not "get in the way"; everything edits together as
+   one flowing text. NO chips/titles above embeds — connection LINES carry
+   the identity. Mockups explore how minimal the embed marking can be.
+
+## Still open (answer via mockups)
+- The embed marking treatment (margin line / gutter dot / ink tint / end
+  tag) — mockup axis.
+- Post-launch note: addressable embeds (deep-link a paragraph).
 
 ## Status
 - [x] Research (v1 rework + V2 machine inventory)
-- [ ] Brainstorm settled with user
-- [ ] 3–4 mockups
+- [x] Brainstorm settled with user
+- [ ] 3–4 mockups (in progress)
 - [ ] Spec written
 - [ ] Build + tests
