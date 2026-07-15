@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   addNode,
@@ -80,9 +80,12 @@ describe('novel pack rich faces', () => {
 
   it('Event: story time edits persist, involves chips read wire role labels', async () => {
     let doc = createEmptyDocument('events');
+    // ALL nodes sit exactly at the origin: jsdom measures everything 1x1,
+    // so onlyRenderVisibleElements culls any node whose rect misses (0,0)
+    // (surfaced when the Tab Card anatomy stopped forcing inline heights)
     const wedding = spawnNode('event', { x: 0, y: 0 });
-    const duel = spawnNode('event', { x: 700, y: 0 });
-    const anna = spawnNode('person', { x: 1400, y: 0 });
+    const duel = spawnNode('event', { x: 0, y: 0 });
+    const anna = spawnNode('person', { x: 0, y: 0 });
     wedding.data = { title: 'The wedding', content: '', storyTime: 14.2 };
     duel.data = { title: 'The duel', content: '', storyTime: 3.5 };
     anna.data = { title: 'Anna', content: '' };
@@ -102,9 +105,12 @@ describe('novel pack rich faces', () => {
     expect((await screen.findByText('Anna · bride'))).toBeTruthy();
 
     // both dated events draw the shared mini timeline; the wedding's own dot
-    // is emphasized
+    // is emphasized. waitFor: the second node's face can mount a beat later
+    // than the first (this was an order-dependent flake).
+    await waitFor(() => {
+      expect(document.querySelectorAll('[data-event-timeline]').length).toBe(2);
+    });
     const timelines = document.querySelectorAll('[data-event-timeline]');
-    expect(timelines.length).toBe(2);
     expect(timelines[0]!.querySelectorAll('.event-dot').length).toBe(2);
     expect(document.querySelectorAll('.event-dot.is-self').length).toBe(2);
 

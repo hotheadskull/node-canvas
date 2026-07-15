@@ -82,10 +82,10 @@ remodel requirement (behavior items are BUGS with tests, not just styling):
 
 | Node | Status |
 |---|---|
-| document | **in discussion** (brief drafted from the user's v1 rework) |
+| document | **completed 2026-07-15** (blocks editor; spec + build in node-passes/document.md) |
 | title, note, section, question | not started |
 | person, place, thing | not started |
-| manuscript, passage, proposition | not started |
+| manuscript, passage, proposition | not started (manuscript should inherit the blocks editor when passed) |
 | source, claim, plant, payoff, event | not started |
 
 ## Deferred post-launch roster
@@ -129,6 +129,38 @@ presentation-walk mode. All registry entries + isolated reducers (invariant I8).
 **Next session: Chunk 18 — hardening** (perf profile, file-per-project
 persistence, migrations + backups, exports). Per-node design passes
 continue under the standing flow whenever a type comes up.
+
+### 2026-07-15 — Node pass: DOCUMENT (completed; the first full per-node pass)
+- Ran the whole standing flow: research (the user's own v1 DocumentNode
+  rework was the reference), brainstorm settled with the user (blocks
+  replace the sections list; fork-on-edit, NO live write-back; no unique
+  shape — fullscreen earned; SEAMLESSNESS rules: lines, not chips), mockups
+  (user picked A — margin lines), spec, build.
+- Core `blocks.ts` + blocks.golden.json (NEW golden with the feature):
+  blocksOf (normalization IS the lazy migration; deterministic synthesized
+  ids), compileBlocks (block order = reading order; forks win), fork ops
+  (editEmbed / revertEmbed / applyEmbedToSource — the only write-back),
+  moveBlock (re-syncs wire order so cast/manuscript agree), severed forked
+  embeds convert to owned text; forkNoticesFor.
+- App: BlocksFace (margin-line embeds, hover action row — forked rows keep
+  it visible: a fork is a pending decision; ＋ insert lines; dnd-kit drag
+  reorder; per-block landing handles `blk:<id>` so wires land AT a spot),
+  DocumentRoom fullscreen (double-click or Expand), source nodes wear
+  "✎ edited in <doc>". manuscript/claim/passage keep the list face.
+- REAL bug caught by the new e2e: keying the embed editor by fork-state
+  remounted TipTap on the first keystroke into a live embed and dropped the
+  caret. Fixed (no state-dependent key; RichText already syncs external
+  values when unfocused).
+- Long-lived test flake ROOT-CAUSED: the store's debounced save from test N
+  fired into test N+1's seeded localStorage. Fixed via cancelPendingSave()
+  in test-setup afterEach. Also: jsdom + onlyRenderVisibleElements culls
+  any node whose rect misses (0,0) once nodes stopped carrying forced
+  inline heights — face tests must seed nodes at the origin.
+- Suite: 209 unit + 25 e2e green; typecheck + lint clean. Screenshot
+  verified (live blue line, forked amber line + action row, fork notice).
+
+**Next: Chunk 18 hardening, or the next node pass (Note or Section are the
+natural follow-ups; manuscript should inherit the blocks editor).**
 
 ### 2026-07-13 — Chunk 0 (completed)
 - v1 app moved to `/legacy` with git history; `npm run build` verified green there

@@ -62,19 +62,26 @@ Work through this in order — it builds on itself.
       second Document too. Click ✓ on one candidate: it becomes real, the
       other dissolves, and a toast offers **Undo** (try it).
 
-## 5. The writing spine (compile)
+## 5. The Document IS the text (new: the blocks editor)
 - [ ] Spawn a **Document**. Click **Split → Beat sheet**: five wired Section
-      stubs appear below it.
-- [ ] Write a sentence in two sections, then click **Preview** on the
-      Document: the compiled text follows wire order.
-- [ ] Use the ↑/↓ arrows in the Document's section list: **reordering the
-      wires reorders the compiled text** live.
-- [ ] Spawn a **Person**, name them, wire their Identity star into a
-      Section's People star. The Document footer shows **Cast: <name>**.
-      Rename the person — the cast updates instantly (derived by reference).
-- [ ] Notice the small amber dot next to "Sections · wire order": the
-      Document is wired but serves no Thread yet (a nudge, never a block).
-- [ ] Word count in the footer tracks the compiled text.
+      stubs appear below it — and their text lives INSIDE the document as
+      seamless passages, each marked only by a thin blue line in the margin.
+- [ ] Write a sentence in two sections: the document mirrors them live, in
+      order. One flowing text — no chips or titles between your paragraphs.
+- [ ] Hover a passage and drag its grip (left edge) to reorder — the
+      compiled work reorders with it. Hover BETWEEN paragraphs: a thin ＋
+      line inserts a new paragraph right there.
+- [ ] **Edit an embedded passage inside the document**: its line turns
+      amber — the document keeps your new version, the source node keeps
+      exactly what you wrote there (it shows "✎ edited in …"). The action
+      row offers view original / apply to source / revert.
+- [ ] Drag a wire from any node's give star onto a passage: the content
+      lands AT that spot in the prose.
+- [ ] **Expand** (footer) or double-click the document: the fullscreen
+      writing room — same text, more space. Esc returns.
+- [ ] Spawn a **Person**, wire their Identity star into a Section's People
+      star: the footer shows **Cast**, and renames propagate instantly.
+- [ ] Word count in the footer tracks the whole document.
 
 ## 6. Assemblies (groups)
 - [ ] Spawn 2 Persons + 1 Place. Click one, **Ctrl-click** the others,

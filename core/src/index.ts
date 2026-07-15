@@ -11,4 +11,5 @@ export * from './derive';
 export * from './split';
 export * from './assemblies';
 export * from './arcs';
+export * from './blocks';
 export * from './novel';

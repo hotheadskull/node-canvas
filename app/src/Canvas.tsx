@@ -41,6 +41,7 @@ import {
 import { AddNodeMenu } from './components/AddNodeMenu';
 import { ArcRoom } from './components/ArcRoom';
 import { AssemblyFace } from './components/AssemblyFace';
+import { DocumentRoom } from './components/DocumentRoom';
 import { CanvasNode } from './components/CanvasNode';
 import { CommandPalette } from './components/CommandPalette';
 import { FocusEditor } from './components/FocusEditor';
@@ -316,6 +317,21 @@ export function Canvas() {
         const node = document.nodes.find((candidate) => candidate.id === nodeId);
         return node ? getPort(node.type, portId)?.direction : undefined;
       };
+      // document BLOCK handles: valid when the drag is a give that could
+      // legally wire into the document's spine (it lands at that block)
+      if (targetHandle?.startsWith('blk:')) {
+        return (
+          !!sourceHandle &&
+          sourceIsPort &&
+          direction(source, sourceHandle) === 'give' &&
+          isValidWire(document, {
+            source,
+            sourcePort: sourceHandle,
+            target,
+            targetPort: 'sections-in',
+          }).ok
+        );
+      }
       if (sourceIsPort && targetIsPort) {
         const forward = { source, sourcePort: sourceHandle, target, targetPort: targetHandle };
         const reversed = {
@@ -427,7 +443,12 @@ export function Canvas() {
         zoomOnDoubleClick={false}
         onNodeDoubleClick={(_event, node) => {
           // double-click opens the focus editor (design B) on writing nodes;
+          // documents open their fullscreen room (their content IS blocks);
           // on an assembly star/face it dives toward it (explicit action)
+          if (node.type === 'canvas' && (node.data as { coreType?: string }).coreType === 'document') {
+            useCanvasStore.getState().openDocRoom(node.id);
+            return;
+          }
           if (node.type === 'canvas') openEditor(node.id);
           if (node.type === 'assembly') {
             void setCenter(node.position.x + 130, node.position.y + 70, {
@@ -472,6 +493,7 @@ export function Canvas() {
       <Toast />
       <FocusEditor />
       <ArcRoom />
+      <DocumentRoom />
       <CommandPalette />
       <Tutorial />
       <TipsPanel />

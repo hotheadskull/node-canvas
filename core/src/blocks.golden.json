@@ -1,0 +1,72 @@
+{
+  "document": {
+    "schemaVersion": 1,
+    "id": "doc-blocks",
+    "name": "Blocks worked example",
+    "canvasMode": "novel",
+    "createdAt": "2026-07-15T00:00:00.000Z",
+    "nodes": [
+      {
+        "id": "chapter",
+        "type": "document",
+        "position": { "x": 0, "y": 0 },
+        "size": { "width": 500, "height": 400 },
+        "data": {
+          "title": "Chapter 3",
+          "content": "<p>He almost misses the train.</p>",
+          "blocks": [
+            { "id": "b-own", "kind": "text", "content": "<p>He almost misses the train.</p>" },
+            { "id": "b-coffee", "kind": "embed", "wireId": "w-coffee" },
+            { "id": "b-mid", "kind": "text", "content": "<p>He reads it twice before speaking.</p>" },
+            { "id": "b-walk", "kind": "embed", "wireId": "w-walk", "fork": "<p>Snow starts to fall as they walk, and neither mentions the letter.</p>" }
+          ]
+        }
+      },
+      {
+        "id": "sec-coffee",
+        "type": "section",
+        "position": { "x": -700, "y": 0 },
+        "size": { "width": 400, "height": 320 },
+        "data": { "title": "Coffee shop", "content": "<p>She notices the letter before he does.</p>" }
+      },
+      {
+        "id": "sec-walk",
+        "type": "section",
+        "position": { "x": -700, "y": 400 },
+        "size": { "width": 400, "height": 320 },
+        "data": { "title": "The walk home", "content": "<p>Snow starts to fall as they walk home in silence.</p>" }
+      },
+      {
+        "id": "sec-loose",
+        "type": "section",
+        "position": { "x": -700, "y": 800 },
+        "size": { "width": 400, "height": 320 },
+        "data": { "title": "Loose end", "content": "<p>A section wired in but never placed.</p>" }
+      }
+    ],
+    "edges": [],
+    "wires": [
+      { "id": "w-coffee", "source": "sec-coffee", "sourcePort": "text-out", "target": "chapter", "targetPort": "sections-in", "status": "live" },
+      { "id": "w-walk", "source": "sec-walk", "sourcePort": "text-out", "target": "chapter", "targetPort": "sections-in", "status": "live" },
+      { "id": "w-loose", "source": "sec-loose", "sourcePort": "text-out", "target": "chapter", "targetPort": "sections-in", "status": "live" }
+    ],
+    "assemblies": []
+  },
+  "normalized": [
+    { "id": "b-own", "kind": "text", "content": "<p>He almost misses the train.</p>" },
+    { "id": "b-coffee", "kind": "embed", "wireId": "w-coffee" },
+    { "id": "b-mid", "kind": "text", "content": "<p>He reads it twice before speaking.</p>" },
+    { "id": "b-walk", "kind": "embed", "wireId": "w-walk", "fork": "<p>Snow starts to fall as they walk, and neither mentions the letter.</p>" },
+    { "id": "blk-w-loose", "kind": "embed", "wireId": "w-loose" }
+  ],
+  "compiled": {
+    "text": "<p>He almost misses the train.</p>\n\n<p>She notices the letter before he does.</p>\n\n<p>He reads it twice before speaking.</p>\n\n<p>Snow starts to fall as they walk, and neither mentions the letter.</p>\n\n<p>A section wired in but never placed.</p>",
+    "sources": ["chapter", "sec-coffee", "sec-walk", "sec-loose"]
+  },
+  "legacyMigration": [
+    { "id": "blk-chapter-own", "kind": "text", "content": "<p>He almost misses the train.</p>" },
+    { "id": "blk-w-coffee", "kind": "embed", "wireId": "w-coffee" },
+    { "id": "blk-w-walk", "kind": "embed", "wireId": "w-walk" },
+    { "id": "blk-w-loose", "kind": "embed", "wireId": "w-loose" }
+  ]
+}

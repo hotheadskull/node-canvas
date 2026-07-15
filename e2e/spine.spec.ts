@@ -26,12 +26,14 @@ test('split -> write -> compile -> reorder, all through the real UI', async ({ p
   await expect(page.locator('.react-flow__node')).toHaveCount(4);
   await expect(page.locator('.wire-edge.is-live')).toHaveCount(3);
 
-  // the intake list shows the three stubs in order
-  const rows = page.locator('.document-intake-list li .intake-row-title');
-  await expect(rows).toHaveText(['Section 1', 'Section 2', 'Section 3']);
+  // the document renders three LIVE embed blocks (the sections, inline)
+  const doc = page
+    .locator('.react-flow__node')
+    .filter({ has: page.locator('.canvas-node-kind', { hasText: /^Document$/ }) });
+  await expect(doc.locator('.doc-block.is-embed.is-live')).toHaveCount(3);
 
   // write into the first two sections (kind-tag filter: hasText would also
-  // match the document whose intake list contains "Section 1")
+  // match the document, whose embeds mirror "First words.")
   const sections = page
     .locator('.react-flow__node')
     .filter({ has: page.locator('.canvas-node-kind', { hasText: /^Section$/ }) });
@@ -39,21 +41,37 @@ test('split -> write -> compile -> reorder, all through the real UI', async ({ p
   await page.keyboard.type('First words.');
   await sections.nth(1).locator('.richtext-content').click();
   await page.keyboard.type('Second words.');
+  await page.locator('.nodecanvas-flow').click({ position: { x: 10, y: 500 } });
 
-  // compiled preview follows wire order (rich content -> assert paragraphs)
-  await page.getByRole('button', { name: 'Preview' }).click();
-  await expect(page.locator('[data-compiled-preview] p')).toHaveText([
-    'First words.',
-    'Second words.',
-  ]);
+  // the embeds mirror the sections LIVE, in wire order
+  await expect(doc.locator('[data-doc-blocks]')).toContainText('First words.');
+  await expect(doc.locator('[data-doc-blocks]')).toContainText('Second words.');
 
-  // reorder: move Section 2 up -> compiled text flips
-  await page.getByRole('button', { name: 'Move Section 2 up' }).click();
-  await expect(page.locator('[data-compiled-preview] p')).toHaveText([
-    'Second words.',
-    'First words.',
-  ]);
-  await expect(rows).toHaveText(['Section 2', 'Section 1', 'Section 3']);
+  // reorder: drag the second embed's grip above the first (the "slider").
+  // dnd-kit needs a real pointer drag past its 6px activation distance.
+  const secondEmbed = doc.locator('.doc-block.is-embed', { hasText: 'Second words.' });
+  await secondEmbed.hover();
+  const grip = secondEmbed.locator('.doc-block-grip');
+  const firstEmbed = doc.locator('.doc-block.is-embed', { hasText: 'First words.' });
+  const gripBox = (await grip.boundingBox())!;
+  const targetBox = (await firstEmbed.boundingBox())!;
+  await page.mouse.move(gripBox.x + gripBox.width / 2, gripBox.y + gripBox.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(targetBox.x + 40, targetBox.y + 4, { steps: 14 });
+  await page.waitForTimeout(120);
+  await page.mouse.up();
+
+  // block order IS compile order: the model's wires flipped with the blocks
+  await page.waitForFunction(() => {
+    const raw = localStorage.getItem('nodecanvas.v2.document');
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    const texts = parsed.wires.map(
+      (wire: { source: string }) =>
+        parsed.nodes.find((node: { id: string }) => node.id === wire.source)?.data?.content ?? '',
+    );
+    return texts.length === 3 && texts[0].includes('Second words.');
+  });
 
   // word count reflects the compiled text
   await expect(page.locator('.document-stat')).toHaveText(/4/);
@@ -68,11 +86,10 @@ test('split -> write -> compile -> reorder, all through the real UI', async ({ p
   await page.getByRole('button', { name: 'Fit' }).click();
   await page.waitForTimeout(450);
   await expect(page.locator('.react-flow__node')).toHaveCount(4);
-  await expect(page.locator('.document-intake-list li .intake-row-title')).toHaveText([
-    'Section 2',
-    'Section 1',
-    'Section 3',
-  ]);
+  const docAfter = page
+    .locator('.react-flow__node')
+    .filter({ has: page.locator('.canvas-node-kind', { hasText: /^Document$/ }) });
+  await expect(docAfter.locator('[data-doc-blocks]')).toContainText('Second words.');
 });
 
 test('cast derives through the spine and renames propagate live', async ({ page }) => {
@@ -145,11 +162,13 @@ test('focus editor: double-click to write, walk the spine, Esc back (design B)',
   await room.getByRole('button', { name: /next/i }).click();
   await expect(room.locator('.focus-title')).toHaveValue('Section 2');
 
-  // Esc returns to the canvas; content persisted into the compile
+  // Esc returns to the canvas; the document's live embed mirrors the words
   await page.keyboard.press('Escape');
   await expect(room).toHaveCount(0);
-  await page.getByRole('button', { name: 'Preview' }).click();
-  await expect(page.locator('[data-compiled-preview]')).toContainText(
+  const doc = page
+    .locator('.react-flow__node')
+    .filter({ has: page.locator('.canvas-node-kind', { hasText: /^Document$/ }) });
+  await expect(doc.locator('[data-doc-blocks]')).toContainText(
     'The storm broke at midnight.',
   );
 });

@@ -1,6 +1,14 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { addNode, addWire, createEmptyDocument, serializeDocument, spawnNode } from '@node-canvas/core';
+import {
+  addNode,
+  addWire,
+  blocksOf,
+  compileBlocks,
+  createEmptyDocument,
+  serializeDocument,
+  spawnNode,
+} from '@node-canvas/core';
 import App from '../../App';
 import { useCanvasStore } from '../../store/canvasStore';
 
@@ -28,7 +36,7 @@ describe('node faces (I8: per-type looks plug in without touching shared chrome)
     expect(useCanvasStore.getState().document.nodes[0]!.data.title).toBe('Everything connects');
   });
 
-  it('document face: ordered intake list reorders the compiled work', async () => {
+  it('document face: wired sections render INLINE as live blocks; moving a block reorders the work', async () => {
     let doc = createEmptyDocument('spine');
     const chapter = spawnNode('document', { x: 0, y: 0 });
     const sceneA = spawnNode('section', { x: -900, y: -400 });
@@ -41,22 +49,28 @@ describe('node faces (I8: per-type looks plug in without touching shared chrome)
     localStorage.setItem('nodecanvas.v2.document', serializeDocument(doc));
     render(<App />);
 
-    // intake list shows both sections in wire order
-    const rows = await screen.findAllByText(/^(A|B)$/);
-    expect(rows.map((row) => row.textContent)).toEqual(['A', 'B']);
-
-    // compiled preview follows wire order (hidden: true -- RF keeps nodes
-    // visibility:hidden in jsdom because its measurement pass never runs)
-    fireEvent.click(screen.getByRole('button', { name: 'Preview', hidden: true }));
-    expect(document.querySelector('[data-compiled-preview]')!.textContent).toBe(
-      'Alpha text.\n\nBeta text.',
+    // both sections' TEXT appears inside the document (live embeds, in
+    // wire order), marked as embeds -- no chips between paragraphs
+    await screen.findByText('Alpha text.');
+    await screen.findByText('Beta text.');
+    expect(document.querySelectorAll('.doc-block.is-embed.is-live')).toHaveLength(2);
+    expect(document.querySelector('[data-doc-blocks]')!.textContent).toMatch(
+      /Alpha text\..*Beta text\./s,
     );
 
-    // move B up -> compile order flips
-    fireEvent.click(screen.getByRole('button', { name: 'Move B up', hidden: true }));
-    expect(document.querySelector('[data-compiled-preview]')!.textContent).toBe(
+    // block order IS compile order: move B's block to the top
+    const state = useCanvasStore.getState();
+    const bBlock = blocksOf(state.document, chapter.id).find(
+      (block) => block.kind === 'embed' && block.wireId === state.document.wires[1]!.id,
+    )!;
+    state.moveBlockTo(chapter.id, bBlock.id, 0);
+    expect(compileBlocks(useCanvasStore.getState().document, chapter.id).text).toBe(
       'Beta text.\n\nAlpha text.',
     );
+    // ...and the wires re-synced to match (cast/manuscript views agree)
+    expect(
+      useCanvasStore.getState().document.wires.map((wire) => wire.source),
+    ).toEqual([sceneB.id, sceneA.id]);
   });
 
   it('document face: cast derives live so renames propagate', async () => {

@@ -3,8 +3,14 @@
 
 import { cleanup } from '@testing-library/react';
 import { afterEach } from 'vitest';
+import { cancelPendingSave } from './store/canvasStore';
 
-afterEach(() => cleanup());
+afterEach(() => {
+  // a debounced save scheduled by this test must not fire into the next
+  // test's freshly seeded localStorage (long-lived order-dependent flake)
+  cancelPendingSave();
+  cleanup();
+});
 
 class ResizeObserverMock {
   callback: ResizeObserverCallback;

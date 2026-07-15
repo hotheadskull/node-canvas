@@ -11,6 +11,7 @@
 // - specialist types: Chunks 13-15
 
 import type { ComponentType } from 'react';
+import { BlocksFace } from './BlocksFace';
 import { DefaultFace } from './DefaultFace';
 import { DocumentFace } from './DocumentFace';
 import { EventFace, PayoffFace, PlantFace } from './NovelFaces';
@@ -25,11 +26,11 @@ export type FaceProps = {
 
 export const NODE_FACES: Record<string, ComponentType<FaceProps>> = {
   title: TitleFace,
-  document: DocumentFace,
+  // document got its own pass (docs/design/node-passes/document.md): the
+  // blocks editor. manuscript/claim/passage keep the compile-list face
+  // until their passes.
+  document: BlocksFace,
   manuscript: DocumentFace,
-  // every spine-intake type gets the compile face: ordered intake list,
-  // Split presets, preview. claim was MISSING here -- its Toulmin split had
-  // no UI entry point (found while building the sermon pack).
   claim: DocumentFace,
   passage: DocumentFace,
   proposition: PropositionFace,

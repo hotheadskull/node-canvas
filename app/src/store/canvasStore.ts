@@ -7,6 +7,15 @@ import {
   addNode,
   addPlainEdge,
   addWire,
+  applyEmbedToSource,
+  blocksOf,
+  editEmbed as editEmbedOp,
+  insertTextBlock as insertTextBlockOp,
+  materializeBlocks,
+  moveBlock as moveBlockOp,
+  removeTextBlock as removeTextBlockOp,
+  revertEmbed as revertEmbedOp,
+  setTextBlockContent,
   commitTentativeWire,
   createAssembly,
   createEmptyDocument,
@@ -109,6 +118,27 @@ type CanvasState = {
   editorNodeId: string | null;
   openEditor: (nodeId: string | null) => void;
 
+  // ---- Document blocks (node pass: docs/design/node-passes/document.md) ----
+  setBlockText: (docId: string, blockId: string, content: string) => void;
+  /** First edit of an embed forks it; the source is never written by typing. */
+  editEmbedIn: (docId: string, blockId: string, content: string) => void;
+  revertEmbedIn: (docId: string, blockId: string) => void;
+  /** The ONLY write-back path: deliberate "apply to source". */
+  applyEmbedIn: (docId: string, blockId: string) => void;
+  insertBlockAt: (docId: string, index: number) => void;
+  removeBlockIn: (docId: string, blockId: string) => void;
+  moveBlockTo: (docId: string, blockId: string, index: number) => void;
+  /** Wire a give into a document so it LANDS at (before) a specific block. */
+  wireIntoBlock: (
+    source: string,
+    sourcePort: string,
+    docId: string,
+    beforeBlockId: string,
+  ) => void;
+  /** The document open in the fullscreen writing room; null = closed. */
+  docRoomId: string | null;
+  openDocRoom: (docId: string | null) => void;
+
   /** The assembly open in the Arc room overlay (sermon pack); null = closed. */
   arcRoomId: string | null;
   openArcRoom: (assemblyId: string | null) => void;
@@ -181,6 +211,15 @@ export function firstCompatibleTake(
 }
 
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
+
+/**
+ * Test hook: cancel a pending debounced save. Real timers cross test
+ * boundaries -- a save scheduled by test N would fire during test N+1 and
+ * overwrite its freshly seeded localStorage document (a long-lived flake).
+ */
+export function cancelPendingSave(): void {
+  clearTimeout(saveTimer);
+}
 
 function loadSettings(): CanvasSettings {
   try {
@@ -401,6 +440,17 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
         return node ? getPort(node.type, portId)?.direction : undefined;
       };
 
+      // A drop on a document BLOCK handle: the wire lands at that spot in
+      // the prose (document node pass, mockup A).
+      if (targetHandle?.startsWith('blk:')) {
+        if (sourceIsPort && sourceHandle && portDirection(source, sourceHandle) === 'give') {
+          get().wireIntoBlock(source, sourceHandle, target, targetHandle.slice(4));
+          return;
+        }
+        set({ toast: { message: 'Drag from a give star to land content in the document.' } });
+        return;
+      }
+
       if (sourceIsPort && targetIsPort) {
         const sourceDir = portDirection(source, sourceHandle);
         const targetDir = portDirection(target, targetHandle);
@@ -520,6 +570,51 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
 
     editorNodeId: null,
     openEditor: (nodeId) => set({ editorNodeId: nodeId }),
+
+    setBlockText: (docId, blockId, content) =>
+      tryOp(() => setTextBlockContent(get().document, docId, blockId, content)),
+
+    editEmbedIn: (docId, blockId, content) =>
+      tryOp(() => editEmbedOp(get().document, docId, blockId, content)),
+
+    revertEmbedIn: (docId, blockId) =>
+      tryOp(() => revertEmbedOp(get().document, docId, blockId)),
+
+    applyEmbedIn: (docId, blockId) =>
+      tryOp(() => applyEmbedToSource(get().document, docId, blockId)),
+
+    insertBlockAt: (docId, index) => tryOp(() => insertTextBlockOp(get().document, docId, index)),
+
+    removeBlockIn: (docId, blockId) =>
+      tryOp(() => removeTextBlockOp(get().document, docId, blockId)),
+
+    moveBlockTo: (docId, blockId, index) =>
+      tryOp(() => moveBlockOp(get().document, docId, blockId, index)),
+
+    wireIntoBlock: (source, sourcePort, docId, beforeBlockId) => {
+      tryOp(() => {
+        let doc = addWire(get().document, {
+          source,
+          sourcePort,
+          target: docId,
+          targetPort: 'sections-in',
+        });
+        const newWire = doc.wires[doc.wires.length - 1]!;
+        doc = materializeBlocks(doc, docId);
+        const blocks = blocksOf(doc, docId);
+        const appended = blocks.find(
+          (block) => block.kind === 'embed' && block.wireId === newWire.id,
+        );
+        const toIndex = blocks.findIndex((block) => block.id === beforeBlockId);
+        if (appended && toIndex !== -1) {
+          doc = moveBlockOp(doc, docId, appended.id, toIndex);
+        }
+        return doc;
+      });
+    },
+
+    docRoomId: null,
+    openDocRoom: (docId) => set({ docRoomId: docId }),
 
     arcRoomId: null,
     openArcRoom: (assemblyId) => set({ arcRoomId: assemblyId }),

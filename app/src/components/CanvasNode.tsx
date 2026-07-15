@@ -42,6 +42,7 @@ import {
 import { memo, useEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import {
+  forkNoticesFor,
   getNodeDef,
   hygieneFlags,
   nodeLabel,
@@ -186,6 +187,13 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
   );
   const updateNodeInternals = useUpdateNodeInternals();
   const cardRef = useRef<HTMLDivElement>(null);
+  // "✎ edited in <doc>" -- this node's text was forked inside a document;
+  // the original here is untouched (document pass, no-write-back rule).
+  const forkedIn = useCanvasStore(
+    useShallow((state) => [
+      ...new Set(forkNoticesFor(state.document, id).map((notice) => notice.documentTitle)),
+    ]),
+  );
 
   const [accentPickerOpen, setAccentPickerOpen] = useState(false);
   const Face = faceFor(data.coreType);
@@ -308,6 +316,11 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
           />
         )}
         <Face nodeId={id} title={data.title} content={data.content} />
+        {forkedIn.length > 0 && (
+          <p className="fork-notice nodrag" data-fork-notice title="The original text here is untouched">
+            ✎ edited in {forkedIn.join(', ')}
+          </p>
+        )}
       </div>
       <PortStars nodeId={id} ports={takes} side="left" />
       <PortStars nodeId={id} ports={gives} side="right" />
