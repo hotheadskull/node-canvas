@@ -62,19 +62,31 @@ remodel requirement (behavior items are BUGS with tests, not just styling):
   per-node accent/theming, what the user can adjust per node vs per type).
   The user picks/mixes BEFORE rendering code is written. Requested 2026-07-13.
 
-- **Standing per-node design flow (agreed 2026-07-14).** Every node type —
-  new or being refined — goes through this before its rendering code:
-  1. **Research + brainstorm**: how real tools and real practitioners handle
-     the concept; what the node should give/take/derive/flag; distilled
-     into a one-minute **node brief** for the user.
-  2. **3–4 mockups** grounded in the brief (for system-level work, each
-     shown across several node types so it reads as a family).
-  3. **User picks/mixes** → the pick is written down as a spec (zones,
-     behavior, what's customizable) BEFORE code.
+- **Standing per-node design flow (agreed 2026-07-14; scope enriched by the
+  user after Chunk 17).** Every node type — new or being refined — gets an
+  INDIVIDUAL pass through this before its rendering code:
+  1. **Research + brainstorm WITH the user**: what the body actually hosts
+     (which information lives in it), how it takes and gives information,
+     what it derives/flags; how real tools and practitioners handle the
+     concept. Distilled into a **node brief** (docs/design/node-passes/).
+  2. **3–4 mockups** grounded in the brief — including whether the node
+     earns a UNIQUE SHAPE, how information is stored/laid out in it, and
+     how its connection lines and information lines behave.
+  3. **User picks/mixes** → the pick is written down as a spec BEFORE code.
   4. **Build + tests**, behavior items with regression tests.
-  A mix of options must resolve into ONE coherent spec — Chunk 4's lesson:
-  combining mockup fragments without a written system produced the
-  "thrown together" look Chunk 17 exists to fix.
+  A mix of options must resolve into ONE coherent spec — Chunk 4's lesson.
+  Reference standard: the user's own v1 DocumentNode rework (block sequence,
+  per-dropzone handles, live transclusion) — that depth of thinking, per node.
+
+## Per-node design passes (docs/design/node-passes/)
+
+| Node | Status |
+|---|---|
+| document | **in discussion** (brief drafted from the user's v1 rework) |
+| title, note, section, question | not started |
+| person, place, thing | not started |
+| manuscript, passage, proposition | not started |
+| source, claim, plant, payoff, event | not started |
 
 ## Deferred post-launch roster
 Continuity engine (`stateAt`), Word Study, Illustration, Element/Patch game-design
