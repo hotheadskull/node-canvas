@@ -56,14 +56,49 @@ two views of it — reorder inline, the compile reorders, and vice versa).
    one flowing text. NO chips/titles above embeds — connection LINES carry
    the identity. Mockups explore how minimal the embed marking can be.
 
-## Still open (answer via mockups)
-- The embed marking treatment (margin line / gutter dot / ink tint / end
-  tag) — mockup axis.
-- Post-launch note: addressable embeds (deep-link a paragraph).
+## SPEC (user picked mockup A — margin lines, 2026-07-15)
+
+**Body = block sequence** stored in the document node's `data.blocks`
+(passthrough; no schema change):
+- `{ id, kind: 'text', content }` — owned prose (TipTap HTML).
+- `{ id, kind: 'embed', wireId, fork?: content }` — a spine wire's landing
+  spot. LIVE (no fork): renders the source's text; first in-document edit
+  FORKS (stores `fork`). The source node is never written by typing.
+
+**Normalization (derived, lazy migration):** `blocksOf()` appends an embed
+block for any live spine wire without one (existing documents migrate by
+construction: own text becomes the first text block, wired sections follow
+in wire order); drops embed blocks whose wire is gone — UNLESS forked, in
+which case the block converts to an owned text block (severed quotes keep
+their words); guarantees ≥1 text block.
+
+**Compile = block order.** Text blocks contribute their content; embeds
+contribute `fork ?? compile(source)` (cycle-guarded). The wires array is
+reordered to match whenever blocks move, so cast/goldens/manuscript
+compile stay coherent. The old intake-list panel is GONE for `document`
+(manuscript/claim/passage keep the list face for now — their passes come
+later).
+
+**Seamlessness (mockup A):** no chips in the prose. An embed is marked by a
+2px margin line — blue LIVE, amber FORKED; hover floats source name +
+actions (view original / apply to source / revert to source) OUTSIDE the
+text column. Hovering between blocks shows a thin ＋ insert line (new text
+block). Every block gets a hover grip; blocks drag to reorder (dnd-kit).
+Wires can be dropped ON an embed-to-be position: each block carries a
+target handle so a connection lands at that spot (persisted wire still
+targets `sections-in`).
+
+**Fork lifecycle:** fork on first edit; `apply to source` copies the fork
+into the source node (deliberate write-back) and re-links LIVE; `revert to
+source` discards the fork. A source node with forked embeds shows one quiet
+"✎ edited in <doc>" line (click-through comes with the source-node passes).
+
+**Fullscreen:** earned, not a shape — an expand control opens the same
+blocks editor as a full-screen writing room (focus-room styling, Esc back).
 
 ## Status
 - [x] Research (v1 rework + V2 machine inventory)
 - [x] Brainstorm settled with user
-- [ ] 3–4 mockups (in progress)
-- [ ] Spec written
+- [x] Mockups → user picked A (margin lines)
+- [x] Spec written
 - [ ] Build + tests
