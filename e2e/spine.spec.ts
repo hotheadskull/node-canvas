@@ -1,18 +1,24 @@
 import { expect, test } from '@playwright/test';
 
-// Chunks 5+6 end-to-end: Split creates wired stubs; writing into stubs
-// compiles in wire order; reordering the intake reorders the compiled work.
+// End-to-end: "+ Section" creates wired stubs one by one; writing into
+// stubs compiles in wire order; reordering reorders the compiled work.
 
-test('split -> write -> compile -> reorder, all through the real UI', async ({ page }) => {
+async function addThreeSections(page: import('@playwright/test').Page) {
+  const addSection = page.locator('[data-add-section]');
+  await addSection.click();
+  await addSection.click();
+  await addSection.click();
+}
+
+test('add sections -> write -> compile -> reorder, all through the real UI', async ({ page }) => {
   await page.goto('/');
   await page.evaluate(() => { localStorage.clear(); localStorage.setItem('nodecanvas.v2.menuView', 'all'); });
   await page.reload();
 
-  // spawn a document and split it into 3 sections
+  // spawn a document and grow 3 wired sections off its footer button
   await page.getByRole('button', { name: /add node/i }).click();
   await page.locator('[data-node-type="document"]').click();
-  await page.getByRole('button', { name: /Split/ }).click();
-  await page.getByRole('menuitem', { name: /3 blank sections/ }).click();
+  await addThreeSections(page);
 
   // assert the MODEL first (onlyRenderVisibleElements keeps off-screen nodes
   // out of the DOM), then Fit and assert the rendering
@@ -99,8 +105,7 @@ test('cast derives through the spine and renames propagate live', async ({ page 
 
   await page.getByRole('button', { name: /add node/i }).click();
   await page.locator('[data-node-type="document"]').click();
-  await page.getByRole('button', { name: /Split/ }).click();
-  await page.getByRole('menuitem', { name: /3 blank sections/ }).click();
+  await addThreeSections(page);
   await page.getByRole('button', { name: /add node/i }).click();
   await page.locator('[data-node-type="person"]').click();
   await page.getByRole('button', { name: 'Fit' }).click();
@@ -138,8 +143,7 @@ test('focus editor: double-click to write, walk the spine, Esc back (design B)',
 
   await page.getByRole('button', { name: /add node/i }).click();
   await page.locator('[data-node-type="document"]').click();
-  await page.getByRole('button', { name: /Split/ }).click();
-  await page.getByRole('menuitem', { name: /3 blank sections/ }).click();
+  await addThreeSections(page);
   await page.getByRole('button', { name: 'Fit' }).click();
   await page.waitForTimeout(450);
 

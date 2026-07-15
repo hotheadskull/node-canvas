@@ -82,7 +82,7 @@ remodel requirement (behavior items are BUGS with tests, not just styling):
 
 | Node | Status |
 |---|---|
-| document | **completed 2026-07-15** (blocks editor; spec + build in node-passes/document.md) |
+| document | **completed 2026-07-15** (blocks editor + same-day polish round; spec, build, and polish decisions in node-passes/document.md) |
 | title, note, section, question | not started |
 | person, place, thing | not started |
 | manuscript, passage, proposition | not started (manuscript should inherit the blocks editor when passed) |
@@ -177,6 +177,45 @@ natural follow-ups; manuscript should inherit the blocks editor).**
   or the Edit tool for source edits, never default-encoding PowerShell.
 - Suite: 210 unit + 25 e2e green; typecheck + lint clean. Screenshot
   verified (gutters, diamonds, trimmed menu).
+
+### 2026-07-15 (night) — Document polish round (user feedback, completed)
+User feedback after living with the blocks editor drove nine changes
+(recorded in node-passes/document.md "Polish round"):
+- **Steady connectors:** ports always visible (optional ones dimmed 45% →
+  full on node hover), no hover growth; invalid drag targets glow red AND
+  wear an ×. Anatomy spec amended; e2e asserts resting opacity + unchanged
+  hover transform.
+- **Seamless editor:** the per-block toolbar was silently occupying ~29px
+  of flow space between every paragraph — now a focus-time overlay; grips
+  always faintly visible; live-embed tags are hover OVERLAYS (no layout
+  shift; forked tags stay in-flow permanently); insert lines whisper on
+  editor hover; block padding tightened.
+- **Arrow keys cross blocks** (RichText onBoundary + a domObserver.flush so
+  key-repeat can't outrun PM state — found because the e2e pressed keys
+  with zero delay and the caret stalled; the flush fixed the real
+  key-repeat case too).
+- **Preset Split button REMOVED from Document** (user read "Split" as the
+  fork — which needs no button). DocumentFace types (claim/passage/
+  manuscript) keep theirs until their passes. spine.spec + faces.test now
+  drive **"+ Section"** — the new footer button spawning a wired Section
+  off the LEFT gutter (titled Section N).
+- **Highlight-split** (store.splitSelectionToNode): select text → ✂ Split
+  → Section/Note/Question/Source. Text MOVES OUT (user decision), prose
+  closes up via a PM delete transaction (mid-paragraph splits don't leave a
+  break), new node spawns off the document's right with a plain edge
+  labeled "split". e2e covers the full loop.
+- **Owned height = scrolling window:** `.canvas-node-main.is-owned` scrolls
+  (nowheel); inner editors give up flex-clipping so the body is the ONE
+  scroll container. e2e: own short, type past, assert scroll.
+- **Fork notice shows the fork:** ForkNotice now carries the fork text
+  (inline test updated — NOT a golden change); the source node's "✎ edited
+  in <doc>" expands to the document's version + "use this version"
+  (applyEmbedIn write-back).
+- Declared `@tiptap/pm` in app deps (DOMSerializer for selection HTML).
+- KNOWN QUIRK (follow-up): the corner resizer won't START a shrink drag on
+  a never-resized auto-height card; grow-first or owned cards shrink fine.
+- Suite: **210 unit + 28 e2e green**; typecheck + lint clean. Screenshots
+  verified: fork preview on source, split picker, red × mid-drag.
 
 ### 2026-07-13 — Chunk 0 (completed)
 - v1 app moved to `/legacy` with git history; `npm run build` verified green there

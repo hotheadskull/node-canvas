@@ -338,7 +338,13 @@ export function moveBlock(
 // Fork notices -- "✎ edited in <doc>" on source nodes.
 // ---------------------------------------------------------------------------
 
-export type ForkNotice = { documentId: string; documentTitle: string; blockId: string };
+export type ForkNotice = {
+  documentId: string;
+  documentTitle: string;
+  blockId: string;
+  /** The document's edited version, so the source can SHOW it (not just name it). */
+  fork: string;
+};
 
 /** Documents holding a FORKED embed of this node's text. */
 export function forkNoticesFor(document: CanvasDocument, sourceId: string): ForkNotice[] {
@@ -353,7 +359,7 @@ export function forkNoticesFor(document: CanvasDocument, sourceId: string): Fork
       const title = typeof node.data.title === 'string' && node.data.title !== ''
         ? node.data.title
         : 'Untitled';
-      notices.push({ documentId: node.id, documentTitle: title, blockId: block.id });
+      notices.push({ documentId: node.id, documentTitle: title, blockId: block.id, fork: block.fork });
     }
   }
   return notices;

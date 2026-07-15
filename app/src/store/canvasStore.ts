@@ -135,6 +135,19 @@ type CanvasState = {
     docId: string,
     beforeBlockId: string,
   ) => void;
+  /** "+ Section": spawn a Section already wired into this document's spine. */
+  addSectionTo: (docId: string) => void;
+  /**
+   * Highlight-split (user-designed, the opposite of the spiderweb-in): the
+   * selected text MOVES OUT of the document into a new node of `type`; a
+   * plain "split" edge remembers where it came from.
+   */
+  splitSelectionToNode: (
+    docId: string,
+    blockId: string,
+    parts: { extracted: string; remaining: string },
+    type: string,
+  ) => void;
   /** The document open in the fullscreen writing room; null = closed. */
   docRoomId: string | null;
   openDocRoom: (docId: string | null) => void;
@@ -610,6 +623,75 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
           doc = moveBlockOp(doc, docId, appended.id, toIndex);
         }
         return doc;
+      });
+    },
+
+    addSectionTo: (docId) => {
+      const doc = get().document;
+      const docNode = doc.nodes.find((candidate) => candidate.id === docId);
+      const def = getNodeDef('section');
+      if (!docNode || !def) return;
+      const size = def.size ?? { width: 300, height: 200 };
+      const wiredCount = doc.wires.filter(
+        (wire) => wire.target === docId && wire.targetPort === 'sections-in',
+      ).length;
+      // sections FEED the document, so the stub lands off its left gutter --
+      // visible right next to the star it's wired into
+      const desired = {
+        x: docNode.position.x - size.width - 140,
+        y: docNode.position.y + wiredCount * 70,
+      };
+      const position = findFreePosition(doc.nodes.map(nodeRect), desired, size);
+      const node = spawnNode('section', position);
+      node.data = { ...node.data, title: `Section ${wiredCount + 1}` };
+      tryOp(() => {
+        let next = addNode(doc, node);
+        next = addWire(next, {
+          source: node.id,
+          sourcePort: 'text-out',
+          target: docId,
+          targetPort: 'sections-in',
+        });
+        return materializeBlocks(next, docId);
+      });
+    },
+
+    splitSelectionToNode: (docId, blockId, parts, type) => {
+      const doc = get().document;
+      const docNode = doc.nodes.find((candidate) => candidate.id === docId);
+      const def = getNodeDef(type);
+      if (!docNode || !def) {
+        set({ toast: { message: `Cannot split into unknown type "${type}"` } });
+        return;
+      }
+      const clean = (html: string) => html.replace(/<p>\s*<\/p>/g, '').trim();
+      const extracted = clean(parts.extracted);
+      if (extracted === '') return;
+      const size = def.size ?? { width: 300, height: 200 };
+      // content fans OUT of the document, so new nodes land off its right
+      const desired = {
+        x: docNode.position.x + (docNode.size?.width ?? 500) + 140,
+        y: docNode.position.y,
+      };
+      const position = findFreePosition(doc.nodes.map(nodeRect), desired, size);
+      const node = spawnNode(type, position);
+      node.data = { ...node.data, content: extracted };
+      tryOp(() => {
+        let next = addNode(doc, node);
+        // the highlighted text MOVES OUT (user decision 2026-07-15); the
+        // prose around it closes up in place
+        next = setTextBlockContent(next, docId, blockId, clean(parts.remaining));
+        // a plain gold line remembers the lineage (delete it freely)
+        next = addPlainEdge(next, docId, node.id, {});
+        const provenance = next.edges[next.edges.length - 1];
+        return provenance
+          ? {
+              ...next,
+              edges: next.edges.map((edge) =>
+                edge.id === provenance.id ? { ...edge, label: 'split' } : edge,
+              ),
+            }
+          : next;
       });
     },
 

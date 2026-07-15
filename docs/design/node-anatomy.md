@@ -35,6 +35,12 @@ chooses what goes in its slots; it never invents new chrome. This is the
    **Plain-edge anchors are GOLD DIAMONDS** at top and bottom center —
    matching the gold relationship lines, at fixed predictable points, a
    different species from the data stars at a glance.
+   **Stars are STEADY** (second amendment, same day): every declared port
+   is always visible — optional (non-defaultVisible) ports render dimmed
+   at 45% and reach full strength on node hover — and stars never resize
+   on hover (brighter glow only). During a connection drag a compatible
+   star glows green; an incompatible one glows red AND wears an × so
+   "can't connect" is unmistakable.
 4. **Status**: lives on the tab (readiness, hygiene, owner). The tentative
    "N waiting" badge keeps its top-RIGHT corner spot (it is about incoming
    wires, not identity).
@@ -52,6 +58,10 @@ chooses what goes in its slots; it never invents new chrome. This is the
   card — but measurement NEVER feeds back into rendering. One direction only.
 - **Upgrade rule (user-approved):** machine-computed heights release to auto;
   user-owned heights are kept exactly. Nothing the user shaped changes (I5).
+- **An owned height is a WINDOW, not a truncation** (2026-07-15): when the
+  user owns a height smaller than the content, the body scrolls (`nowheel`
+  so the wheel scrolls text instead of zooming the canvas). Inner editors
+  give up their own flex-clipping so the body is the ONE scroll container.
 
 ## States
 
@@ -82,3 +92,8 @@ design pass (standing per-node flow in PROGRESS.md).
 2. Rails/stars cutting into text → no rails; labels outside; body full-width
    (test: body box equals card box minus padding).
 3. Header cramming → single tab, status collapses, title lives in the body.
+4. Ports appearing/growing on hover → steady stars, dimmed optional ports,
+   red × on invalid targets (e2e asserts resting opacity and an unchanged
+   transform on hover).
+5. Resized card clipping its content → owned height scrolls (e2e owns a
+   short height, types past it, asserts the body scrolls).

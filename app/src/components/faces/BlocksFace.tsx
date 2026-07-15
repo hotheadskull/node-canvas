@@ -29,18 +29,27 @@ import {
   castOf,
   compileBlocks,
   embedText,
-  splitPresetsFor,
   stripHtml,
   wordCount,
   type DocBlock,
   type EmbedBlock,
 } from '@node-canvas/core';
-import { GripVertical, Maximize2, Scissors, X } from 'lucide-react';
-import { Fragment, useMemo, useState } from 'react';
+import { GripVertical, Maximize2, Plus, X } from 'lucide-react';
+import { Fragment, useMemo, useRef, useState } from 'react';
 import { useEffect } from 'react';
 import { useCanvasStore } from '../../store/canvasStore';
-import { RichText } from '../RichText';
+import { RichText, type BoundaryDirection } from '../RichText';
 import type { FaceProps } from './index';
+
+/** What a highlighted passage can become (highlight-split, user-designed:
+    "go from one main node to many small nodes" -- quotes from a pasted PDF
+    become Sources, ideas become Notes, prose becomes Sections). */
+const EXTRACT_TYPES = [
+  { type: 'section', label: 'Section' },
+  { type: 'note', label: 'Note' },
+  { type: 'question', label: 'Question' },
+  { type: 'source', label: 'Source' },
+];
 
 function InsertLine({ docId, index }: { docId: string; index: number }) {
   const insertBlockAt = useCanvasStore((state) => state.insertBlockAt);
@@ -61,11 +70,13 @@ function BlockRow({
   block,
   inRoom,
   textBlockCount,
+  onBoundary,
 }: {
   docId: string;
   block: DocBlock;
   inRoom: boolean;
   textBlockCount: number;
+  onBoundary: (blockId: string, direction: BoundaryDirection) => boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: block.id,
@@ -76,6 +87,7 @@ function BlockRow({
   const revertEmbedIn = useCanvasStore((state) => state.revertEmbedIn);
   const applyEmbedIn = useCanvasStore((state) => state.applyEmbedIn);
   const removeBlockIn = useCanvasStore((state) => state.removeBlockIn);
+  const splitSelectionToNode = useCanvasStore((state) => state.splitSelectionToNode);
   const [showOriginal, setShowOriginal] = useState(false);
 
   const style = {
@@ -104,6 +116,9 @@ function BlockRow({
           onChange={(html) => setBlockText(docId, block.id, html)}
           placeholder="Write…"
           variant="inline"
+          onBoundary={(direction) => onBoundary(block.id, direction)}
+          onExtract={(parts, type) => splitSelectionToNode(docId, block.id, parts, type)}
+          extractTypes={EXTRACT_TYPES}
         />
       </div>
     );
@@ -150,6 +165,7 @@ function BlockRow({
         onChange={(html) => editEmbedIn(docId, block.id, html)}
         placeholder="…"
         variant="inline"
+        onBoundary={(direction) => onBoundary(block.id, direction)}
       />
       <span className="doc-embed-tag nodrag" data-embed-tag>
         <span className="doc-embed-source">{sourceTitle}</span>
@@ -189,14 +205,13 @@ function BlockRow({
 export function BlocksEditor({ docId, inRoom = false }: { docId: string; inRoom?: boolean }) {
   const document_ = useCanvasStore((state) => state.document);
   const moveBlockTo = useCanvasStore((state) => state.moveBlockTo);
-  const splitNode = useCanvasStore((state) => state.splitNode);
+  const addSectionTo = useCanvasStore((state) => state.addSectionTo);
   const openDocRoom = useCanvasStore((state) => state.openDocRoom);
-  const [splitOpen, setSplitOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const blocks = useMemo(() => blocksOf(document_, docId), [document_, docId]);
   const compiled = useMemo(() => compileBlocks(document_, docId), [document_, docId]);
   const cast = useMemo(() => castOf(document_, docId), [document_, docId]);
-  const presets = splitPresetsFor('document');
   const textBlockCount = blocks.filter((block) => block.kind === 'text').length;
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
@@ -207,8 +222,33 @@ export function BlocksEditor({ docId, inRoom = false }: { docId: string; inRoom?
     if (toIndex !== -1) moveBlockTo(docId, String(active.id), toIndex);
   };
 
+  // Arrow keys walk the caret across block boundaries -- one continuous
+  // text, not many little boxes (user feedback, seamlessness rule).
+  const walkCaret = (blockId: string, direction: BoundaryDirection): boolean => {
+    const index = blocks.findIndex((block) => block.id === blockId);
+    if (index === -1) return false;
+    const nextIndex = direction === 'up' || direction === 'left' ? index - 1 : index + 1;
+    if (nextIndex < 0 || nextIndex >= blocks.length) return false;
+    const host = containerRef.current?.querySelector(
+      `[data-block="${blocks[nextIndex]!.id}"] .richtext-content`,
+    );
+    if (!(host instanceof HTMLElement)) return false;
+    host.focus();
+    const selection = window.getSelection();
+    if (selection) {
+      const range = window.document.createRange();
+      range.selectNodeContents(host);
+      // down/right land at the START of the next block; up/left at the END
+      // of the previous one -- exactly where a single editor would put you.
+      range.collapse(direction === 'down' || direction === 'right');
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+    return true;
+  };
+
   return (
-    <div className="doc-blocks nodrag" data-doc-blocks>
+    <div className="doc-blocks nodrag" data-doc-blocks ref={containerRef}>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext
           items={blocks.map((block) => block.id)}
@@ -222,6 +262,7 @@ export function BlocksEditor({ docId, inRoom = false }: { docId: string; inRoom?
                 block={block}
                 inRoom={inRoom}
                 textBlockCount={textBlockCount}
+                onBoundary={walkCaret}
               />
             </Fragment>
           ))}
@@ -239,15 +280,14 @@ export function BlocksEditor({ docId, inRoom = false }: { docId: string; inRoom?
           </span>
         )}
         <span className="document-footer-actions">
-          {presets.length > 0 && (
-            <button
-              className="document-action"
-              aria-expanded={splitOpen}
-              onClick={() => setSplitOpen((open) => !open)}
-            >
-              <Scissors size={12} aria-hidden /> Split
-            </button>
-          )}
+          <button
+            className="document-action"
+            data-add-section
+            title="Add a Section node, already wired into this document"
+            onClick={() => addSectionTo(docId)}
+          >
+            <Plus size={12} aria-hidden /> Section
+          </button>
           {!inRoom && (
             <button
               className="document-action"
@@ -259,25 +299,6 @@ export function BlocksEditor({ docId, inRoom = false }: { docId: string; inRoom?
           )}
         </span>
       </footer>
-
-      {splitOpen && (
-        <div className="split-menu" role="menu" aria-label="Split presets">
-          {presets.map((preset) => (
-            <button
-              key={preset.id}
-              role="menuitem"
-              className="split-menu-item"
-              onClick={() => {
-                splitNode(docId, preset.id);
-                setSplitOpen(false);
-              }}
-            >
-              <span>{preset.label}</span>
-              <small>{preset.description}</small>
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

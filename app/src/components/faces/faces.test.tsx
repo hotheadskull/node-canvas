@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   addNode,
@@ -90,16 +90,29 @@ describe('node faces (I8: per-type looks plug in without touching shared chrome)
     expect((await screen.findByText(/Cast:/)).textContent).toContain('Robert');
   });
 
-  it('document face: Split preset creates wired stubs', async () => {
+  it('document face: "+ Section" spawns a section already wired into the spine', async () => {
     seed(['document']);
     render(<App />);
-    fireEvent.click(await screen.findByRole('button', { name: /Split/, hidden: true }));
-    fireEvent.click(screen.getByRole('menuitem', { name: /Beat sheet/, hidden: true }));
+    const button = await waitFor(() => {
+      const element = document.querySelector('[data-add-section]');
+      if (!element) throw new Error('add-section button not rendered yet');
+      return element;
+    });
+    fireEvent.click(button);
+    fireEvent.click(button);
     const doc = useCanvasStore.getState().document;
-    expect(doc.nodes).toHaveLength(6); // document + 5 beats
-    expect(doc.wires).toHaveLength(5);
+    expect(doc.nodes).toHaveLength(3); // document + 2 sections
+    expect(doc.wires).toHaveLength(2);
     expect(doc.wires.every((wire) => wire.status === 'live')).toBe(true);
-    expect(doc.nodes.some((node) => node.data.title === 'Opening image')).toBe(true);
+    expect(doc.nodes.map((node) => node.data.title)).toEqual(
+      expect.arrayContaining(['Section 1', 'Section 2']),
+    );
+    // each section's text already lives in the document as an embed block
+    const docNode = doc.nodes.find((node) => node.type === 'document')!;
+    expect(blocksOf(doc, docNode.id).filter((block) => block.kind === 'embed')).toHaveLength(2);
+    // no standalone preset-Split button on the Document anymore (user
+    // decision 2026-07-15: forking needs no button; splitting = highlighting)
+    expect(screen.queryByRole('button', { name: /^Split$/, hidden: true })).toBeNull();
   });
 
   it('other types keep the default face (rich text) with header title input', async () => {

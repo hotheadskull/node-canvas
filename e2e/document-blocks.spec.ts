@@ -132,3 +132,81 @@ test('revert discards the document version; the fullscreen room edits the same b
   await page.keyboard.press('Escape');
   await expect(room).toHaveCount(0);
 });
+
+test('arrow keys walk the caret across blocks like one continuous text', async ({ page }) => {
+  await addNode(page, 'document');
+  await fitAll(page);
+  const doc = nodeOfKind(page, 'Document').first();
+
+  // write in the first (only) text block
+  await doc.locator('.richtext-content').first().click();
+  await page.keyboard.type('Alpha', { delay: 1 });
+
+  // insert a second paragraph block after it and write there
+  await doc.locator('.doc-insert').last().click();
+  await doc.locator('.richtext-content').last().click();
+  await page.keyboard.type('Beta', { delay: 1 });
+
+  // walk LEFT through "Beta" -- the fifth press crosses the block boundary
+  // into the end of "Alpha" (user bug: arrows used to stop at the edge)
+  for (let index = 0; index < 5; index += 1) await page.keyboard.press('ArrowLeft');
+  await page.keyboard.type('!', { delay: 1 });
+
+  // one step RIGHT crosses back to the start of the second block
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.type('X', { delay: 1 });
+
+  await page.waitForFunction(() => {
+    const raw = localStorage.getItem('nodecanvas.v2.document');
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    const docNode = parsed.nodes.find((node: { type: string }) => node.type === 'document');
+    const texts = (docNode?.data?.blocks ?? [])
+      .filter((block: { kind: string }) => block.kind === 'text')
+      .map((block: { content?: string }) => block.content ?? '');
+    return (
+      texts.some((text: string) => text.includes('Alpha!')) &&
+      texts.some((text: string) => text.includes('XBeta'))
+    );
+  });
+});
+
+test('highlight-split: the selection moves OUT into a new node with a lineage edge', async ({
+  page,
+}) => {
+  await addNode(page, 'document');
+  await fitAll(page);
+  const doc = nodeOfKind(page, 'Document').first();
+
+  await doc.locator('.richtext-content').first().click();
+  await page.keyboard.type('The pistol on the mantel must fire.', { delay: 1 });
+  await page.keyboard.press('Control+a');
+
+  // the ✂ Split control appears in the toolbar only while text is selected
+  const splitButton = doc.locator('.richtext-split-btn');
+  await expect(splitButton).toBeVisible();
+  await splitButton.click();
+  await doc.locator('.richtext-split-picker button', { hasText: 'Note' }).click();
+
+  // model: the note holds the text, the document gave it up, and a plain
+  // "split" edge remembers the lineage
+  await page.waitForFunction(() => {
+    const raw = localStorage.getItem('nodecanvas.v2.document');
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    const note = parsed.nodes.find((node: { type: string }) => node.type === 'note');
+    const docNode = parsed.nodes.find((node: { type: string }) => node.type === 'document');
+    const blocks: { content?: string }[] = docNode?.data?.blocks ?? [];
+    return (
+      note !== undefined &&
+      String(note.data.content).includes('pistol') &&
+      blocks.every((block) => !String(block.content ?? '').includes('pistol')) &&
+      parsed.edges.some((edge: { label?: string }) => edge.label === 'split')
+    );
+  });
+
+  await fitAll(page);
+  await expect(nodeOfKind(page, 'Note').first()).toContainText(
+    'The pistol on the mantel must fire.',
+  );
+});

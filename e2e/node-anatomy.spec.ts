@@ -78,6 +78,22 @@ test('the user bug: body text owns the full card width -- no rails over text', a
   const gutter = (await doc.locator('.gutter-left').boundingBox())!;
   expect(gutter.x + gutter.width).toBeLessThanOrEqual(body.x + 1);
 
+  // connectors are STEADY (user feedback 2026-07-15): optional ports are
+  // visible WITHOUT hovering (dimmed, never gone)...
+  const hiddenPort = doc.locator('.port-star.is-hidden-port').first();
+  const restingOpacity = await hiddenPort.evaluate(
+    (element) => getComputedStyle(element).opacity,
+  );
+  expect(Number(restingOpacity)).toBeGreaterThan(0.3);
+  // ...and stars never grow on hover (RF positions handles with a base
+  // transform, so assert it is UNCHANGED by hovering)
+  const star = doc.locator('.port-star').first();
+  const transformBefore = await star.evaluate((element) => getComputedStyle(element).transform);
+  await star.hover();
+  await page.waitForTimeout(180);
+  const transformAfter = await star.evaluate((element) => getComputedStyle(element).transform);
+  expect(transformAfter).toBe(transformBefore);
+
   // port labels render OUTSIDE the card, never over the body
   await doc.hover();
   const label = doc.locator('.port-label', { hasText: 'Sections' });
@@ -122,4 +138,37 @@ test('manual resize takes ownership; Fit hands the height back to the text', asy
   await expect
     .poll(async () => (await note.boundingBox())!.height)
     .toBeLessThan(box.height + 60);
+});
+
+test('an owned height smaller than the text becomes a scrolling window (nothing clipped)', async ({
+  page,
+}) => {
+  await addNode(page, 'note');
+  await fitAll(page);
+  const note = nodeOfKind(page, 'Note').first();
+
+  // select by clicking the (empty) body, then OWN the height while short
+  await note.locator('.richtext-content').click();
+  const corner = note.locator('.react-flow__resize-control.handle.bottom.right');
+  await expect(corner).toBeVisible();
+  const cornerBox = (await corner.boundingBox())!;
+  await page.mouse.move(cornerBox.x + cornerBox.width / 2, cornerBox.y + cornerBox.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(cornerBox.x + cornerBox.width / 2, cornerBox.y + 60, { steps: 8 });
+  await page.mouse.up();
+  const main = note.locator('.canvas-node-main');
+  await expect(main).toHaveClass(/is-owned/);
+
+  // now write PAST the owned window: the body scrolls instead of clipping
+  // (user bug: "when i resize it the main body doesnt change so i cant
+  // see half of the stuff")
+  await note.locator('.richtext-content').click();
+  await page.keyboard.type(LONG_TEXT, { delay: 1 });
+  await expect
+    .poll(() => main.evaluate((element) => element.scrollHeight - element.clientHeight))
+    .toBeGreaterThan(20);
+  await main.evaluate((element) => {
+    element.scrollTop = 999;
+  });
+  expect(await main.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
 });

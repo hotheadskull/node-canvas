@@ -144,7 +144,13 @@ describe('document blocks (user-designed: fork-on-edit, block order = reading or
   it('fork notices: the source knows which documents edited it', () => {
     const doc = loadDoc();
     expect(forkNoticesFor(doc, 'sec-walk')).toEqual([
-      { documentId: 'chapter', documentTitle: 'Chapter 3', blockId: 'b-walk' },
+      {
+        documentId: 'chapter',
+        documentTitle: 'Chapter 3',
+        blockId: 'b-walk',
+        // the notice CARRIES the edited version so the source can show it
+        fork: '<p>Snow starts to fall as they walk, and neither mentions the letter.</p>',
+      },
     ]);
     expect(forkNoticesFor(doc, 'sec-coffee')).toEqual([]);
   });

@@ -96,9 +96,51 @@ source` discards the fork. A source node with forked embeds shows one quiet
 **Fullscreen:** earned, not a shape — an expand control opens the same
 blocks editor as a full-screen writing room (focus-room styling, Esc back).
 
+## Polish round (user feedback 2026-07-15)
+
+The user drove a second pass after living with the build. Decisions:
+
+1. **Steady connectors.** Port stars are ALWAYS visible (optional ports
+   dimmed to 45%, full on node hover) and never grow on hover. An invalid
+   drop target glows red AND wears an ×.
+2. **No layout shift on hover.** Live-embed tags float as overlays below
+   the passage; forked tags stay permanently in the flow (a fork is a
+   pending decision). Grips are always faintly visible.
+3. **Seamless prose.** The per-block formatting toolbar no longer occupies
+   flow space inside the blocks editor (it was ~29px of dead air between
+   every paragraph); it floats above the focused block. Block padding
+   tightened. Insert lines whisper at 16% while the mouse is anywhere in
+   the editor.
+4. **Arrow keys cross blocks.** At a block's edge the caret walks into the
+   neighbor exactly where a single editor would put it (with a DOM-observer
+   flush so key-repeat can't outrun ProseMirror's state).
+5. **No standalone Split button.** The user read "Split" as the fork
+   feature — which needs no button (forking happens by editing). The
+   preset button is gone from the Document; DocumentFace types (claim,
+   passage, manuscript) keep theirs until their own passes.
+6. **"+ Section"** in the footer spawns a Section already wired into the
+   spine, placed off the LEFT gutter (titled Section N).
+7. **Highlight-split** (the spiderweb in reverse): select text → ✂ Split
+   in the toolbar → pick Section/Note/Question/Source. The text MOVES OUT
+   (user decision) into the new node, spawned off the document's right;
+   the prose closes up like a Backspace delete; a plain edge labeled
+   "split" remembers the lineage. Built for the pasted-PDF → quotes/
+   sources workflow.
+8. **Owned height = scrolling window.** A user-owned height scrolls the
+   body (`nowheel`) instead of clipping it.
+9. **Fork notice shows the fork.** The source node's "✎ edited in <doc>"
+   expands to show the document's edited version with a deliberate
+   "use this version" write-back (forkNoticesFor now carries the fork
+   text).
+
+Known quirk (follow-up): the corner resizer won't START a shrink drag on a
+card that has never been resized (auto height, no stored dims); growing
+first, or any owned card, shrinks fine.
+
 ## Status
 - [x] Research (v1 rework + V2 machine inventory)
 - [x] Brainstorm settled with user
 - [x] Mockups → user picked A (margin lines)
 - [x] Spec written
-- [ ] Build + tests
+- [x] Build + tests (210 unit + 28 e2e green)
+- [x] Polish round from live user feedback (2026-07-15)

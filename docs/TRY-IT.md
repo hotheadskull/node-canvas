@@ -42,6 +42,9 @@ Work through this in order — it builds on itself.
       with every keystroke. Select it and drag a corner to take ownership of
       the size, then click the **Fit** arrows on its tab to hand the size
       back to the text.
+- [ ] Own a note's size, then keep typing PAST it: the body scrolls (your
+      wheel scrolls the text, not the canvas) — nothing is ever clipped
+      away.
 - [ ] Click the type name on any tab (e.g. "NOTE"): pick a custom accent
       color. Reset it with the dashed swatch.
 - [ ] Hover a wired node: port labels appear OUTSIDE the card — they never
@@ -57,30 +60,44 @@ Work through this in order — it builds on itself.
       to any other node. A gold line with a small chip appears. Click the
       chip (or the line) to label or delete it. This works between EVERY
       pair of types, zero setup (I1).
+- [ ] Stars are STEADY: every port is always visible (optional ones sit
+      dimmed until you hover the node) and none of them grow or jump when
+      the mouse passes over.
 - [ ] **Data wire:** spawn a Note and a Document. Drag the Note's glowing
       right-gutter star ("Text") to the Document's left-gutter star
-      ("Sections"). While dragging, compatible stars glow green,
-      incompatible red. The wire is colored by its data kind. Works dragged
-      backwards too.
+      ("Sections"). While dragging, compatible stars glow green;
+      incompatible ones glow red **with an ×** on them. The wire is colored
+      by its data kind. Works dragged backwards too.
 - [ ] **Tentative wire:** drag the Note's give star onto a Document's plain
       top dot (not the star). You get a DASHED wire — "this might go here" —
       and the Document shows an amber **"1 waiting"** badge. Do it to a
       second Document too. Click ✓ on one candidate: it becomes real, the
       other dissolves, and a toast offers **Undo** (try it).
 
-## 5. The Document IS the text (new: the blocks editor)
-- [ ] Spawn a **Document**. Click **Split → Beat sheet**: five wired Section
-      stubs appear below it — and their text lives INSIDE the document as
-      seamless passages, each marked only by a thin blue line in the margin.
+## 5. The Document IS the text (the blocks editor, polished)
+- [ ] Spawn a **Document**. Click **+ Section** (footer) three times: three
+      Section stubs appear off its LEFT gutter, already wired in — their
+      text lives INSIDE the document as seamless passages, each marked only
+      by a thin blue line in the margin.
 - [ ] Write a sentence in two sections: the document mirrors them live, in
-      order. One flowing text — no chips or titles between your paragraphs.
-- [ ] Hover a passage and drag its grip (left edge) to reorder — the
-      compiled work reorders with it. Hover BETWEEN paragraphs: a thin ＋
-      line inserts a new paragraph right there.
+      order. One flowing text — no chips or titles between your paragraphs,
+      and nothing shifts around as your mouse moves over it.
+- [ ] **Arrow keys walk the whole document**: put the caret at the end of
+      one passage and press → or ↓ — it lands in the next passage, exactly
+      like one continuous text.
+- [ ] Every passage shows a faint grip on its left edge — drag it to
+      reorder; the compiled work reorders with it. Hover BETWEEN
+      paragraphs: a thin ＋ line inserts a new paragraph right there.
 - [ ] **Edit an embedded passage inside the document**: its line turns
       amber — the document keeps your new version, the source node keeps
-      exactly what you wrote there (it shows "✎ edited in …"). The action
-      row offers view original / apply to source / revert.
+      exactly what you wrote there. On the source, click "✎ edited in …":
+      it unfolds to SHOW the document's version, with **use this version**
+      as the deliberate write-back.
+- [ ] **Highlight-split (the spiderweb in reverse):** select some text in
+      the document — a ✂ **Split** control appears in the toolbar. Pick
+      Section / Note / Question / Source: the text MOVES OUT into that new
+      node (the prose closes up), joined by a gold line labeled "split".
+      Perfect for pulling quotes out of pasted material.
 - [ ] Drag a wire from any node's give star onto a passage: the content
       lands AT that spot in the prose.
 - [ ] **Expand** (footer) or double-click the document: the fullscreen
@@ -151,7 +168,8 @@ each of these maps to a test that should have caught it.
 - [ ] Split the Claim → **Toulmin scaffold**: Grounds/Warrant/Backing/
       Rebuttal stubs wire into its Supports, and the amber dot goes out.
 - [ ] Spawn a **Source**, wire its Citation star into a Document's Footnotes
-      star (hover the Document — hidden ports fade in on its left rail).
+      star (the optional ports sit dimmed in the left gutter — hover the
+      Document and they come to full strength).
 - [ ] The Claim now carries the same compile face as a Document: its
       **Split → Toulmin scaffold** button lives right on the node.
 
