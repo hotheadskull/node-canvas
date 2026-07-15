@@ -135,6 +135,8 @@ function PortStars({
           className={`port-star kind-${port.dataKind} ${port.defaultVisible ? '' : 'is-hidden-port'}`}
           style={{
             top: `${PORT_TOP + index * PORT_GAP}px`,
+            // stars live INSIDE their gutter (user-picked connector design B)
+            ...(side === 'left' ? { left: 5 } : { right: 5 }),
             ['--port-color' as string]: PORT_KIND_COLORS[port.dataKind] ?? '#94a3b8',
           }}
           data-port-label={port.label}
@@ -306,6 +308,13 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
           </button>
         </div>
       )}
+      {/* Connector design B (user-picked 2026-07-15): dedicated side gutters.
+          Takes enter through the left gutter, gives leave through the right;
+          whisper-thin when that side has no ports. */}
+      <span
+        className={`canvas-node-gutter gutter-left ${takes.length > 0 ? '' : 'is-empty'}`}
+        aria-hidden
+      />
       <div className="canvas-node-main">
         {!faceOwnsTitle && (
           <input
@@ -322,6 +331,10 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
           </p>
         )}
       </div>
+      <span
+        className={`canvas-node-gutter gutter-right ${gives.length > 0 ? '' : 'is-empty'}`}
+        aria-hidden
+      />
       <PortStars nodeId={id} ports={takes} side="left" />
       <PortStars nodeId={id} ports={gives} side="right" />
       <Handle id="top" type="source" position={Position.Top} className="node-handle" />

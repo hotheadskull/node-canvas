@@ -5,7 +5,7 @@ import { expect, test } from '@playwright/test';
 
 test('split -> write -> compile -> reorder, all through the real UI', async ({ page }) => {
   await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
+  await page.evaluate(() => { localStorage.clear(); localStorage.setItem('nodecanvas.v2.menuView', 'all'); });
   await page.reload();
 
   // spawn a document and split it into 3 sections
@@ -94,7 +94,7 @@ test('split -> write -> compile -> reorder, all through the real UI', async ({ p
 
 test('cast derives through the spine and renames propagate live', async ({ page }) => {
   await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
+  await page.evaluate(() => { localStorage.clear(); localStorage.setItem('nodecanvas.v2.menuView', 'all'); });
   await page.reload();
 
   await page.getByRole('button', { name: /add node/i }).click();
@@ -133,7 +133,7 @@ test('cast derives through the spine and renames propagate live', async ({ page 
 
 test('focus editor: double-click to write, walk the spine, Esc back (design B)', async ({ page }) => {
   await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
+  await page.evaluate(() => { localStorage.clear(); localStorage.setItem('nodecanvas.v2.menuView', 'all'); });
   await page.reload();
 
   await page.getByRole('button', { name: /add node/i }).click();

@@ -6,11 +6,18 @@
 import { useMemo, useState } from 'react';
 import {
   allMenuTypes,
-  coreMenuTypes,
+  getNodeDef,
   nodeLabel,
   type CanvasMode,
   type NodeTypeDef,
 } from '@node-canvas/core';
+
+// The default menu view shows only the WORKING SET -- the types whose
+// per-node design pass is done (user request, 2026-07-15: "hide all the
+// other node types and only display the ones we work on"). Types return
+// here as their passes complete. The All view and search keep every type
+// reachable (I11 -- nothing is ever locked).
+const WORKING_SET = ['note', 'document'];
 
 const MODE_NAMES: Record<CanvasMode, string> = {
   universal: 'Universal',
@@ -64,10 +71,14 @@ export function AddNodeMenu({ onPick, onClose }: Props) {
 
   const groups = useMemo(() => {
     if (view === 'core') {
-      const core = coreMenuTypes();
       return [
-        { title: 'Writing', types: core.filter((def) => def.category === 'writing') },
-        { title: 'Knowledge', types: core.filter((def) => def.category === 'knowledge') },
+        {
+          title: 'Working set',
+          types: WORKING_SET.flatMap((type) => {
+            const def = getNodeDef(type);
+            return def ? [def] : [];
+          }),
+        },
       ];
     }
     return allMenuTypes().map((group) => ({

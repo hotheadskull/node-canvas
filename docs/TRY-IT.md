@@ -20,13 +20,15 @@ Work through this in order — it builds on itself.
       back exactly where you left them (I5).
 
 ## 2. The add-node gallery
-- [ ] Click **+ Add node**. Miniature node cards, grouped Writing / Knowledge.
+- [ ] Click **+ Add node**. The default view shows only the **working set**
+      (the node types whose redesign pass is done — it grows as we finish
+      each type).
 - [ ] Hover cards without clicking: the right panel fills with a description,
       **Gives/Takes**, and "Known as" (Section = Scene in Novel, Sermon Point
       in Sermon).
-- [ ] Flip the **Core / All** toggle — All adds the Structure group
-      (Manuscript lives there). Close and reopen the menu: it remembered
-      which view you used.
+- [ ] Flip the **Core / All** toggle — All shows every node type, always
+      (nothing is ever locked away). Close and reopen the menu: it
+      remembered which view you used.
 - [ ] Spawn several nodes rapidly — they never land on top of each other,
       and if one would land off-screen the camera follows it.
 
@@ -48,14 +50,18 @@ Work through this in order — it builds on itself.
       Always / Off. Both persist.
 
 ## 4. Connections (three kinds)
-- [ ] **Plain edge (always works):** drag from a top/bottom dot of any node
+- [ ] Every card has two connector homes now: **gold diamonds** top and
+      bottom center (plain relationship lines) and **side gutters** holding
+      the glowing data stars (takes enter left, gives leave right).
+- [ ] **Plain edge (always works):** drag from a gold diamond of any node
       to any other node. A gold line with a small chip appears. Click the
       chip (or the line) to label or delete it. This works between EVERY
       pair of types, zero setup (I1).
 - [ ] **Data wire:** spawn a Note and a Document. Drag the Note's glowing
-      right-rail star ("Text") to the Document's left-rail star ("Sections").
-      While dragging, compatible stars glow green, incompatible red.
-      The wire is colored by its data kind. Works dragged backwards too.
+      right-gutter star ("Text") to the Document's left-gutter star
+      ("Sections"). While dragging, compatible stars glow green,
+      incompatible red. The wire is colored by its data kind. Works dragged
+      backwards too.
 - [ ] **Tentative wire:** drag the Note's give star onto a Document's plain
       top dot (not the star). You get a DASHED wire — "this might go here" —
       and the Document shows an amber **"1 waiting"** badge. Do it to a

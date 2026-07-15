@@ -162,6 +162,22 @@ continue under the standing flow whenever a type comes up.
 **Next: Chunk 18 hardening, or the next node pass (Note or Section are the
 natural follow-ups; manuscript should inherit the blocks editor).**
 
+### 2026-07-15 — Connector system + working-set menu (user-requested)
+- **Connectors (user picked design B from 3 mockups):** data ports now live
+  in dedicated side GUTTERS (takes left, gives right; 6px whisper on empty
+  sides), and plain-edge anchors are GOLD DIAMONDS at top/bottom center —
+  relationship lines and data wires are visually different species at
+  different, predictable points. Anatomy spec zone 3 amended.
+- **Working-set menu:** the add-menu default view shows ONLY the types
+  whose per-node pass is done (currently Note + Document; grows per pass).
+  The All view + search keep every type reachable — I11 untouched.
+- e2e seeds `menuView='all'` in every spec's beforeEach. LESSON: bulk-
+  patching specs with PowerShell Get/Set-Content mangles UTF-8 (mojibake in
+  4 files) — restored from git and re-patched via a Node script; use Node
+  or the Edit tool for source edits, never default-encoding PowerShell.
+- Suite: 210 unit + 25 e2e green; typecheck + lint clean. Screenshot
+  verified (gutters, diamonds, trimmed menu).
+
 ### 2026-07-13 — Chunk 0 (completed)
 - v1 app moved to `/legacy` with git history; `npm run build` verified green there
   (one missing dep `driver.js` installed). /legacy is read-only from now on.

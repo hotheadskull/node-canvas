@@ -9,7 +9,7 @@ import { expect, test } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
+  await page.evaluate(() => { localStorage.clear(); localStorage.setItem('nodecanvas.v2.menuView', 'all'); });
   await page.reload();
 });
 
@@ -71,8 +71,12 @@ test('the user bug: body text owns the full card width -- no rails over text', a
   const card = (await doc.locator('.canvas-node').boundingBox())!;
   const body = (await doc.locator('.canvas-node-main').boundingBox())!;
 
-  // the content column spans the card (only the border is outside it)
-  expect(body.width).toBeGreaterThan(card.width - 6);
+  // the content column spans the card minus the dedicated port gutters
+  // (connector design B: 18px per occupied side; proportional because Fit
+  // zooms) -- and the gutter never overlaps the body
+  expect(body.width).toBeGreaterThan(card.width * 0.9);
+  const gutter = (await doc.locator('.gutter-left').boundingBox())!;
+  expect(gutter.x + gutter.width).toBeLessThanOrEqual(body.x + 1);
 
   // port labels render OUTSIDE the card, never over the body
   await doc.hover();

@@ -89,22 +89,30 @@ html, body, #root {
 .star-13 { top: 15%; left: 20%; animation: shoot-1 35s linear infinite; animation-delay: 4s; }
 .star-14 { top: 40%; left: -10%; animation: shoot-2 38s linear infinite; animation-delay: 14s; }
 
-/* ---------- Nodes: the Tab Card anatomy (Chunk 17) ----------
-   docs/design/node-anatomy.md. Tab above the card = identity + status
-   (the only chrome). Body = title as bold accent first line + the face;
-   it grows with content natively (no inline height unless user-owned).
-   Ports sit on the border, labels float OUTSIDE. overflow stays visible
-   for tab/stars/labels; .canvas-node-main clips the content instead. */
+/* ---------- Nodes: the Tab Card anatomy (Chunk 17, connectors amended
+   2026-07-15) ---------- docs/design/node-anatomy.md. Tab above the card =
+   identity + status (the only chrome). Body = title as bold accent first
+   line + the face; grows natively (no inline height unless user-owned).
+   Ports live in dedicated side GUTTERS (takes left, gives right), labels
+   float OUTSIDE; plain-edge anchors are gold diamonds top/bottom center.
+   overflow stays visible for tab/stars/labels; .canvas-node-main clips. */
 .canvas-node {
   position: relative;
   height: 100%; width: 100%; min-height: 70px;
-  display: flex; flex-direction: column;
+  display: flex; flex-direction: row;
   background: rgba(21, 21, 24, 0.92);
   border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
   border-radius: 10px; border-top-left-radius: 0;
   overflow: visible;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.45);
 }
+/* Connector design B (user-picked 2026-07-15): dedicated port GUTTERS.
+   Data has a fixed home -- takes enter LEFT, gives leave RIGHT; a side
+   with no ports keeps a whisper of gutter so the system reads everywhere. */
+.canvas-node-gutter { flex: none; background: rgba(13, 13, 20, 0.75); position: relative; }
+.gutter-left { width: 18px; border-right: 1px solid rgba(255, 255, 255, 0.05); border-radius: 0 0 0 9px; }
+.gutter-right { width: 18px; border-left: 1px solid rgba(255, 255, 255, 0.05); border-radius: 0 9px 9px 0; }
+.canvas-node-gutter.is-empty { width: 6px; }
 .canvas-node.is-selected {
   border-color: var(--accent);
   box-shadow: 0 0 0 1px var(--accent), 0 0 18px color-mix(in srgb, var(--accent) 35%, transparent);
@@ -154,23 +162,36 @@ html, body, #root {
 .canvas-node-fit:hover { color: var(--gold); border-color: var(--gold-soft); }
 .canvas-node-body { flex: 1; display: flex; min-height: 0; position: relative; }
 
-/* Plain-edge dots (top/bottom): 14px visible, 28px invisible hit area
-   (never rely on the visible shape for the hit target). */
+/* Plain-edge anchors (top/bottom center): GOLD DIAMONDS -- a different
+   species from the data stars, matching the gold relationship lines, at
+   fixed predictable points (user-picked connector design, 2026-07-15).
+   Visible shape 12px; invisible hit area stays >= 24px (rule 1). */
 .node-handle.react-flow__handle {
-  width: 14px; height: 14px;
-  background: var(--accent);
-  border: 2px solid #0a0a0c;
-  opacity: 0.85;
-  transition: transform 0.12s ease, opacity 0.12s ease;
+  width: 12px; height: 12px;
+  background: transparent;
+  border: none;
+  opacity: 0.9;
+  transition: opacity 0.12s ease;
+}
+.node-handle.react-flow__handle::before {
+  content: ''; position: absolute; inset: 1.5px;
+  background: #f0c050;
+  border: 1.5px solid #0a0a0c;
+  transform: rotate(45deg);
+  box-shadow: 0 0 6px rgba(240, 192, 80, 0.55);
+  transition: transform 0.12s ease;
 }
 .node-handle.react-flow__handle::after {
   content: ''; position: absolute; inset: -7px; border-radius: 9999px;
 }
-.canvas-node:hover .node-handle, .node-handle:hover { opacity: 1; transform: scale(1.25); }
+.canvas-node:hover .node-handle, .node-handle:hover { opacity: 1; }
+.canvas-node:hover .node-handle::before, .node-handle:hover::before {
+  transform: rotate(45deg) scale(1.3);
+}
 
-/* ---------- Star ports on the card border (Chunk 17: no rails) ----------
-   Stars straddle the border; labels float OUTSIDE the card. The body owns
-   the full card width -- nothing can paint over text (anatomy spec, bug 2).
+/* ---------- Star ports in the gutters (connector design B) ----------
+   Stars sit inside their gutter; labels float OUTSIDE the card. The body
+   still owns its full column -- nothing paints over text (anatomy, bug 2).
    24px+ invisible hit area (rule 1), grows on hover, colored by dataKind. */
 .port-star.react-flow__handle {
   width: 9px; height: 9px;

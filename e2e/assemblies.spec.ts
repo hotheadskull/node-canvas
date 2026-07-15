@@ -6,7 +6,7 @@ import { expect, test } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
+  await page.evaluate(() => { localStorage.clear(); localStorage.setItem('nodecanvas.v2.menuView', 'all'); });
   await page.reload();
 });
 
@@ -110,7 +110,7 @@ test('external edge attaches to the face and survives inner deletion', async ({ 
 
 test('Ctrl+K palette: capture files into the Workbench, jump centers a node', async ({ page }) => {
   await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
+  await page.evaluate(() => { localStorage.clear(); localStorage.setItem('nodecanvas.v2.menuView', 'all'); });
   await page.reload();
 
   // wait for the app to mount its listeners before using the hotkey

@@ -27,10 +27,14 @@ chooses what goes in its slots; it never invents new chrome. This is the
 2. **Body**: the title input (`.canvas-node-title`) styled as the card's bold
    accent-colored first line — words on paper, not a form slot — then the
    type's face. The body owns the full card width. Nothing paints over it.
-3. **Ports**: star handles sit ON the card border (takes left, gives right).
-   Their labels float OUTSIDE the card on the canvas side, so labels and
-   stars can never cover body text. Hit areas stay ≥24px (interaction rule 1).
-   No rails: the border itself is the rail.
+3. **Ports** (AMENDED 2026-07-15, user-picked connector design B): star
+   handles live in dedicated side GUTTERS — slim columns inside the card,
+   takes entering LEFT, gives leaving RIGHT, whisper-thin (6px) on a side
+   with no ports so the system reads on every node. Labels still float
+   OUTSIDE the card. Hit areas stay ≥24px (interaction rule 1).
+   **Plain-edge anchors are GOLD DIAMONDS** at top and bottom center —
+   matching the gold relationship lines, at fixed predictable points, a
+   different species from the data stars at a glance.
 4. **Status**: lives on the tab (readiness, hygiene, owner). The tentative
    "N waiting" badge keeps its top-RIGHT corner spot (it is about incoming
    wires, not identity).
