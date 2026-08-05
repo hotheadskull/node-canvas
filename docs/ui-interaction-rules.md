@@ -79,6 +79,28 @@ another). Where possible each rule is enforced by a test in
     — a port with no handle is a feature that silently doesn't exist (found
     in Chunk 14: Footnotes and Subject/Complement could never be wired).
 
+21. **Never call updateNodeInternals from a mounting node.** RF measures a
+    node's handles natively on first render; re-registering is only for a
+    handle set that CHANGES later. Calling it from every mount made 500-node
+    boots quadratic -- each call notifies every RF subscriber (Chunk 18
+    stress spec: a 36-second hang from one line).
+
+22. **Editors mount on interaction, not on render.** RF force-renders every
+    node once at boot to discover handles, so anything expensive in a face
+    multiplies by TOTAL node count. Faces render a pixel-identical static
+    shell (same toolbar row, same empty line-box) until hover/click swaps
+    the real editor in. Corollaries, each e2e-caught: the static shell must
+    not be focusable (RF skips selection for clicks on focusable elements);
+    swap on hover/click, never mousedown (a mid-gesture DOM swap detaches
+    the click target and selection dies); the editor constructs
+    synchronously (immediatelyRender) and focuses in a LAYOUT effect, or a
+    fast first keystroke falls into the construction gap.
+
+23. **Every node carries a culling size hint.** Unmeasured auto-height nodes
+    have no dimensions, and RF exempts dimensionless nodes from visibility
+    culling. The sync passes initialWidth/initialHeight from the document's
+    recorded size so culling has a rect before first measure.
+
 16. **Hover must never move layout.** Anything that changes on hover (preview
     panels, expanding rows) renders inside a reserved, fixed-size box. A
     bottom-anchored menu that grows on hover shifts every control upward

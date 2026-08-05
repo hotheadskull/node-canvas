@@ -7,10 +7,12 @@
 // background) lands when the Tauri shell chunk wires the desktop build.
 
 import { useReactFlow } from '@xyflow/react';
-import { CornerDownLeft, Inbox, Search } from 'lucide-react';
+import { CornerDownLeft, FileDown, Inbox, Search } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getNodeDef, nodeLabel, stripHtml } from '@node-canvas/core';
 import { useCanvasStore } from '../store/canvasStore';
+
+type PaletteCommand = { id: string; label: string; run: () => unknown };
 
 export function matchesQuery(haystack: string, query: string): boolean {
   const words = query.toLowerCase().split(/\s+/).filter(Boolean);
@@ -60,8 +62,42 @@ export function CommandPalette() {
       .slice(0, 8);
   }, [document_.nodes, query]);
 
-  // rows: matches, then the capture action (always available when typed)
-  const rowCount = matches.length + (query.trim() !== '' ? 1 : 0);
+  // Project/export commands surface only once the user types -- the empty
+  // palette stays a jump list. Compile-face nodes each offer their own
+  // Markdown/plain-text export, named by title.
+  const commands = useMemo<PaletteCommand[]>(() => {
+    if (query.trim() === '') return [];
+    const store = useCanvasStore.getState();
+    const list: PaletteCommand[] = [
+      { id: 'project-new', label: 'New canvas', run: () => store.newProject() },
+      { id: 'project-open', label: 'Open project…', run: () => store.openProject() },
+      { id: 'project-save', label: 'Save project', run: () => store.saveProject() },
+      { id: 'project-save-as', label: 'Save project as…', run: () => store.saveProjectAs() },
+      { id: 'export-png', label: 'Export canvas as PNG', run: () => store.exportCanvasImage('png') },
+      { id: 'export-svg', label: 'Export canvas as SVG', run: () => store.exportCanvasImage('svg') },
+    ];
+    for (const node of document_.nodes) {
+      const def = getNodeDef(node.type);
+      if (!def?.ports.some((port) => port.spine)) continue;
+      const title = typeof node.data.title === 'string' && node.data.title !== ''
+        ? node.data.title
+        : 'Untitled';
+      list.push({
+        id: `export-md-${node.id}`,
+        label: `Export "${title}" as Markdown`,
+        run: () => store.exportNode(node.id, 'markdown'),
+      });
+      list.push({
+        id: `export-txt-${node.id}`,
+        label: `Export "${title}" as plain text`,
+        run: () => store.exportNode(node.id, 'text'),
+      });
+    }
+    return list.filter((command) => matchesQuery(command.label, query)).slice(0, 6);
+  }, [document_.nodes, query]);
+
+  // rows: matches, commands, then the capture action (always when typed)
+  const rowCount = matches.length + commands.length + (query.trim() !== '' ? 1 : 0);
 
   const jumpTo = (nodeId: string) => {
     const node = document_.nodes.find((candidate) => candidate.id === nodeId);
@@ -82,9 +118,16 @@ export function CommandPalette() {
     setPaletteOpen(false);
   };
 
+  const runCommand = (command: PaletteCommand) => {
+    setPaletteOpen(false);
+    void command.run();
+  };
+
   const activate = (index: number) => {
     if (index < matches.length) jumpTo(matches[index]!.id);
-    else doCapture();
+    else if (index < matches.length + commands.length) {
+      runCommand(commands[index - matches.length]!);
+    } else doCapture();
   };
 
   if (!paletteOpen) return null;
@@ -138,11 +181,26 @@ export function CommandPalette() {
               </li>
             );
           })}
+          {commands.map((command, commandIndex) => {
+            const index = matches.length + commandIndex;
+            return (
+              <li key={command.id}>
+                <button
+                  className={`palette-row ${index === highlighted ? 'is-highlighted' : ''}`}
+                  onMouseEnter={() => setHighlighted(index)}
+                  onClick={() => runCommand(command)}
+                >
+                  <FileDown size={13} aria-hidden />
+                  <span className="palette-row-title">{command.label}</span>
+                </button>
+              </li>
+            );
+          })}
           {query.trim() !== '' && (
             <li>
               <button
-                className={`palette-row palette-capture ${highlighted === matches.length ? 'is-highlighted' : ''}`}
-                onMouseEnter={() => setHighlighted(matches.length)}
+                className={`palette-row palette-capture ${highlighted === matches.length + commands.length ? 'is-highlighted' : ''}`}
+                onMouseEnter={() => setHighlighted(matches.length + commands.length)}
                 onClick={doCapture}
               >
                 <Inbox size={13} aria-hidden />

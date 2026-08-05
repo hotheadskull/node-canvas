@@ -8,7 +8,7 @@ import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { DOMSerializer } from '@tiptap/pm/model';
 import { Bold, Heading2, Italic, List, Scissors, TextQuote } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 export type BoundaryDirection = 'up' | 'down' | 'left' | 'right';
 export type ExtractParts = { extracted: string; remaining: string };
@@ -54,6 +54,11 @@ export function RichText({
   const editor = useEditor({
     extensions: [StarterKit],
     ...(value !== '' ? { content: value } : {}),
+    // Synchronous construction: the editor exists in the SAME tick the
+    // component mounts, so a click on a just-warmed lazy face lands on real
+    // ProseMirror and no keystroke can fall into a construction gap (e2e
+    // caught single-character losses). Browser-only app -- no SSR concern.
+    immediatelyRender: true,
     autofocus: autoFocus,
     editorProps: {
       attributes: {
@@ -116,7 +121,21 @@ export function RichText({
     if (!hasSelection) setSplitOpen(false);
   }, [hasSelection]);
 
-  if (!editor) return null;
+  // Focus SYNCHRONOUSLY at commit when this editor mounted from a user
+  // click (lazy faces): TipTap's own autofocus can land a tick late, and a
+  // fast typist's first keystroke fell into that gap (e2e-caught).
+  useLayoutEffect(() => {
+    if (autoFocus && editor && !editor.isFocused) {
+      editor.commands.focus('end');
+    }
+  }, [editor, autoFocus]);
+
+  // While TipTap constructs (it renders ASYNC in React 18+), keep the same
+  // static shell on screen -- returning null collapsed the card for a frame,
+  // shifting the node's handles under the pointer mid-click (e2e-caught).
+  if (!editor) {
+    return <StaticShell value={value} placeholder={placeholder} variant={variant} />;
+  }
 
   const runExtract = (type: string) => {
     if (!onExtract) return;
@@ -221,5 +240,76 @@ export function RichText({
       </div>
       <EditorContent editor={editor} className="richtext-editor nodrag" />
     </div>
+  );
+}
+
+/**
+ * Perf seam (Chunk 18): constructing a TipTap editor costs tens of
+ * milliseconds, and React Flow force-renders EVERY node once at boot to
+ * discover its handles -- on a 500-node canvas that built 500 editors
+ * before first paint (a ~30s hang, found by the stress spec). Node faces
+ * render this instead: static, style-identical HTML until the user clicks
+ * in (or keyboard-focuses it), then the real editor mounts focused and
+ * stays for the node's lifetime. Editor count now follows EDITING, not
+ * node count.
+ */
+/** The editor's resting look WITHOUT an editor: same wrapper, same toolbar
+ * row (invisible at rest but occupying height), same content classes -- so
+ * static and live states measure pixel-identically and nothing shifts. */
+function StaticShell({
+  value,
+  placeholder,
+  variant,
+  onPointerEnter,
+  onClick,
+}: {
+  value: string;
+  placeholder: string | undefined;
+  variant: 'inline' | 'focus';
+  onPointerEnter?: () => void;
+  onClick?: () => void;
+}) {
+  const empty = value === '' || value === '<p></p>';
+  // Empty state mirrors ProseMirror's empty document (one line-box "<p><br>"
+  // with the placeholder riding on the paragraph), so an empty card is the
+  // same height before and after the editor mounts.
+  const html = empty
+    ? `<p class="is-editor-empty" data-placeholder="${(placeholder ?? '').replace(/"/g, '&quot;')}"><br></p>`
+    : value;
+  return (
+    <div className={`richtext richtext-wrap-${variant}`}>
+      <div className="richtext-toolbar" aria-hidden>
+        <button tabIndex={-1} disabled />
+      </div>
+      <div className="richtext-editor nodrag" onPointerEnter={onPointerEnter} onClick={onClick}>
+        <div
+          className={`richtext-content richtext-${variant}`}
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      </div>
+    </div>
+  );
+}
+
+export function LazyRichText(props: Props) {
+  // 'hover' pre-warms the editor BEFORE any click, so the click itself lands
+  // on live ProseMirror: caret at the clicked spot, zero lost keystrokes,
+  // and React Flow's node selection untouched (a mousedown-time DOM swap
+  // detached the click target mid-gesture and killed selection; a focusable
+  // static div made RF skip selection entirely -- both e2e-caught).
+  const [live, setLive] = useState<'no' | 'hover' | 'click'>(
+    props.autoFocus === true ? 'click' : 'no',
+  );
+  if (live !== 'no') {
+    return <RichText {...props} autoFocus={props.autoFocus || live === 'click'} />;
+  }
+  return (
+    <StaticShell
+      value={props.value}
+      placeholder={props.placeholder}
+      variant={props.variant}
+      onPointerEnter={() => setLive('hover')}
+      onClick={() => setLive('click')}
+    />
   );
 }

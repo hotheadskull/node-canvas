@@ -28,8 +28,8 @@ master brief — see its "Revision log" for what changed and why).
 | 15 | Novel specialists: Plant/Payoff (continuity engine deferred post-launch; story-time fields ship on Event so the data model is ready) | **completed** |
 | 16 | Onboarding: interactive tutorial (spotlight, performs-action-to-advance, Back/Next + step counter, replayable), Tips/Reference panel | **completed** |
 | 17 | Node remodel: the TAB CARD anatomy system (docs/design/node-anatomy.md) — user picked mockup C; fixes all reported node bugs with regression tests | **completed** |
-| 18 | Hardening: React Profiler pass, Playwright e2e full loop, migration + backup-before-migrate, file-per-project (.nodecanvas) persistence, export (JSON, compiled text/markdown, PNG/SVG canvas export) | **current** |
-| 19 | Commercial: license keys, payments, Windows code signing, Tauri updater, crash reporting | not started |
+| 18 | Hardening: perf pass (500-node stress green), Playwright e2e full loop, migration + backup-before-migrate, file-per-project (.nodecanvas) persistence, exports (markdown/text/PNG/SVG), Tauri shell wiring | **completed** (desktop-window smoke test pending — see session log) |
+| 19 | Commercial: license keys, payments, Windows code signing, Tauri updater, crash reporting | **current** (blocked on user accounts/credentials — see session log) |
 
 ## User feedback driving Chunk 17 (verbatim intent, 2026-07-14)
 
@@ -94,6 +94,60 @@ suite, academic-pack polish, merge-progress faces, citation formatting,
 presentation-walk mode. All registry entries + isolated reducers (invariant I8).
 
 ## Session log
+
+### 2026-08-05 — Chunk 18: hardening (completed)
+
+- **Migration rails** (core/src/migrate.ts): schemaVersion read off RAW JSON
+  before Zod (DocumentSchema only accepts current), ordered step registry
+  (empty at v1 — the pipeline, gap/future-version failures, and the
+  `migrated` flag ship proven), loadDocument() as the one read entry point.
+  Backup-before-migrate lives in BOTH persistence worlds: localStorage key
+  backup-v{N}; Tauri writes <file>.backup-v{N} BEFORE the file can be
+  overwritten, and a failed backup refuses the open (I9).
+- **Exports** (core/src/export.ts + export.golden.json): hand-rolled
+  HTML→Markdown for the StarterKit vocabulary (core stays dependency-free,
+  I7); exportMarkdown/exportPlainText over compileBlocks; exportFileStem.
+  Malformed HTML degrades to words, never loses them.
+- **File-per-project**: projectIO seam (app/src/persistence/projectFile.ts)
+  — Tauri native dialogs + fs vs browser download/picker, detected at
+  runtime; store gains projectPath binding (auto-save writes through to the
+  bound file; localStorage stays the crash-safe working copy), New/Open/
+  Save/Save-As with the outgoing canvas stashed + Undo toast; Toolbar
+  Project popover + palette commands (per-node "Export … as Markdown").
+  PNG/SVG canvas export (html-to-image; exportingCanvas pauses culling).
+- **Tauri shell wired**: dialog/fs/global-shortcut plugins (Rust + JS +
+  capabilities), cargo check green; Ctrl+Shift+K global capture registered
+  at boot (Chunk 12's deferred half). NOT yet smoke-tested as a real
+  desktop window — first `npm run tauri -w app dev` run is the next
+  session's opening move.
+- **Perf pass — the stress spec (500 nodes / 800 edges) went from a
+  75-SECOND boot to under 3s.** Root causes, now interaction rules 21–23:
+  updateNodeInternals called from every mounting node (quadratic;
+  36s from one line); TipTap editors constructed per node at boot (RF
+  force-renders all nodes once for handle discovery — editors now mount
+  lazily behind a pixel-identical static shell, hover pre-warms);
+  missing culling size hints (initialWidth/initialHeight); document→RF
+  sync now preserves object identity so memoized nodes/edges skip.
+  The lazy-shell bugs the e2e suite caught on the way: focusable shell
+  killed RF selection; mousedown-time swap detached the click target;
+  async editor construction dropped first keystrokes (immediatelyRender +
+  layout-effect focus).
+- e2e: full-loop.spec.ts (build → save .nodecanvas → wipe → reopen via real
+  picker → reload survival → markdown export, plus PNG export and New-undo)
+  and stress.spec.ts (boot <15s budget, culling active, pan + spawn budgets).
+- Suite: 235 unit + 32 e2e green; typecheck + lint clean. Goldens:
+  export.golden.json NEW (ships with its feature).
+
+**Chunk 19 (commercial) is CURRENT and blocked on user-owned accounts:**
+payment provider (Stripe/Paddle/LemonSqueezy — LemonSqueezy/Paddle handle
+VAT as merchant-of-record, likely right for a solo dev), a Windows code
+signing certificate (or accept SmartScreen warnings at first), updater
+signing keys (`tauri signer generate`), and a crash-reporting choice
+(Sentry account or a simple local crash log). License-key verification
+logic + updater config can be built once the user picks providers. Also
+pending: per-node design passes (only Document done — Note/Section next,
+mockups-first per the standing flow), and the desktop smoke test above.
+
 
 ### 2026-07-14 (evening) — Chunk 17: the Tab Card anatomy (completed)
 - **Pre-flight:** the v1 side project (`Projects\node-canvas-v1`) pointed at

@@ -25,8 +25,11 @@ import {
   getNodeDef,
   getPort,
   GraphError,
+  exportFileStem,
+  exportMarkdown,
+  exportPlainText,
+  loadDocument,
   moveAssembly,
-  parseDocument,
   READINESS_STAGES,
   readinessOf,
   renameAssembly,
@@ -44,11 +47,16 @@ import {
   type CanvasDocument,
   type Rect,
 } from '@node-canvas/core';
+import { projectIO, PROJECT_EXTENSION } from '../persistence/projectFile';
+import { renderCanvasImage, type CanvasImageFormat } from '../persistence/canvasImage';
 
 export const STORAGE_KEY = 'nodecanvas.v2.document';
 export const CORRUPT_BACKUP_KEY = 'nodecanvas.v2.document.corrupt-backup';
 export const VIEWPORT_KEY = 'nodecanvas.v2.viewport';
 export const SETTINGS_KEY = 'nodecanvas.v2.settings';
+export const PROJECT_PATH_KEY = 'nodecanvas.v2.projectPath';
+/** Where the previous canvas goes when New/Open replaces it (undo's source). */
+export const PREVIOUS_DOCUMENT_KEY = 'nodecanvas.v2.document.previous';
 
 export type Viewport = { x: number; y: number; zoom: number };
 export type PortLabelMode = 'hover' | 'always' | 'off';
@@ -76,6 +84,24 @@ type CanvasState = {
   dismissError: () => void;
   dismissToast: () => void;
   setSettings: (settings: Partial<CanvasSettings>) => void;
+
+  // ---- File-per-project persistence (Chunk 18) ----
+  /** Absolute path of the bound .nodecanvas file (Tauri only). null = the
+   * canvas lives purely in browser storage. */
+  projectPath: string | null;
+  /** Display name of the project file; survives browser opens (no path). */
+  projectFileName: string | null;
+  /** True while a canvas image export temporarily disables visibility
+   * culling so off-screen nodes render into the picture. */
+  exportingCanvas: boolean;
+  newProject: () => void;
+  openProject: () => Promise<void>;
+  /** Write the bound file now; falls back to Save As when unbound. */
+  saveProject: () => Promise<void>;
+  saveProjectAs: () => Promise<void>;
+  /** Export one compile-face node's work as Markdown or plain text. */
+  exportNode: (nodeId: string, format: 'markdown' | 'text') => Promise<void>;
+  exportCanvasImage: (format: CanvasImageFormat) => Promise<void>;
 
   spawnAt: (type: string, desired: { x: number; y: number }) => string | null;
   moveNode: (nodeId: string, position: { x: number; y: number }) => void;
@@ -275,12 +301,60 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
     }
   };
 
+  /** Swap the whole canvas (New/Open). The outgoing document is stashed
+   * under PREVIOUS_DOCUMENT_KEY and offered back through an Undo toast, the
+   * file binding is updated, and the write happens NOW -- no debounce window
+   * in which the swap could be lost. */
+  const adopt = (
+    document: CanvasDocument,
+    binding: { path: string | null; fileName: string | null; toastMessage: string },
+  ) => {
+    const previous = {
+      document: get().document,
+      projectPath: get().projectPath,
+      projectFileName: get().projectFileName,
+    };
+    try {
+      localStorage.setItem(PREVIOUS_DOCUMENT_KEY, serializeDocument(previous.document));
+    } catch {
+      // the stash is belt-and-braces; the Undo toast still holds the object
+    }
+    clearTimeout(saveTimer);
+    const rebindPath = (path: string | null) => {
+      try {
+        if (path !== null) localStorage.setItem(PROJECT_PATH_KEY, path);
+        else localStorage.removeItem(PROJECT_PATH_KEY);
+      } catch {
+        // path rebinding is a convenience, not user data
+      }
+    };
+    set({
+      document,
+      projectPath: binding.path,
+      projectFileName: binding.fileName,
+      persistenceError: null,
+      toast: {
+        message: binding.toastMessage,
+        undo: () => {
+          set({ ...previous, toast: null });
+          rebindPath(previous.projectPath);
+          get().save();
+        },
+      },
+    });
+    rebindPath(binding.path);
+    get().save();
+  };
+
   return {
     document: createEmptyDocument('My canvas'),
     persistenceError: null,
     initialViewport: { x: 0, y: 0, zoom: 1 },
     settings: loadSettings(),
     toast: null,
+    projectPath: null,
+    projectFileName: null,
+    exportingCanvas: false,
 
     load: () => {
       let viewport: Viewport = { x: 0, y: 0, zoom: 1 };
@@ -290,15 +364,46 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
       } catch {
         // viewport prefs are not user data; default silently
       }
+      // Re-bind the project file from the last session. Only a real path is
+      // worth restoring, and only the desktop shell has one.
+      let projectPath: string | null = null;
+      let projectFileName: string | null = null;
+      const storedPath = localStorage.getItem(PROJECT_PATH_KEY);
+      if (storedPath && projectIO.isTauri()) {
+        projectPath = storedPath;
+        projectFileName = storedPath.split(/[\\/]/).pop() ?? storedPath;
+      }
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw === null) {
-        set({ document: createEmptyDocument('My canvas'), initialViewport: viewport });
+        set({
+          document: createEmptyDocument('My canvas'),
+          initialViewport: viewport,
+          projectPath,
+          projectFileName,
+        });
         return;
       }
-      const parsed = parseDocument(raw);
+      const parsed = loadDocument(raw);
       if (parsed.ok) {
+        if (parsed.migrated) {
+          // Backup-before-migrate: the original bytes are preserved BEFORE
+          // the debounced save can overwrite them with the migrated shape.
+          const backupKey = `nodecanvas.v2.document.backup-v${parsed.fromVersion}`;
+          localStorage.setItem(backupKey, raw);
+          set({
+            toast: {
+              message: `Canvas upgraded from schema v${parsed.fromVersion} -- the original is kept in browser storage`,
+            },
+          });
+        }
         // I5: positions land exactly as saved; nothing moves them.
-        set({ document: parsed.document, initialViewport: viewport, persistenceError: null });
+        set({
+          document: parsed.document,
+          initialViewport: viewport,
+          persistenceError: null,
+          projectPath,
+          projectFileName,
+        });
         return;
       }
       // I9: keep the broken payload, tell the user, start fresh -- never
@@ -307,15 +412,34 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
       set({
         document: createEmptyDocument('My canvas'),
         initialViewport: viewport,
+        projectPath,
+        projectFileName,
         persistenceError: `Saved canvas could not be loaded (${parsed.error}). The unreadable copy was kept under "${CORRUPT_BACKUP_KEY}".`,
       });
     },
 
     save: () => {
+      let raw: string;
       try {
-        localStorage.setItem(STORAGE_KEY, serializeDocument(get().document));
+        raw = serializeDocument(get().document);
       } catch (error) {
         set({ persistenceError: `Save failed: ${(error as Error).message}` });
+        return;
+      }
+      try {
+        localStorage.setItem(STORAGE_KEY, raw);
+      } catch (error) {
+        set({ persistenceError: `Save failed: ${(error as Error).message}` });
+      }
+      // The bound project file receives every auto-save too -- the file IS
+      // the project; browser storage is just the crash-safe working copy.
+      const path = get().projectPath;
+      if (path !== null && projectIO.isTauri()) {
+        void projectIO.writeProjectFile(path, raw).catch((error: unknown) => {
+          set({
+            persistenceError: `Could not write "${path}": ${(error as Error).message}`,
+          });
+        });
       }
     },
 
@@ -329,6 +453,167 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
         localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
       } catch {
         // preferences only
+      }
+    },
+
+    // ---- File-per-project persistence (Chunk 18) ------------------------
+    // adopt() is the one door for swapping the whole canvas (New/Open): it
+    // stashes the outgoing document with an Undo toast, rebinds the project
+    // path, and writes through immediately -- no debounce window in which a
+    // crash could lose the swap.
+
+    newProject: () => {
+      adopt(createEmptyDocument('My canvas'), {
+        path: null,
+        fileName: null,
+        toastMessage: 'Started a new canvas',
+      });
+    },
+
+    openProject: async () => {
+      const picked = await projectIO.pickProjectFile();
+      if (!picked) return;
+      const parsed = loadDocument(picked.raw);
+      if (!parsed.ok) {
+        set({
+          persistenceError: `Could not open "${picked.fileName}": ${parsed.error}`,
+        });
+        return;
+      }
+      let migrationNote = '';
+      if (parsed.migrated) {
+        try {
+          const backupLocation = await projectIO.writePreMigrationBackup(
+            picked.path,
+            picked.raw,
+            parsed.fromVersion,
+          );
+          migrationNote = ` (upgraded from schema v${parsed.fromVersion}; original kept at ${backupLocation})`;
+        } catch (error) {
+          // No backup, no migration-overwrite: leave the file unbound so
+          // nothing auto-saves over the original (I9).
+          set({
+            persistenceError: `Could not back up "${picked.fileName}" before upgrading it: ${(error as Error).message}. The file was NOT opened.`,
+          });
+          return;
+        }
+      }
+      adopt(parsed.document, {
+        path: picked.path,
+        fileName: picked.fileName,
+        toastMessage: `Opened "${picked.fileName}"${migrationNote}`,
+      });
+    },
+
+    saveProject: async () => {
+      const path = get().projectPath;
+      if (path === null || !projectIO.isTauri()) {
+        await get().saveProjectAs();
+        return;
+      }
+      get().save();
+      set({ toast: { message: `Saved "${get().projectFileName ?? path}"` } });
+    },
+
+    saveProjectAs: async () => {
+      let raw: string;
+      try {
+        raw = serializeDocument(get().document);
+      } catch (error) {
+        set({ persistenceError: `Save failed: ${(error as Error).message}` });
+        return;
+      }
+      const suggested = `${exportFileStem(get().document.name)}.${PROJECT_EXTENSION}`;
+      if (!projectIO.isTauri()) {
+        projectIO.downloadFile(suggested, raw);
+        set({
+          toast: {
+            message: 'Downloaded a copy. The browser keeps working from local storage.',
+          },
+        });
+        return;
+      }
+      const path = await projectIO.pickSavePath(suggested);
+      if (path === null) return;
+      try {
+        await projectIO.writeProjectFile(path, raw);
+      } catch (error) {
+        set({ persistenceError: `Could not write "${path}": ${(error as Error).message}` });
+        return;
+      }
+      const fileName = path.split(/[\\/]/).pop() ?? path;
+      set({ projectPath: path, projectFileName: fileName });
+      try {
+        localStorage.setItem(PROJECT_PATH_KEY, path);
+      } catch {
+        // rebinding on next boot is a convenience, not user data
+      }
+      set({ toast: { message: `Saved "${fileName}" -- it stays in sync as you work` } });
+    },
+
+    exportNode: async (nodeId, format) => {
+      const doc = get().document;
+      const { markdown, title } = exportMarkdown(doc, nodeId);
+      const contents = format === 'markdown' ? markdown : exportPlainText(doc, nodeId);
+      const extension = format === 'markdown' ? 'md' : 'txt';
+      const fileName = `${exportFileStem(title)}.${extension}`;
+      if (!projectIO.isTauri()) {
+        projectIO.downloadFile(fileName, contents, 'text/plain;charset=utf-8');
+        set({ toast: { message: `Exported "${fileName}"` } });
+        return;
+      }
+      const path = await projectIO.pickSavePath(fileName);
+      if (path === null) return;
+      try {
+        await projectIO.writeProjectFile(path, contents);
+        set({ toast: { message: `Exported "${path.split(/[\\/]/).pop()}"` } });
+      } catch (error) {
+        set({ persistenceError: `Export failed: ${(error as Error).message}` });
+      }
+    },
+
+    exportCanvasImage: async (format) => {
+      // Disable visibility culling so off-screen nodes render, give React a
+      // frame to mount them, capture, then restore -- the flag round-trips
+      // even if rendering throws.
+      set({ exportingCanvas: true });
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        const image = await renderCanvasImage(get().document, format);
+        if (image === null) {
+          set({ toast: { message: 'Nothing on the canvas to export yet' } });
+          return;
+        }
+        const stem = exportFileStem(get().document.name);
+        const fileName = `${stem}.${format}`;
+        if (!projectIO.isTauri()) {
+          const anchor = document.createElement('a');
+          anchor.href = image.dataUrl;
+          anchor.download = fileName;
+          anchor.click();
+          set({ toast: { message: `Exported "${fileName}"` } });
+          return;
+        }
+        const path = await projectIO.pickSavePath(fileName);
+        if (path === null) return;
+        if (format === 'svg') {
+          const svgText = decodeURIComponent(image.dataUrl.slice(image.dataUrl.indexOf(',') + 1));
+          await projectIO.writeProjectFile(path, svgText);
+        } else {
+          const { writeFile } = await import('@tauri-apps/plugin-fs');
+          const base64 = image.dataUrl.slice(image.dataUrl.indexOf(',') + 1);
+          const binary = atob(base64);
+          const bytes = new Uint8Array(binary.length);
+          for (let index = 0; index < binary.length; index++) {
+            bytes[index] = binary.charCodeAt(index);
+          }
+          await writeFile(path, bytes);
+        }
+        set({ toast: { message: `Exported "${path.split(/[\\/]/).pop()}"` } });
+      } catch (error) {
+        set({ persistenceError: `Canvas export failed: ${(error as Error).message}` });
+      } finally {
+        set({ exportingCanvas: false });
       }
     },
 

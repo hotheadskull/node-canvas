@@ -3,8 +3,9 @@
 // The gear opens canvas settings: density and port-label visibility.
 
 import { useReactFlow } from '@xyflow/react';
-import { Boxes, Frame, HelpCircle, Plus, Settings2 } from 'lucide-react';
+import { Boxes, FolderOpen, Frame, HelpCircle, Plus, Settings2 } from 'lucide-react';
 import { useState } from 'react';
+import { isTauri } from '../persistence/projectFile';
 import { useCanvasStore, type PortLabelMode } from '../store/canvasStore';
 
 type Props = {
@@ -19,7 +20,14 @@ export function Toolbar({ menuOpen, onToggleMenu, selectedCount, onGather }: Pro
   const settings = useCanvasStore((state) => state.settings);
   const setSettings = useCanvasStore((state) => state.setSettings);
   const setTipsOpen = useCanvasStore((state) => state.setTipsOpen);
+  const projectFileName = useCanvasStore((state) => state.projectFileName);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [projectOpen, setProjectOpen] = useState(false);
+
+  const projectAction = (action: () => unknown) => () => {
+    setProjectOpen(false);
+    void action();
+  };
 
   // Fit computes bounds from the DOCUMENT, not from rendered nodes --
   // onlyRenderVisibleElements culls off-screen nodes from the DOM, and RF's
@@ -80,6 +88,15 @@ export function Toolbar({ menuOpen, onToggleMenu, selectedCount, onGather }: Pro
         </button>
       )}
       <button
+        className={`toolbar-button ${projectOpen ? 'is-active' : ''}`}
+        title="Project: open, save, export"
+        aria-expanded={projectOpen}
+        aria-label="Project"
+        onClick={() => setProjectOpen((open) => !open)}
+      >
+        <FolderOpen size={15} aria-hidden />
+      </button>
+      <button
         className={`toolbar-button ${settingsOpen ? 'is-active' : ''}`}
         title="Canvas settings"
         aria-expanded={settingsOpen}
@@ -96,6 +113,39 @@ export function Toolbar({ menuOpen, onToggleMenu, selectedCount, onGather }: Pro
       >
         <HelpCircle size={15} aria-hidden />
       </button>
+      {projectOpen && (
+        <div className="settings-popover" role="dialog" aria-label="Project">
+          <p className="settings-title">
+            {projectFileName ?? 'Untitled project (browser storage)'}
+          </p>
+          <div className="settings-column">
+            <button onClick={projectAction(() => useCanvasStore.getState().newProject())}>
+              New canvas
+            </button>
+            <button onClick={projectAction(() => useCanvasStore.getState().openProject())}>
+              Open project…
+            </button>
+            <button onClick={projectAction(() => useCanvasStore.getState().saveProject())}>
+              {isTauri() ? 'Save' : 'Download a copy (.nodecanvas)'}
+            </button>
+            {isTauri() && (
+              <button onClick={projectAction(() => useCanvasStore.getState().saveProjectAs())}>
+                Save as…
+              </button>
+            )}
+            <button
+              onClick={projectAction(() => useCanvasStore.getState().exportCanvasImage('png'))}
+            >
+              Export canvas as PNG
+            </button>
+            <button
+              onClick={projectAction(() => useCanvasStore.getState().exportCanvasImage('svg'))}
+            >
+              Export canvas as SVG
+            </button>
+          </div>
+        </div>
+      )}
       {settingsOpen && (
         <div className="settings-popover" role="dialog" aria-label="Canvas settings">
           <p className="settings-title">Canvas settings</p>

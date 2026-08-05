@@ -50,9 +50,11 @@ describe('node faces (I8: per-type looks plug in without touching shared chrome)
     render(<App />);
 
     // both sections' TEXT appears inside the document (live embeds, in
-    // wire order), marked as embeds -- no chips between paragraphs
-    await screen.findByText('Alpha text.');
-    await screen.findByText('Beta text.');
+    // wire order), marked as embeds -- no chips between paragraphs.
+    // findAllByText: the SOURCE section faces also show their words now that
+    // unfocused faces render a static preview (Chunk 18 lazy editors).
+    await screen.findAllByText('Alpha text.');
+    await screen.findAllByText('Beta text.');
     expect(document.querySelectorAll('.doc-block.is-embed.is-live')).toHaveLength(2);
     expect(document.querySelector('[data-doc-blocks]')!.textContent).toMatch(
       /Alpha text\..*Beta text\./s,

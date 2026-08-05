@@ -1,0 +1,59 @@
+{
+  "fixture": {
+    "schemaVersion": 1,
+    "id": "doc_export-fixture",
+    "name": "Export fixture",
+    "canvasMode": "novel",
+    "createdAt": "2026-08-05T12:00:00.000Z",
+    "nodes": [
+      {
+        "id": "node_chapter",
+        "type": "document",
+        "position": { "x": 0, "y": 0 },
+        "data": {
+          "title": "Chapter One",
+          "content": "<h2>The Storm</h2><p>It began <strong>slowly</strong>, then <em>all at once</em>.</p>"
+        }
+      },
+      {
+        "id": "node_scene-a",
+        "type": "section",
+        "position": { "x": -600, "y": -200 },
+        "data": {
+          "title": "The lighthouse",
+          "content": "<p>Bob said: &quot;hold fast &amp; wait&quot;.</p><ul><li>rope</li><li>lantern<br>oil</li></ul>"
+        }
+      },
+      {
+        "id": "node_scene-b",
+        "type": "section",
+        "position": { "x": -600, "y": 200 },
+        "data": {
+          "title": "The shore",
+          "content": "<blockquote><p>The sea gives &lt;nothing&gt; back.</p></blockquote><hr><p>The pier drowned. 2. not a list</p>"
+        }
+      }
+    ],
+    "edges": [],
+    "wires": [
+      {
+        "id": "wire_a",
+        "source": "node_scene-a",
+        "sourcePort": "text-out",
+        "target": "node_chapter",
+        "targetPort": "sections-in",
+        "status": "live"
+      },
+      {
+        "id": "wire_b",
+        "source": "node_scene-b",
+        "sourcePort": "text-out",
+        "target": "node_chapter",
+        "targetPort": "sections-in",
+        "status": "live"
+      }
+    ],
+    "assemblies": []
+  },
+  "markdown": "# Chapter One\n\n## The Storm\n\nIt began **slowly**, then *all at once*.\n\nBob said: \"hold fast & wait\".\n\n- rope\n- lantern\n  oil\n\n> The sea gives <nothing> back.\n\n---\n\nThe pier drowned. 2. not a list\n"
+}

@@ -4,14 +4,14 @@
 // mirrors, no measurement (CanvasNode records real heights for layout math).
 
 import { useCanvasStore } from '../../store/canvasStore';
-import { RichText } from '../RichText';
+import { LazyRichText } from '../RichText';
 import type { FaceProps } from './index';
 
 export function DefaultFace({ nodeId, content }: FaceProps) {
   const setNodeContent = useCanvasStore((state) => state.setNodeContent);
   return (
     <div className="canvas-node-body">
-      <RichText
+      <LazyRichText
         value={content}
         onChange={(html) => setNodeContent(nodeId, html)}
         placeholder="Write here…"

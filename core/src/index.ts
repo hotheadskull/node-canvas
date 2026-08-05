@@ -4,6 +4,7 @@
 export * from './ids';
 export * from './registry';
 export * from './schema';
+export * from './migrate';
 export * from './graph';
 export * from './wires';
 export * from './layout';
@@ -13,3 +14,4 @@ export * from './assemblies';
 export * from './arcs';
 export * from './blocks';
 export * from './novel';
+export * from './export';

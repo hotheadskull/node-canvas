@@ -57,6 +57,51 @@ import { firstCompatibleTake, PLAIN_HANDLES, useCanvasStore } from './store/canv
 const nodeTypes = { canvas: CanvasNode, assembly: AssemblyFace };
 const edgeTypes = { plain: PlainEdge, wire: WireEdge };
 
+// ---- Identity-preserving sync (Chunk 18 perf pass) ----
+// The document->RF sync effects used to mint a fresh object for EVERY node
+// and edge on EVERY document commit, so React.memo never skipped anything and
+// each keystroke re-rendered every visible card (TipTap included). The CPU
+// profile of the 500-node stress boot was pure render churn. Rebuilt objects
+// that carry no real change are swapped back for their existing instance so
+// memoized renderers bail out; RF-owned runtime fields (selection, dragging,
+// measured) are ignored by the comparison and survive either way.
+const RF_OWNED_FIELDS = new Set(['selected', 'dragging', 'measured', 'resizing']);
+
+function shallowEqual(a: Record<string, unknown>, b: Record<string, unknown>): boolean {
+  const aKeys = Object.keys(a);
+  const bKeys = Object.keys(b);
+  if (aKeys.length !== bKeys.length) return false;
+  return aKeys.every((key) => a[key] === b[key]);
+}
+
+function keepIdentity<T extends Record<string, unknown>>(existing: T | undefined, candidate: T): T {
+  if (!existing) return candidate;
+  const keys = new Set([...Object.keys(existing), ...Object.keys(candidate)]);
+  for (const key of keys) {
+    if (RF_OWNED_FIELDS.has(key)) continue;
+    const a = existing[key];
+    const b = candidate[key];
+    if (a === b) continue;
+    if (
+      a !== null && b !== null &&
+      typeof a === 'object' && typeof b === 'object' &&
+      !Array.isArray(a) && !Array.isArray(b) &&
+      shallowEqual(a as Record<string, unknown>, b as Record<string, unknown>)
+    ) {
+      continue;
+    }
+    return candidate;
+  }
+  return existing;
+}
+
+/** Return `current` itself when nothing changed, so setState bails too. */
+function keepArrayIdentity<T>(current: T[], next: T[]): T[] {
+  return next.length === current.length && next.every((item, index) => item === current[index])
+    ? current
+    : next;
+}
+
 export function Canvas() {
   const document = useCanvasStore((state) => state.document);
   const initialViewport = useCanvasStore((state) => state.initialViewport);
@@ -74,10 +119,16 @@ export function Canvas() {
   const gatherSelection = useCanvasStore((state) => state.gatherSelection);
   const drillTo = useCanvasStore((state) => state.drillTo);
   const openEditor = useCanvasStore((state) => state.openEditor);
+  const exportingCanvas = useCanvasStore((state) => state.exportingCanvas);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [rfNodes, setRfNodes] = useState<Node[]>([]);
   const [rfEdges, setRfEdges] = useState<Edge[]>([]);
+  // Nodes are handed to RF only after it has MEASURED its container. Before
+  // that, onlyRenderVisibleElements has a 0x0 viewport to test against and
+  // mounts EVERY node -- on a 500-node canvas that meant ~500 TipTap editors
+  // built and immediately unmounted (a 27s boot, found by the stress spec).
+  const [flowReady, setFlowReady] = useState(false);
   // Semantic zoom: past the far threshold, collapsed assemblies render as
   // glowing star points (the theme made mechanical + the perf lever).
   const [zoomBucket, setZoomBucket] = useState<'near' | 'far'>('near');
@@ -124,6 +175,7 @@ export function Canvas() {
   // Sync core document -> RF state. Existing RF node objects are merged so
   // RF-owned fields (measured dims, selection, dragging) survive the sync.
   useEffect(() => {
+    if (!flowReady) return;
     setRfNodes((current) => {
       const byId = new Map(current.map((node) => [node.id, node]));
       const canvasNodes = document.nodes
@@ -136,12 +188,20 @@ export function Canvas() {
           // the card after Fit hands ownership back to auto-growth.
           const { width: _staleW, height: _staleH, ...existingBase } = existing ?? ({} as Node);
           const owned = typeof docNode.data['ownedHeight'] === 'number';
-          return {
+          return keepIdentity(existing, {
             ...existingBase,
             id: docNode.id,
             type: 'canvas' as const,
             ...(docNode.size ? { width: docNode.size.width } : {}),
             ...(owned && docNode.size ? { height: docNode.size.height } : {}),
+            // Size HINTS for the culling pass only (RF: measured ?? explicit
+            // ?? initial). Without a height hint an unmeasured auto-height
+            // node "has no dimensions", is exempt from culling, and mounts
+            // just to be measured -- 500 TipTap editors at boot. The card's
+            // real height still comes from CSS auto-growth after mount.
+            ...(docNode.size
+              ? { initialWidth: docNode.size.width, initialHeight: docNode.size.height }
+              : {}),
             // phrasing strips take a DERIVED display position; the stored
             // position is untouched and dragging is disabled while displayed
             position: strip
@@ -163,26 +223,29 @@ export function Canvas() {
                 ? { accent: docNode.data['accent'] }
                 : {}),
             },
-          };
+          });
         });
       const faceNodes = document.assemblies
         .filter((assembly) => view.assemblyVisible(assembly.id))
-        .map((assembly) => ({
-          ...byId.get(assembly.id),
-          id: assembly.id,
-          type: 'assembly' as const,
-          position: assembly.position,
-          data: {
-            assemblyId: assembly.id,
-            name: assembly.name,
-            collapsed: assembly.collapsed,
-          },
-        }));
-      return [...canvasNodes, ...faceNodes];
+        .map((assembly) =>
+          keepIdentity(byId.get(assembly.id), {
+            ...byId.get(assembly.id),
+            id: assembly.id,
+            type: 'assembly' as const,
+            position: assembly.position,
+            data: {
+              assemblyId: assembly.id,
+              name: assembly.name,
+              collapsed: assembly.collapsed,
+            },
+          }),
+        );
+      return keepArrayIdentity(current, [...canvasNodes, ...faceNodes]);
     });
-  }, [document.nodes, document.assemblies, view]);
+  }, [document.nodes, document.assemblies, view, flowReady]);
 
   useEffect(() => {
+    if (!flowReady) return;
     setRfEdges((current) => {
       const byId = new Map(current.map((edge) => [edge.id, edge]));
       const endpointVisible = (id: string) =>
@@ -198,7 +261,7 @@ export function Canvas() {
         const sourceRemapped = source !== docEdge.source;
         const targetRemapped = target !== docEdge.target;
         return [
-          {
+          keepIdentity(byId.get(docEdge.id), {
             ...byId.get(docEdge.id),
             id: docEdge.id,
             type: 'plain' as const,
@@ -211,7 +274,7 @@ export function Canvas() {
               ? { targetHandle: docEdge.targetHandle }
               : { targetHandle: null }),
             ...(docEdge.label !== undefined ? { label: docEdge.label } : {}),
-          },
+          }),
         ];
       });
       const wireEdges = document.wires.flatMap((wire) => {
@@ -223,7 +286,7 @@ export function Canvas() {
         const givePort = sourceNode ? getPort(sourceNode.type, wire.sourcePort) : undefined;
         const isArc = givePort?.dataKind === 'prop' && wire.targetPort === 'arc-in';
         return [
-          {
+          keepIdentity(byId.get(wire.id), {
             ...byId.get(wire.id),
             id: wire.id,
             type: 'wire' as const,
@@ -239,12 +302,12 @@ export function Canvas() {
               ...(wire.relation !== undefined ? { relation: wire.relation } : {}),
               ...(wire.label !== undefined ? { label: wire.label } : {}),
             },
-          },
+          }),
         ];
       });
-      return [...plainEdges, ...wireEdges];
+      return keepArrayIdentity(current, [...plainEdges, ...wireEdges]);
     });
-  }, [document.edges, document.wires, document.nodes, view]);
+  }, [document.edges, document.wires, document.nodes, view, flowReady]);
 
   const isAssemblyId = useCallback(
     (id: string) => document.assemblies.some((assembly) => assembly.id === id),
@@ -427,13 +490,16 @@ export function Canvas() {
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         isValidConnection={isValidConnection}
+        onInit={() => setFlowReady(true)}
         defaultViewport={initialViewport}
         onMove={(_event, viewport) => {
           const bucket = viewport.zoom < 0.25 ? 'far' : 'near';
           setZoomBucket((current) => (current === bucket ? current : bucket));
         }}
         onMoveEnd={(_event, viewport) => saveViewport(viewport)}
-        onlyRenderVisibleElements
+        /* Culling pauses during canvas image export so off-screen nodes
+           render into the picture (the exportingCanvas flag round-trips) */
+        onlyRenderVisibleElements={!exportingCanvas}
         connectionMode={ConnectionMode.Loose}
         connectionRadius={40}
         connectOnClick

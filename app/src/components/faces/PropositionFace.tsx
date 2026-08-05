@@ -4,7 +4,7 @@
 // group face and Arc room derive the outline. Growth is native (Chunk 17).
 
 import { useCanvasStore } from '../../store/canvasStore';
-import { RichText } from '../RichText';
+import { LazyRichText } from '../RichText';
 import type { FaceProps } from './index';
 
 export function PropositionFace({ nodeId, content }: FaceProps) {
@@ -26,7 +26,7 @@ export function PropositionFace({ nodeId, content }: FaceProps) {
         aria-label="Verse reference"
         onChange={(event) => setVerseRef(nodeId, event.target.value)}
       />
-      <RichText
+      <LazyRichText
         value={content}
         onChange={(html) => setNodeContent(nodeId, html)}
         placeholder="One assertion of the text…"

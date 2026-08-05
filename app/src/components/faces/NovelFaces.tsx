@@ -12,7 +12,7 @@ import {
 } from '@node-canvas/core';
 import { useMemo } from 'react';
 import { useCanvasStore } from '../../store/canvasStore';
-import { RichText } from '../RichText';
+import { LazyRichText } from '../RichText';
 import type { FaceProps } from './index';
 
 export function PlantFace({ nodeId, content }: FaceProps) {
@@ -21,7 +21,7 @@ export function PlantFace({ nodeId, content }: FaceProps) {
   const payoffs = useMemo(() => payoffsOf(document, nodeId), [document, nodeId]);
   return (
     <div className="canvas-node-body pair-face" data-face="plant">
-      <RichText
+      <LazyRichText
         value={content}
         onChange={(html) => setNodeContent(nodeId, html)}
         placeholder="What are you setting up?"
@@ -51,7 +51,7 @@ export function PayoffFace({ nodeId, content }: FaceProps) {
   const plants = useMemo(() => plantsResolvedBy(document, nodeId), [document, nodeId]);
   return (
     <div className="canvas-node-body pair-face" data-face="payoff">
-      <RichText
+      <LazyRichText
         value={content}
         onChange={(html) => setNodeContent(nodeId, html)}
         placeholder="The moment it lands…"
@@ -115,7 +115,7 @@ export function EventFace({ nodeId, content }: FaceProps) {
           />
         </label>
       </div>
-      <RichText
+      <LazyRichText
         value={content}
         onChange={(html) => setNodeContent(nodeId, html)}
         placeholder="What happens…"
