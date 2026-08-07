@@ -29,7 +29,16 @@ master brief — see its "Revision log" for what changed and why).
 | 16 | Onboarding: interactive tutorial (spotlight, performs-action-to-advance, Back/Next + step counter, replayable), Tips/Reference panel | **completed** |
 | 17 | Node remodel: the TAB CARD anatomy system (docs/design/node-anatomy.md) — user picked mockup C; fixes all reported node bugs with regression tests | **completed** |
 | 18 | Hardening: perf pass (500-node stress green), Playwright e2e full loop, migration + backup-before-migrate, file-per-project (.nodecanvas) persistence, exports (markdown/text/PNG/SVG), Tauri shell wiring | **completed** (desktop-window smoke test pending — see session log) |
-| 19 | Commercial: license keys, payments, Windows code signing, Tauri updater, crash reporting | **current** (blocked on user accounts/credentials — see session log) |
+| 19 | Commercial: license keys, payments, Windows code signing, Tauri updater, crash reporting | deferred to VERY LAST (user, 2026-08-06); also blocked on user accounts — see 2026-08-05 log |
+
+**CURRENT FOCUS (user, 2026-08-06): the visual system + polish arc.** Order:
+(1) user picks/mixes from the 4-direction visual pitch (artifact
+"Node Canvas — Visual Direction Pitch"; directions: A Observatory / B
+Manuscript / C Drafting Room / D Ledger) → write docs/design/visual-system.md
+as CSS tokens + amend I8 with sign-off; (2) apply the system app-wide
+(canvas, cards, menus, rooms, toolbar); (3) per-node design passes under the
+standing flow (Note + Section first); (4) polish backlog from TRY-IT +
+fresh walkthroughs. Chunk 19 only after all of that.
 
 ## User feedback driving Chunk 17 (verbatim intent, 2026-07-14)
 
