@@ -15,3 +15,4 @@ export * from './arcs';
 export * from './blocks';
 export * from './novel';
 export * from './export';
+export * from './colors';

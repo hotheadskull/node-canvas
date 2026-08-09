@@ -26,14 +26,33 @@ export type NodeCategory = 'writing' | 'knowledge' | 'structure';
 export type NodeSizing = 'auto-height' | 'auto' | 'fixed';
 
 /**
+ * The eleven data kinds -- a CLOSED union, because the visual system hangs
+ * everything on it (colors.ts: a wire is the colour of what travels down
+ * it). A pack adding a kind adds it here AND in DATA_KIND_STYLES, or the
+ * compiler refuses.
+ */
+export type DataKind =
+  | 'text'
+  | 'person'
+  | 'place'
+  | 'thing'
+  | 'cite'
+  | 'claim'
+  | 'prop'
+  | 'plant'
+  | 'event'
+  | 'thread'
+  | 'any';
+
+/**
  * Port declaration. Gives always feed any number of intakes; takes declare
- * their own capacity. dataKind must match exactly for a wire to be valid:
- * 'text' | 'thread' | 'person' | 'place' | 'thing' (packs add their own).
+ * their own capacity. dataKind must match exactly for a wire to be valid
+ * ('any' takes accept anything and keep the source's colour).
  */
 export type PortDef = {
   id: string;
   direction: 'give' | 'take';
-  dataKind: string;
+  dataKind: DataKind;
   label: string;
   /** Rendered as a handle by default; hidden ports live in the inspector. */
   defaultVisible: boolean;

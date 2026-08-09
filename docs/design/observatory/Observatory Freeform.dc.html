@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Spectral:ital,wght@0,400;0,500;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<style>
+body{margin:0;background:#05060d}
+a{color:#a595f2}a:hover{color:#c9c0ff}
+@keyframes of-flow{from{stroke-dashoffset:1200}to{stroke-dashoffset:0}}
+@keyframes of-neb{0%{transform:translate3d(0,0,0) scale(1.06) rotate(0deg)}50%{transform:translate3d(3%,-2%,0) scale(1.2) rotate(5deg)}100%{transform:translate3d(0,0,0) scale(1.06) rotate(0deg)}}
+@keyframes of-neb2{0%{transform:translate3d(0,0,0) scale(1.16)}50%{transform:translate3d(-4%,3%,0) scale(1)}100%{transform:translate3d(0,0,0) scale(1.16)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</helmet>
+
+<div style="width:1440px;margin:0 auto;padding:26px 0 60px;font-family:'Space Grotesk',system-ui,sans-serif;color:#e8e9f5">
+
+<div style="display:flex;align-items:baseline;gap:12px;padding:0 4px 6px">
+<span style="font-size:19px;font-weight:500;letter-spacing:-.01em">Observatory — freeform</span>
+<span style="font:400 11px 'Space Mono',monospace;color:#8085ad">no grid, no columns · 14 nodes placed by hand</span>
+</div>
+<p style="margin:0 0 16px;padding:0 4px;max-width:1000px;font-size:12.5px;line-height:1.65;color:#9095bd;text-wrap:pretty">The columns in the earlier canvases were my layout, not the design's requirement. Lanes were never meant to be a grid you place nodes into — they are <b style="color:#c9cdea;font-weight:500">found in the empty space you leave behind</b>. Drop nodes wherever you think, and the router reads the gaps between them as corridors, then runs wires down those corridors in lanes. Move a node and the corridors are recomputed. The rigid look survives because the <i>wires</i> are rigid, not the placement.</p>
+
+<div data-screen-label="Freeform canvas" style="position:relative;width:1440px;height:812px;overflow:hidden;border:1px solid #1c2038;border-radius:12px;background:#05060d;font-family:Spectral,Georgia,serif">
+
+<div style="position:absolute;inset:-22%;pointer-events:none;z-index:0;filter:blur(52px);opacity:.7;background:radial-gradient(36% 40% at 62% 22%,rgba(122,98,214,.4),transparent 68%);animation:of-neb 86s ease-in-out infinite"></div>
+<div style="position:absolute;inset:-22%;pointer-events:none;z-index:0;filter:blur(62px);opacity:.5;background:radial-gradient(40% 36% at 22% 76%,rgba(38,120,158,.4),transparent 70%);animation:of-neb2 112s ease-in-out infinite"></div>
+<div style="position:absolute;inset:0;pointer-events:none;z-index:1;background-image:radial-gradient(1.2px 1.2px at 31px 47px,rgba(255,255,255,.7),transparent),radial-gradient(1px 1px at 151px 103px,rgba(255,212,164,.7),transparent),radial-gradient(1px 1px at 219px 188px,rgba(150,232,220,.6),transparent);background-size:270px 270px,310px 310px,190px 190px"></div>
+<div style="position:absolute;inset:0;pointer-events:none;z-index:2;background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.045) 1px,transparent 0);background-size:24px 24px"></div>
+
+<!-- top rail -->
+<div style="position:absolute;left:0;top:0;right:0;height:42px;display:flex;align-items:center;gap:12px;padding:0 16px;background:rgba(5,6,13,.75);border-bottom:1px solid #1c2038;backdrop-filter:blur(8px);z-index:40;font-family:'Space Grotesk',sans-serif">
+<span style="display:flex;align-items:center;gap:7px;font-size:11.5px;color:#9095bd"><i data-lucide="folder" style="width:12px;height:12px;color:#8085ad"></i>Drafts<span style="color:#8085ad">/</span><span style="color:#e8e9f5">Salt Road</span></span>
+<span style="width:1px;height:16px;background:#22263f"></span>
+<span style="display:flex;gap:5px">
+<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;border:1px solid #22263f;font-size:10.5px;color:#9095bd"><i data-lucide="hand" style="width:11px;height:11px"></i>Pan</span>
+<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;border:1px solid rgba(132,220,242,.4);background:rgba(132,220,242,.1);font-size:10.5px;color:#9fe4f5"><i data-lucide="pen-line" style="width:11px;height:11px"></i>Ink</span>
+</span>
+<span style="width:1px;height:16px;background:#22263f"></span>
+<span style="display:flex;gap:2px;padding:2px;border:1px solid #22263f;border-radius:7px">
+<span style="padding:2px 9px;border-radius:5px;font-size:10.5px;background:rgba(165,149,242,.16);color:#cbc2ff">Free</span>
+<span style="padding:2px 9px;border-radius:5px;font-size:10.5px;color:#8085ad">Snap 24</span>
+<span style="padding:2px 9px;border-radius:5px;font-size:10.5px;color:#8085ad">Tidy</span>
+</span>
+<span style="flex:1"></span>
+<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;border:1px solid #22263f;font-size:10.5px;color:#9095bd"><i data-lucide="route" style="width:11px;height:11px;color:#8085ad"></i>Corridors</span>
+<span style="display:flex;align-items:center;gap:6px;font:400 10px 'Space Mono',monospace;color:#9095bd">14 nodes · 11 wires</span>
+<span style="padding:2px 8px;border:1px solid #282d51;border-radius:6px;font:400 10px 'Space Mono',monospace;color:#9095bd">92%</span>
+</div>
+
+<!-- derived corridors -->
+<svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3" viewBox="0 0 1440 812" fill="none">
+<g fill="#a595f2" fill-opacity=".035" stroke="#a595f2" stroke-opacity=".13" stroke-dasharray="3 7">
+<rect x="344" y="66" width="48" height="620"></rect>
+<rect x="710" y="66" width="72" height="620"></rect>
+<rect x="66" y="90" width="1310" height="30"></rect>
+<rect x="366" y="686" width="462" height="44"></rect>
+</g>
+<text x="368" y="678" text-anchor="middle" font-family="Space Mono,monospace" font-size="8.5" letter-spacing="1.2" fill="#6a6f96">CORRIDOR</text>
+<text x="746" y="678" text-anchor="middle" font-family="Space Mono,monospace" font-size="8.5" letter-spacing="1.2" fill="#6a6f96">CORRIDOR</text>
+<text x="1376" y="106" text-anchor="end" font-family="Space Mono,monospace" font-size="8.5" letter-spacing="1.2" fill="#6a6f96">CORRIDOR — derived from the gaps, not drawn</text>
+</svg>
+
+<!-- wires -->
+<svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5" viewBox="0 0 1440 812" fill="none" stroke-linecap="round" stroke-linejoin="round">
+<g stroke-width="7" stroke-opacity=".09">
+<path d="M274,300 H358 L368,290 V272 L378,262 H430" stroke="#6fd39a"></path>
+<path d="M338,414 H360 L370,424 H470" stroke="#f0685e"></path>
+<path d="M500,232 V122 L490,112 H206 L196,122 V140" stroke="#4fc9e8"></path>
+<path d="M620,570 H726 L736,560 V530 L746,520 H790" stroke="#f0c96a"></path>
+<path d="M1070,500 H1090 L1100,490 H1120" stroke="#a595f2"></path>
+<path d="M1200,232 V110 L1190,100 H1000 L990,110 V124" stroke="#e89b8f"></path>
+<path d="M940,348 V470" stroke="#52b8a8"></path>
+<path d="M900,660 V574" stroke="#7fa3e8"></path>
+<path d="M702,428 H740 L750,438 V514 A6,6 0 0 1 750,526 V535 L760,545 H790" stroke="#d07fd0"></path>
+<path d="M284,590 H358 L368,580 H398" stroke="#9a92c4"></path>
+<path d="M362,720 H386 L396,710 H810 L820,700 H830" stroke="#e8934a"></path>
+</g>
+<path d="M274,300 H358 L368,290 V272 L378,262 H430" stroke="#6fd39a" stroke-width="1.6" stroke-opacity=".68"></path>
+<path d="M338,414 H360 L370,424 H470" stroke="#f0685e" stroke-width="1.6" stroke-opacity=".68" stroke-dasharray="7 4"></path>
+<path d="M500,232 V122 L490,112 H206 L196,122 V140" stroke="#4fc9e8" stroke-width="1.6" stroke-opacity=".68"></path>
+<path d="M620,570 H726 L736,560 V530 L746,520 H790" stroke="#f0c96a" stroke-width="1.5" stroke-opacity=".68" stroke-dasharray="2 5"></path>
+<path d="M1070,500 H1090 L1100,490 H1120" stroke="#a595f2" stroke-width="1.9" stroke-opacity=".74"></path>
+<path d="M1200,232 V110 L1190,100 H1000 L990,110 V124" stroke="#e89b8f" stroke-width="1.5" stroke-opacity=".68" stroke-dasharray="3 3"></path>
+<path d="M940,348 V470" stroke="#52b8a8" stroke-width="1.6" stroke-opacity=".68" stroke-dasharray="12 5"></path>
+<path d="M900,660 V574" stroke="#7fa3e8" stroke-width="1.5" stroke-opacity=".68" stroke-dasharray="1 4"></path>
+<path d="M702,428 H740 L750,438 V514 A6,6 0 0 1 750,526 V535 L760,545 H790" stroke="#d07fd0" stroke-width="1.6" stroke-opacity=".68" stroke-dasharray="10 4 3 4"></path>
+<path d="M284,590 H358 L368,580 H398" stroke="#9a92c4" stroke-width="1.4" stroke-opacity=".6" stroke-dasharray="1 6"></path>
+<path d="M362,720 H386 L396,710 H810 L820,700 H830" stroke="#e8934a" stroke-width="1.6" stroke-opacity=".68" stroke-dasharray="9 3 2 3"></path>
+<g stroke-width="2.6" stroke-linecap="round">
+<path d="M274,300 H358 L368,290 V272 L378,262 H430" stroke="#c6f5db" stroke-dasharray="14 1186" style="animation:of-flow 3.4s linear infinite"></path>
+<path d="M338,414 H360 L370,424 H470" stroke="#ffc2bb" stroke-dasharray="12 1188" style="animation:of-flow 2.2s steps(11,end) infinite"></path>
+<path d="M500,232 V122 L490,112 H206 L196,122 V140" stroke="#b6f0ff" stroke-dasharray="26 1174" style="animation:of-flow 2.8s cubic-bezier(.85,0,.15,1) infinite"></path>
+<path d="M620,570 H726 L736,560 V530 L746,520 H790" stroke="#ffe6ac" stroke-dasharray="4 6 4 6 4 1176" style="animation:of-flow 4.6s linear infinite"></path>
+<path d="M1070,500 H1090 L1100,490 H1120" stroke="#e2dcff" stroke-width="3" stroke-dasharray="44 1156" style="animation:of-flow 5.2s linear infinite"></path>
+<path d="M1200,232 V110 L1190,100 H1000 L990,110 V124" stroke="#ffd2c9" stroke-width="4.4" stroke-opacity=".75" stroke-dasharray="34 1166" style="animation:of-flow 5.6s cubic-bezier(.4,0,.6,1) infinite"></path>
+<path d="M940,348 V470" stroke="#b6ece2" stroke-width="2.2" stroke-dasharray="6 14" style="animation:of-flow 9s linear infinite"></path>
+<path d="M900,660 V574" stroke="#cfdcff" stroke-width="2.2" stroke-dasharray="5 1195" style="animation:of-flow 6s linear infinite"></path>
+<path d="M702,428 H740 L750,438 V514 A6,6 0 0 1 750,526 V535 L760,545 H790" stroke="#f2c6f2" stroke-dasharray="10 5 10 1175" style="animation:of-flow 4s linear infinite"></path>
+<path d="M284,590 H358 L368,580 H398" stroke="#d6d1ee" stroke-width="2.2" stroke-dasharray="5 1195" style="animation:of-flow 7.5s cubic-bezier(.45,0,.55,1) infinite"></path>
+<path d="M362,720 H386 L396,710 H810 L820,700 H830" stroke="#ffd3ac" stroke-dasharray="9 7 9 1175" style="animation:of-flow 3s linear infinite"></path>
+</g>
+</svg>
+
+<!-- N1 QUESTION -->
+<div style="position:absolute;left:96px;top:140px;width:230px;z-index:10"><div style="position:relative;display:flex;height:70px;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:0 14px 30px -14px rgba(0,0,0,.94)"><span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:repeating-linear-gradient(180deg,#f0c96a 0 5px,transparent 5px 10px)"></span><div style="width:13px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:10px 0 0 10px"></div><div style="flex:1;min-width:0;padding:7px 9px"><div style="display:flex;align-items:center;gap:5px"><span style="font:500 8px 'Space Grotesk',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#f0c96a">Question</span><span style="flex:1"></span><span style="font:400 8.5px 'Space Mono',monospace;color:#8085ad">N-02</span><span style="width:6px;height:6px;border-radius:9px;background:#f0c96a"></span></div><div style="font-family:Spectral,Georgia,serif;font-size:12.5px;color:#c9cdea;line-height:1.45;margin-top:5px;text-wrap:pretty">Whose road is it once the empire walks away?</div></div><div style="width:13px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:0 10px 10px 0"></div><span style="position:absolute;left:94px;top:-3px;width:4px;height:11px;border-radius:2px;background:#4fc9e8;box-shadow:0 0 7px rgba(79,201,232,.85)"></span></div></div>
+
+<!-- N2 SOURCE -->
+<div style="position:absolute;left:64px;top:272px;width:210px;z-index:10"><div style="position:relative;display:flex;height:64px;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:0 14px 30px -14px rgba(0,0,0,.94)"><span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,#7fd4c1,transparent)"></span><div style="width:13px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:10px 0 0 10px"></div><div style="flex:1;min-width:0;padding:7px 9px"><div style="display:flex;align-items:center;gap:5px"><span style="font:500 8px 'Space Grotesk',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#7fd4c1">Source</span><span style="flex:1"></span><span style="width:6px;height:6px;border-radius:9px;background:#6fd39a"></span></div><div style="font-size:12px;color:#c9cdea;line-height:1.35;margin-top:5px;font-family:'Space Grotesk',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Findlay &amp; O'Rourke</div><div style="font:400 8.5px 'Space Mono',monospace;color:#8085ad;margin-top:3px">2007 · ch. 3</div></div><div style="width:13px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:0 10px 10px 0"></div><span style="position:absolute;right:2px;top:24px;width:12px;height:4px;border-radius:2px;background:#6fd39a;box-shadow:0 0 7px rgba(111,211,154,.85)"></span></div></div>
+
+<!-- N3 NOTE -->
+<div style="position:absolute;left:124px;top:380px;width:214px;z-index:10"><div style="position:relative;display:flex;height:70px;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:0 14px 30px -14px rgba(0,0,0,.94)"><span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,#7d84b8,transparent)"></span><div style="width:13px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:10px 0 0 10px"></div><div style="flex:1;min-width:0;padding:7px 9px"><div style="display:flex;align-items:center;gap:5px"><span style="font:500 8px 'Space Grotesk',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#7d84b8">Note</span><span style="flex:1"></span><span style="width:6px;height:6px;border-radius:9px;background:#3f446b"></span></div><div style="font-family:Spectral,Georgia,serif;font-size:12px;color:#b2b7d8;line-height:1.5;margin-top:5px;text-wrap:pretty">Sea freight undercut the caravan roughly 20:1 by 1500.</div></div><div style="width:13px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:0 10px 10px 0"></div><span style="position:absolute;right:2px;top:32px;width:12px;height:4px;border-radius:2px;background:#f0685e;box-shadow:0 0 7px rgba(240,104,94,.85)"></span></div></div>
+
+<!-- N13 TERM -->
+<div style="position:absolute;left:88px;top:560px;width:196px;z-index:10"><div style="position:relative;display:flex;height:62px;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:0 14px 30px -14px rgba(0,0,0,.94)"><span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,#9a92c4,transparent)"></span><div style="width:13px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:10px 0 0 10px"></div><div style="flex:1;min-width:0;padding:7px 9px"><div style="display:flex;align-items:center;gap:5px"><span style="font:500 8px 'Space Grotesk',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#9a92c4">Term</span><span style="flex:1"></span><span style="width:6px;height:6px;border-radius:9px;background:#f0c96a"></span></div><div style="font-size:12px;color:#c9cdea;line-height:1.35;margin-top:5px;font-family:'Space Grotesk',sans-serif">Pax Mongolica</div><div style="font:400 8.5px 'Space Mono',monospace;color:#8085ad;margin-top:3px">contested</div></div><div style="width:13px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:0 10px 10px 0"></div><span style="position:absolute;right:2px;top:28px;width:12px;height:4px;border-radius:2px;background:#9a92c4;box-shadow:0 0 7px rgba(154,146,196,.8)"></span></div></div>
+
+<!-- N14 TASK -->
+<div style="position:absolute;left:140px;top:690px;width:222px;z-index:10"><div style="position:relative;display:flex;height:66px;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:0 14px 30px -14px rgba(0,0,0,.94)"><span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,#e8934a,transparent)"></span><div style="width:13px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:10px 0 0 10px"></div><div style="flex:1;min-width:0;padding:7px 9px"><div style="display:flex;align-items:center;gap:5px"><span style="font:500 8px 'Space Grotesk',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#e8934a">Task</span><span style="flex:1"></span><span style="font:400 8.5px 'Space Mono',monospace;color:#8085ad">RK</span><span style="width:6px;height:6px;border-radius:9px;background:#e8934a"></span></div><div style="font-family:Spectral,Georgia,serif;font-size:12px;color:#b2b7d8;line-height:1.5;margin-top:5px;text-wrap:pretty">Pull the 1346 quarantine records</div></div><div style="width:13px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:0 10px 10px 0"></div><span style="position:absolute;right:2px;top:28px;width:12px;height:4px;border-radius:2px;background:#e8934a;box-shadow:0 0 7px rgba(232,147,74,.85)"></span></div></div>
+
+<!-- N4 CLAIM -->
+<div style="position:absolute;left:430px;top:232px;width:250px;z-index:10"><div style="position:relative;display:flex;height:78px;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:0 14px 30px -14px rgba(0,0,0,.94)"><span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,#6fd39a,transparent)"></span><div style="width:13px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:10px 0 0 10px"></div><div style="flex:1;min-width:0;padding:7px 9px"><div style="display:flex;align-items:center;gap:5px"><span style="font:500 8px 'Space Grotesk',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#6fd39a">Claim</span><span style="flex:1"></span><span style="font:400 8.5px 'Space Mono',monospace;color:#8085ad">N-05</span><span style="width:6px;height:6px;border-radius:9px;background:#6fd39a"></span></div><div style="font-family:Spectral,Georgia,serif;font-size:12.5px;color:#c2c6e4;line-height:1.5;margin-top:5px;text-wrap:pretty">The road did not close. Its guarantor dissolved, and the cost of trust rose faster than freight.</div></div><div style="width:13px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:0 10px 10px 0"></div><span style="position:absolute;left:2px;top:26px;width:12px;height:4px;border-radius:2px;background:#6fd39a;box-shadow:0 0 7px rgba(111,211,154,.85)"></span><span style="position:absolute;left:66px;top:-3px;width:4px;height:11px;border-radius:2px;background:#4fc9e8;box-shadow:0 0 7px rgba(79,201,232,.85)"></span></div></div>
+
+<!-- N5 COUNTER -->
+<div style="position:absolute;left:470px;top:392px;width:232px;z-index:10"><div style="position:relative;display:flex;height:72px;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:0 14px 30px -14px rgba(0,0,0,.94)"><span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,#f0685e,transparent)"></span><div style="width:13px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:10px 0 0 10px"></div><div style="flex:1;min-width:0;padding:7px 9px"><div style="display:flex;align-items:center;gap:5px"><span style="font:500 8px 'Space Grotesk',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#f0685e">Counter</span><span style="flex:1"></span><span style="width:6px;height:6px;border-radius:9px;background:#f0685e"></span></div><div style="font-family:Spectral,Georgia,serif;font-size:12px;color:#b2b7d8;line-height:1.5;margin-top:5px;text-wrap:pretty">The sea route wasn't ready until a century later.</div></div><div style="width:13px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:0 10px 10px 0"></div><span style="position:absolute;left:2px;top:30px;width:12px;height:4px;border-radius:2px;background:#f0685e;box-shadow:0 0 7px rgba(240,104,94,.85)"></span><span style="position:absolute;right:2px;top:34px;width:12px;height:4px;border-radius:2px;background:#d07fd0;box-shadow:0 0 7px rgba(208,127,208,.85)"></span></div></div>
+
+<!-- N6 EVIDENCE -->
+<div style="position:absolute;left:398px;top:546px;width:222px;z-index:10"><div style="position:relative;display:flex;height:66px;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:0 14px 30px -14px rgba(0,0,0,.94)"><span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,#52b8a8,transparent)"></span><div style="width:13px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:10px 0 0 10px"></div><div style="flex:1;min-width:0;padding:7px 9px"><div style="display:flex;align-items:center;gap:5px"><span style="font:500 8px 'Space Grotesk',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#52b8a8">Evidence</span><span style="flex:1"></span><span style="width:6px;height:6px;border-radius:9px;background:#6fd39a"></span></div><div style="font-size:12px;color:#c9cdea;line-height:1.35;margin-top:5px;font-family:'Space Grotesk',sans-serif">Freight ratio 20:1</div><div style="font:400 8.5px 'Space Mono',monospace;color:#8085ad;margin-top:3px">p. 118 · clipped</div></div><div style="width:13px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:0 10px 10px 0"></div><span style="position:absolute;left:2px;top:32px;width:12px;height:4px;border-radius:2px;background:#9a92c4;box-shadow:0 0 7px rgba(154,146,196,.8)"></span><span style="position:absolute;right:2px;top:22px;width:12px;height:4px;border-radius:2px;background:#f0c96a;box-shadow:0 0 7px rgba(240,201,106,.85)"></span></div></div>
+
+<!-- N7 SCENE -->
+<div style="position:absolute;left:820px;top:124px;width:228px;z-index:10"><div style="position:relative;display:flex;height:72px;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:0 14px 30px -14px rgba(0,0,0,.94)"><span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,#9fd18a,transparent)"></span><div style="width:13px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:10px 0 0 10px"></div><div style="flex:1;min-width:0;padding:7px 9px"><div style="display:flex;align-items:center;gap:5px"><span style="font:500 8px 'Space Grotesk',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#9fd18a">Scene</span><span style="padding:0 5px;border-radius:9999px;background:rgba(159,209,138,.1);font:400 8px 'Space Mono',monospace;color:#8fae7f">beat 3</span><span style="flex:1"></span><span style="width:6px;height:6px;border-radius:9px;background:#3f446b"></span></div><div style="font-size:12px;color:#c9cdea;line-height:1.35;margin-top:5px;font-family:'Space Grotesk',sans-serif">The gates close from the inside</div><div style="font:400 8.5px 'Space Mono',monospace;color:#8085ad;margin-top:3px">640 w · draft</div></div><div style="width:13px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:0 10px 10px 0"></div><span style="position:absolute;left:164px;top:-3px;width:4px;height:11px;border-radius:2px;background:#e89b8f;box-shadow:0 0 7px rgba(232,155,143,.85)"></span></div></div>
+
+<!-- N9 PLACE -->
+<div style="position:absolute;left:852px;top:286px;width:180px;z-index:10"><div style="position:relative;display:flex;height:62px;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:0 14px 30px -14px rgba(0,0,0,.94)"><span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,#c9a26b,transparent)"></span><div style="width:13px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:10px 0 0 10px"></div><div style="flex:1;min-width:0;padding:7px 9px"><div style="display:flex;align-items:center;gap:5px"><span style="font:500 8px 'Space Grotesk',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#c9a26b">Place</span><span style="flex:1"></span><span style="width:6px;height:6px;border-radius:9px;background:#6fd39a"></span></div><div style="font-size:12px;color:#c9cdea;line-height:1.35;margin-top:5px;font-family:'Space Grotesk',sans-serif">Kaffa</div><div style="font:400 8.5px 'Space Mono',monospace;color:#8085ad;margin-top:3px">Crimea · 1346</div></div><div style="width:13px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:0 10px 10px 0"></div><span style="position:absolute;left:86px;bottom:-3px;width:4px;height:11px;border-radius:2px;background:#52b8a8;box-shadow:0 0 7px rgba(82,184,168,.85)"></span></div></div>
+
+<!-- N8 CAST -->
+<div style="position:absolute;left:1096px;top:232px;width:214px;z-index:10"><div style="position:relative;display:flex;height:68px;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:0 14px 30px -14px rgba(0,0,0,.94)"><span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,#e89b8f,transparent)"></span><div style="width:13px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:10px 0 0 10px"></div><div style="flex:1;min-width:0;padding:7px 9px"><div style="display:flex;align-items:center;gap:5px"><span style="font:500 8px 'Space Grotesk',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#e89b8f">Cast</span><span style="flex:1"></span><span style="width:6px;height:6px;border-radius:9px;background:#6fd39a"></span></div><div style="font-size:12px;color:#c9cdea;line-height:1.35;margin-top:5px;font-family:'Space Grotesk',sans-serif">Yusuf al-Tabrizi</div><div style="font:400 8.5px 'Space Mono',monospace;color:#8085ad;margin-top:3px">POV · appears in 5</div></div><div style="width:13px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:0 10px 10px 0"></div><span style="position:absolute;left:102px;top:-3px;width:4px;height:11px;border-radius:2px;background:#e89b8f;box-shadow:0 0 7px rgba(232,155,143,.85)"></span></div></div>
+
+<!-- N10 SECTION — selected -->
+<div style="position:absolute;left:790px;top:470px;width:280px;z-index:20"><div style="position:relative;display:flex;height:104px;background:linear-gradient(180deg,rgba(26,29,60,.96),rgba(15,17,40,.96));border:1px solid #7a6ec4;border-radius:10px;box-shadow:0 0 0 3px rgba(165,149,242,.15),0 20px 44px -18px rgba(0,0,0,.95)"><span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,#d08fd0,rgba(208,143,208,.25))"></span><div style="width:13px;flex:none;border-right:1px solid #262b52;background:rgba(0,0,0,.26);border-radius:10px 0 0 10px"></div><div style="flex:1;min-width:0;padding:7px 9px"><div style="display:flex;align-items:center;gap:5px"><span style="font:500 8px 'Space Grotesk',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#d08fd0">Section</span><span style="padding:0 6px;border-radius:9999px;background:rgba(165,149,242,.16);font:400 8px 'Space Mono',monospace;color:#c6bcf5">ch4</span><span style="flex:1"></span><span style="font:400 8.5px 'Space Mono',monospace;color:#8085ad">N-03</span><span style="width:6px;height:6px;border-radius:9px;background:#f0c96a"></span></div><div style="font-size:13px;color:#e8e9f5;line-height:1.35;margin-top:5px;font-family:'Space Grotesk',sans-serif;font-weight:500">The last caravan</div><div style="font-family:Spectral,Georgia,serif;font-size:12px;color:#b2b7d8;line-height:1.5;margin-top:4px;text-wrap:pretty">A single passport worked from Kiev to Khanbaliq — until the khanates fractured.</div><div style="font:400 8.5px 'Space Mono',monospace;color:#8085ad;margin-top:5px">412 w · 4 in · 1 out</div></div><div style="width:13px;flex:none;border-left:1px solid #262b52;background:rgba(0,0,0,.26);border-radius:0 10px 10px 0"></div><span style="position:absolute;left:2px;top:44px;width:12px;height:4px;border-radius:2px;background:#f0c96a;box-shadow:0 0 7px rgba(240,201,106,.85)"></span><span style="position:absolute;left:2px;top:69px;width:12px;height:4px;border-radius:2px;background:#d07fd0;box-shadow:0 0 7px rgba(208,127,208,.85)"></span><span style="position:absolute;left:146px;top:-3px;width:4px;height:11px;border-radius:2px;background:#52b8a8;box-shadow:0 0 7px rgba(82,184,168,.85)"></span><span style="position:absolute;left:106px;bottom:-3px;width:4px;height:11px;border-radius:2px;background:#7fa3e8;box-shadow:0 0 7px rgba(127,163,232,.85)"></span><span style="position:absolute;right:2px;top:24px;width:12px;height:4px;border-radius:2px;background:#a595f2;box-shadow:0 0 7px rgba(165,149,242,.9)"></span><span style="position:absolute;left:-5px;top:-5px;width:10px;height:10px;border-left:1.5px solid #a595f2;border-top:1.5px solid #a595f2;border-radius:3px 0 0 0"></span><span style="position:absolute;right:-5px;top:-5px;width:10px;height:10px;border-right:1.5px solid #a595f2;border-top:1.5px solid #a595f2;border-radius:0 3px 0 0"></span><span style="position:absolute;left:-5px;bottom:-5px;width:10px;height:10px;border-left:1.5px solid #a595f2;border-bottom:1.5px solid #a595f2;border-radius:0 0 0 3px"></span><span style="position:absolute;right:-5px;bottom:-5px;width:10px;height:10px;border-right:1.5px solid #a595f2;border-bottom:1.5px solid #a595f2;border-radius:0 0 3px 0"></span></div></div>
+
+<!-- N11 DOCUMENT -->
+<div style="position:absolute;left:1120px;top:430px;width:250px;z-index:10"><div style="position:relative;display:flex;min-height:200px;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:0 14px 30px -14px rgba(0,0,0,.94)"><span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,#a595f2,transparent)"></span><div style="width:13px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:10px 0 0 10px"></div><div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:6px;padding:7px 9px 6px;font-family:'Space Grotesk',sans-serif;background:linear-gradient(96deg,rgba(165,149,242,.15),rgba(165,149,242,.04) 46%,transparent 72%)"><i data-lucide="book-open-text" style="width:11px;height:11px;color:#a595f2"></i><span style="font-size:8px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:#a595f2">Document</span><span style="flex:1"></span><span style="width:6px;height:6px;border-radius:9px;background:#f0c96a"></span></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,rgba(165,149,242,.5) 13%,#282d51 52%,#282d51 86%,transparent)"></div>
+<div style="padding:9px 11px 4px"><div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:500;color:#e8e9f5">Salt Road — manuscript</div></div>
+<div style="padding:7px 11px 2px;display:flex;align-items:center;gap:6px"><span style="font:400 8px 'Space Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#8085ad">Wire order</span><span style="flex:1;height:1px;background:linear-gradient(90deg,#1b1f3c,transparent)"></span></div>
+<ol style="margin:0;padding:2px 9px 8px;list-style:none;display:flex;flex-direction:column;gap:1px">
+<li style="display:flex;align-items:center;gap:7px;padding:3px;border-radius:5px;font-size:11px;color:#b2b7d8"><span style="width:12px;text-align:right;font:400 8.5px 'Space Mono',monospace;color:#8085ad">01</span><span style="width:2px;height:11px;border-radius:2px;background:#d08fd0;opacity:.5"></span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">The road that wasn't one</span></li>
+<li style="display:flex;align-items:center;gap:7px;padding:3px;border-radius:5px;font-size:11px;color:#b2b7d8"><span style="width:12px;text-align:right;font:400 8.5px 'Space Mono',monospace;color:#8085ad">02</span><span style="width:2px;height:11px;border-radius:2px;background:#d08fd0;opacity:.5"></span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Ghazan's passport</span></li>
+<li style="display:flex;align-items:center;gap:7px;padding:3px;border-radius:5px;font-size:11px;color:#e8e9f5;background:rgba(165,149,242,.1);box-shadow:inset 0 0 0 1px rgba(165,149,242,.18)"><span style="width:12px;text-align:right;font:400 8.5px 'Space Mono',monospace;color:#a396d8">03</span><span style="width:2px;height:11px;border-radius:2px;background:#d08fd0"></span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">The last caravan</span></li>
+<li style="display:flex;align-items:center;gap:7px;padding:3px;border-radius:5px;font-size:11px;color:#8a8fb5"><span style="width:12px;text-align:right;font:400 8.5px 'Space Mono',monospace;color:#8085ad">04</span><span style="width:2px;height:11px;border-radius:2px;border-left:2px dashed #6a6f96"></span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">After</span></li>
+</ol>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1b1f3c 14%,#1b1f3c 86%,transparent)"></div>
+<div style="display:flex;align-items:center;gap:8px;padding:6px 10px 7px;font:400 9px 'Space Mono',monospace;color:#9095bd"><span>1,772 w</span><span style="opacity:.5">|</span><span>4 in · 0 out</span></div>
+</div><div style="width:13px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:0 10px 10px 0"></div><span style="position:absolute;left:2px;top:58px;width:12px;height:4px;border-radius:2px;background:#a595f2;box-shadow:0 0 7px rgba(165,149,242,.9)"></span></div></div>
+
+<!-- N12 MEDIA -->
+<div style="position:absolute;left:830px;top:660px;width:240px;z-index:10"><div style="position:relative;display:flex;height:72px;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:0 14px 30px -14px rgba(0,0,0,.94)"><span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,#7fa3e8,transparent)"></span><div style="width:13px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:10px 0 0 10px"></div><div style="flex:1;min-width:0;padding:7px 9px"><div style="display:flex;align-items:center;gap:5px"><span style="font:500 8px 'Space Grotesk',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#7fa3e8">Media · PDF</span><span style="flex:1"></span><span style="padding:0 6px;border-radius:9999px;background:rgba(79,201,232,.12);font:400 8px 'Space Mono',monospace;color:#8fdcf0">2 clips</span><span style="width:6px;height:6px;border-radius:9px;background:#6fd39a"></span></div><div style="font-size:12px;color:#c9cdea;line-height:1.35;margin-top:5px;font-family:'Space Grotesk',sans-serif">findlay-orourke.pdf</div><div style="font:400 8.5px 'Space Mono',monospace;color:#8085ad;margin-top:3px">140 pp · p. 118 open</div></div><div style="width:13px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:0 10px 10px 0"></div><span style="position:absolute;left:2px;top:36px;width:12px;height:4px;border-radius:2px;background:#e8934a;box-shadow:0 0 7px rgba(232,147,74,.85)"></span><span style="position:absolute;left:70px;top:-3px;width:4px;height:11px;border-radius:2px;background:#7fa3e8;box-shadow:0 0 7px rgba(127,163,232,.85)"></span></div></div>
+
+<!-- drag ghost demo -->
+<div style="position:absolute;left:1136px;top:690px;width:220px;z-index:12;opacity:.6">
+<div style="position:relative;display:flex;height:56px;background:rgba(20,23,49,.5);border:1.5px dashed #7a6ec4;border-radius:10px"><span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:rgba(125,132,184,.5)"></span><div style="width:13px;flex:none;border-right:1px solid #1b1f3c"></div><div style="flex:1;min-width:0;padding:7px 9px"><div style="font:500 8px 'Space Grotesk',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#8085ad">Note</div><div style="font-size:11.5px;color:#9095bd;margin-top:4px;font-family:'Space Grotesk',sans-serif">Check Genoese tariffs</div></div><div style="width:13px;flex:none;border-left:1px solid #1b1f3c"></div></div>
+<div style="margin-top:7px;display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:6px;background:rgba(13,16,36,.94);border:1px solid #282d51;font-family:'Space Grotesk',sans-serif;font-size:10px;color:#9095bd"><i data-lucide="move" style="width:11px;height:11px;color:#a595f2"></i>dragging — wires ghost, re-route on drop</div>
+</div>
+
+<!-- corridor readout -->
+<div style="position:absolute;left:16px;bottom:16px;z-index:30;display:inline-flex;align-items:center;gap:9px;padding:6px 11px;border-radius:8px;border:1px solid #282d51;background:rgba(9,11,22,.9);backdrop-filter:blur(8px);font-family:'Space Grotesk',sans-serif;font-size:11px;color:#9095bd">
+<i data-lucide="route" style="width:12px;height:12px;color:#a595f2"></i>4 corridors found<span style="width:1px;height:12px;background:#282d51"></span><span style="color:#8085ad">recomputed on drop · 3ms</span>
+</div>
+
+</div>
+
+<!-- ================= HOW IT WORKS ================= -->
+<div style="display:flex;align-items:baseline;gap:12px;padding:34px 4px 14px">
+<span style="font-size:16px;font-weight:500">How freeform and rigid coexist</span>
+<span style="font:400 11px 'Space Mono',monospace;color:#8085ad">placement is yours · routing is the program's</span>
+</div>
+<div data-screen-label="How it works" style="width:1440px;box-sizing:border-box;display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:16px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad;margin-bottom:12px">1 · corridors are found</div>
+<svg viewBox="0 0 300 150" style="width:100%;display:block" fill="none">
+<g fill="#141731" stroke="#282d51"><rect x="12" y="18" width="70" height="30" rx="5"></rect><rect x="24" y="62" width="58" height="26" rx="5"></rect><rect x="12" y="102" width="76" height="30" rx="5"></rect><rect x="150" y="28" width="72" height="28" rx="5"></rect><rect x="168" y="72" width="80" height="30" rx="5"></rect><rect x="152" y="114" width="60" height="26" rx="5"></rect></g>
+<rect x="96" y="10" width="44" height="132" fill="#a595f2" fill-opacity=".07" stroke="#a595f2" stroke-opacity=".35" stroke-dasharray="3 6"></rect>
+<rect x="258" y="10" width="32" height="132" fill="#a595f2" fill-opacity=".07" stroke="#a595f2" stroke-opacity=".35" stroke-dasharray="3 6"></rect>
+</svg>
+<div style="margin-top:10px;font-size:11.5px;line-height:1.55;color:#9095bd;text-wrap:pretty">Every node's box is inflated by a margin; what's left over is free space. The vertical and horizontal channels through it are the corridors. Nobody draws them — they fall out of where you put things.</div>
+</div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:16px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad;margin-bottom:12px">2 · lanes fill the corridor</div>
+<svg viewBox="0 0 300 150" style="width:100%;display:block" fill="none" stroke-linecap="round" stroke-linejoin="round">
+<rect x="110" y="10" width="76" height="132" fill="#a595f2" fill-opacity=".05" stroke="#a595f2" stroke-opacity=".2" stroke-dasharray="3 6"></rect>
+<g fill="#141731" stroke="#282d51"><rect x="10" y="24" width="76" height="26" rx="5"></rect><rect x="10" y="62" width="76" height="26" rx="5"></rect><rect x="10" y="100" width="76" height="26" rx="5"></rect><rect x="210" y="34" width="80" height="26" rx="5"></rect><rect x="210" y="90" width="80" height="26" rx="5"></rect></g>
+<path d="M86,37 H114 L124,47 V93 L134,103 H210" stroke="#6fd39a" stroke-width="1.5" stroke-opacity=".8"></path>
+<path d="M86,75 H128 L138,65 V57 L148,47 H210" stroke="#f0685e" stroke-width="1.5" stroke-opacity=".8" stroke-dasharray="7 4"></path>
+<path d="M86,113 H142 L152,103 H210" stroke="#f0c96a" stroke-width="1.5" stroke-opacity=".8" stroke-dasharray="2 5"></path>
+</svg>
+<div style="margin-top:10px;font-size:11.5px;line-height:1.55;color:#9095bd;text-wrap:pretty">Inside a corridor, wires take lanes 14px apart in target order. Same chamfers, same hops, same ties as before — the grammar never changed, only where it lives.</div>
+</div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:16px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad;margin-bottom:12px">3 · ports on all four sides</div>
+<svg viewBox="0 0 300 150" style="width:100%;display:block" fill="none" stroke-linecap="round" stroke-linejoin="round">
+<rect x="106" y="52" width="92" height="46" rx="6" fill="#141731" stroke="#3a3f65"></rect>
+<g fill="#6fd39a"><rect x="102" y="66" width="9" height="4" rx="2"></rect><rect x="102" y="80" width="9" height="4" rx="2"></rect></g>
+<g fill="#a595f2"><rect x="193" y="72" width="9" height="4" rx="2"></rect></g>
+<g fill="#4fc9e8"><rect x="138" y="48" width="4" height="9" rx="2"></rect></g>
+<g fill="#e89b8f"><rect x="164" y="93" width="4" height="9" rx="2"></rect></g>
+<path d="M20,68 H92 L102,68" stroke="#6fd39a" stroke-width="1.4" stroke-opacity=".8"></path>
+<path d="M202,74 H280" stroke="#a595f2" stroke-width="1.4" stroke-opacity=".8"></path>
+<path d="M140,10 V48" stroke="#4fc9e8" stroke-width="1.4" stroke-opacity=".8"></path>
+<path d="M166,102 V142" stroke="#e89b8f" stroke-width="1.4" stroke-opacity=".8"></path>
+</svg>
+<div style="margin-top:10px;font-size:11.5px;line-height:1.55;color:#9095bd;text-wrap:pretty">Left and right stay the default take and give. When a partner sits above or below, the port moves to that edge instead — so a wire never has to loop around a plate to reach it.</div>
+</div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:16px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad;margin-bottom:12px">4 · what you give up</div>
+<div style="display:flex;flex-direction:column;gap:10px;font-size:11.5px;line-height:1.55">
+<div style="color:#9095bd"><b style="color:#c9cdea;font-weight:500">Moving one node can re-route another's wire.</b> Beziers never do that. It's the price of never tracing spaghetti — and the ghost-then-settle on drop is what makes it legible rather than jumpy.</div>
+<div style="color:#9095bd"><b style="color:#c9cdea;font-weight:500">Very tight clusters lose their corridors.</b> Under about 40px of gap there's nowhere to route, so wires stub straight across. The canvas nudges spacing on drop rather than forbidding the placement.</div>
+</div>
+<div style="margin-top:13px;padding-top:12px;border-top:1px solid #171b30;font-size:11px;line-height:1.55;color:#8085ad;text-wrap:pretty">Snap 24 and Tidy in the toolbar are opt-in. Free placement is the default — the grid is a convenience, never a requirement.</div>
+</div>
+
+</div>
+
+<p style="margin:26px 4px 0;font-size:12px;line-height:1.65;color:#8085ad;max-width:940px;text-wrap:pretty">The dense canvas and this one are the same system at two densities: corridors here, trunks and highways there. Columns were only ever the tidiest arrangement, not the required one.</p>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1100}}">
+class Component extends DCLogic {
+  componentDidMount(){ this.icons(); }
+  componentDidUpdate(){ this.icons(); }
+  icons(){
+    const go = () => { try { window.lucide && window.lucide.createIcons(); } catch(e){} };
+    go(); setTimeout(go, 250); setTimeout(go, 900);
+  }
+}
+</script>
+</body>
+</html>

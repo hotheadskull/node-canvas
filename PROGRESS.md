@@ -31,14 +31,34 @@ master brief — see its "Revision log" for what changed and why).
 | 18 | Hardening: perf pass (500-node stress green), Playwright e2e full loop, migration + backup-before-migrate, file-per-project (.nodecanvas) persistence, exports (markdown/text/PNG/SVG), Tauri shell wiring | **completed** (desktop-window smoke test pending — see session log) |
 | 19 | Commercial: license keys, payments, Windows code signing, Tauri updater, crash reporting | deferred to VERY LAST (user, 2026-08-06); also blocked on user accounts — see 2026-08-05 log |
 
-**CURRENT FOCUS (user, 2026-08-06): the visual system + polish arc.** Order:
-(1) user picks/mixes from the 4-direction visual pitch (artifact
-"Node Canvas — Visual Direction Pitch"; directions: A Observatory / B
-Manuscript / C Drafting Room / D Ledger) → write docs/design/visual-system.md
-as CSS tokens + amend I8 with sign-off; (2) apply the system app-wide
-(canvas, cards, menus, rooms, toolbar); (3) per-node design passes under the
-standing flow (Note + Section first); (4) polish backlog from TRY-IT +
-fresh walkthroughs. Chunk 19 only after all of that.
+## Observatory adoption — the current focus
+
+**RESOLVED (2026-08-09): the user picked a visual system** — not from the
+in-repo pitch, but from an external Claude-design handoff they commissioned
+and brought back: **docs/design/observatory/** ("plate & harness"). Its
+README is the canonical spec — HIGH FIDELITY, values literal and final. It
+was verifiably built against core (dataKind port values, readiness stages,
+blocks/fork states, assembly actions are all real). The five .dc.html files
+are design references, NOT production code; recreate in the real stack.
+
+Build in the README's suggested order, full suite green between phases:
+
+| Phase | Scope | Status |
+|---|---|---|
+| A | Data-kind color law (core/src/colors.ts) + closed DataKind union + readiness ring component | **color law + union DONE (2026-08-09, tested)**; ring next |
+| B | Plate anatomy (spine/gutters/rails) + three collapse states (schema field; zoom borrows, never writes) | not started |
+| C | Wire rendering: chamfers, hops, lanes; junction dots; the 11 signal animations (budget ~8, reduced-motion) | not started |
+| D | Corridor derivation from free space; ghost-and-settle on drag (new core/src/routing.ts) | not started |
+| E | Assembly face (stacked edges) + block/embed states + fork notice | not started |
+| F | Open state: in-place grow, linked rail, writing column, per-form bodies | not started |
+| G | Split panel (replaces the preset list; presets become saved configs) | not started |
+| H | Density: gutter trunks, highways, filter bar, minimap | not started |
+| I | "Not yet in core" extras, EACH its own user decision: media/PDF node, ink layer, merge, relation filter, history | not started |
+
+Notes: bundle Space Grotesk / Spectral / Space Mono (SIL OFL — offline
+desktop). Per-node passes continue INSIDE this system (Writing mockup specs
+the per-form bodies). Amend I8's look language to name Observatory when
+Phase B lands (INVARIANT-CHANGE-APPROVED). Chunk 19 stays very last.
 
 ## User feedback driving Chunk 17 (verbatim intent, 2026-07-14)
 

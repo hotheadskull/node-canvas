@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Spectral:ital,wght@0,400;0,500;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<style>
+body{margin:0;background:#05060d}
+a{color:#a595f2}a:hover{color:#c9c0ff}
+@keyframes os-flow{from{stroke-dashoffset:120}to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</helmet>
+
+<div style="width:1440px;margin:0 auto;padding:26px 0 64px;font-family:'Space Grotesk',system-ui,sans-serif;color:#e8e9f5">
+
+<div style="display:flex;align-items:baseline;gap:12px;padding:0 4px 6px">
+<span style="font-size:19px;font-weight:500;letter-spacing:-.01em">Observatory — the system</span>
+<span style="font:400 11px 'Space Mono',monospace;color:#8085ad">16 node types · 11 data kinds · 4 readiness stages · 5 split presets</span>
+</div>
+<p style="margin:0 0 22px;padding:0 4px;max-width:1020px;font-size:12.5px;line-height:1.65;color:#9095bd;text-wrap:pretty">Built against <span style="font-family:'Space Mono',monospace;font-size:11.5px;color:#c9cdea">core/src/registry.ts</span>, <span style="font-family:'Space Mono',monospace;font-size:11.5px;color:#c9cdea">derive.ts</span> and <span style="font-family:'Space Mono',monospace;font-size:11.5px;color:#c9cdea">blocks.ts</span> rather than invented. The single change that makes the whole thing cohere: <b style="color:#c9cdea;font-weight:500">colour comes from the port's data kind, not the node's type.</b> A wire is the colour of what travels down it, and a plate's spine is the colour of what it gives. Sixteen node types collapse to eleven learnable hues, and every one of them is already a value in your registry.</p>
+
+<!-- ================= 1 · DATA KINDS ================= -->
+<div style="display:flex;align-items:baseline;gap:12px;padding:8px 4px 14px">
+<span style="font-size:16px;font-weight:500">1 · Data kinds</span>
+<span style="font:400 11px 'Space Mono',monospace;color:#8085ad">the colour system — every port declares one, every wire inherits it</span>
+</div>
+<div data-screen-label="Data kinds" style="width:1440px;box-sizing:border-box;border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:18px;display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:6px">
+<div style="display:flex;flex-direction:column;gap:7px;padding:11px 12px;border:1px solid #171b30;border-radius:9px;background:#0d1020"><div style="display:flex;align-items:center;gap:7px"><span style="width:12px;height:4px;border-radius:2px;background:#a595f2;box-shadow:0 0 7px rgba(165,149,242,.8)"></span><span style="font-family:'Space Mono',monospace;font-size:11px;color:#e8e9f5">text</span></div><svg viewBox="0 0 120 8" style="width:100%;height:8px"><path d="M0,4 H120" stroke="#a595f2" stroke-width="1.9" stroke-opacity=".75"></path></svg><div style="font-size:10.5px;line-height:1.45;color:#9095bd">prose in transit — the substance most wires carry</div></div>
+<div style="display:flex;flex-direction:column;gap:7px;padding:11px 12px;border:1px solid #171b30;border-radius:9px;background:#0d1020"><div style="display:flex;align-items:center;gap:7px"><span style="width:12px;height:4px;border-radius:2px;background:#e89b8f;box-shadow:0 0 7px rgba(232,155,143,.8)"></span><span style="font-family:'Space Mono',monospace;font-size:11px;color:#e8e9f5">person</span></div><svg viewBox="0 0 120 8" style="width:100%;height:8px"><path d="M0,4 H120" stroke="#e89b8f" stroke-width="1.6" stroke-opacity=".75" stroke-dasharray="3 3"></path></svg><div style="font-size:10.5px;line-height:1.45;color:#9095bd">identity — cast, POV, collaborators</div></div>
+<div style="display:flex;flex-direction:column;gap:7px;padding:11px 12px;border:1px solid #171b30;border-radius:9px;background:#0d1020"><div style="display:flex;align-items:center;gap:7px"><span style="width:12px;height:4px;border-radius:2px;background:#c9a26b;box-shadow:0 0 7px rgba(201,162,107,.8)"></span><span style="font-family:'Space Mono',monospace;font-size:11px;color:#e8e9f5">place</span></div><svg viewBox="0 0 120 8" style="width:100%;height:8px"><path d="M0,4 H120" stroke="#c9a26b" stroke-width="1.6" stroke-opacity=".75" stroke-dasharray="2 5"></path></svg><div style="font-size:10.5px;line-height:1.45;color:#9095bd">setting — where a thing happens</div></div>
+<div style="display:flex;flex-direction:column;gap:7px;padding:11px 12px;border:1px solid #171b30;border-radius:9px;background:#0d1020"><div style="display:flex;align-items:center;gap:7px"><span style="width:12px;height:4px;border-radius:2px;background:#7fd4c1;box-shadow:0 0 7px rgba(127,212,193,.8)"></span><span style="font-family:'Space Mono',monospace;font-size:11px;color:#e8e9f5">thing</span></div><svg viewBox="0 0 120 8" style="width:100%;height:8px"><path d="M0,4 H120" stroke="#7fd4c1" stroke-width="1.6" stroke-opacity=".75" stroke-dasharray="7 4"></path></svg><div style="font-size:10.5px;line-height:1.45;color:#9095bd">objects and possessions</div></div>
+<div style="display:flex;flex-direction:column;gap:7px;padding:11px 12px;border:1px solid #171b30;border-radius:9px;background:#0d1020"><div style="display:flex;align-items:center;gap:7px"><span style="width:12px;height:4px;border-radius:2px;background:#7fa3e8;box-shadow:0 0 7px rgba(127,163,232,.8)"></span><span style="font-family:'Space Mono',monospace;font-size:11px;color:#e8e9f5">cite</span></div><svg viewBox="0 0 120 8" style="width:100%;height:8px"><path d="M0,4 H120" stroke="#7fa3e8" stroke-width="1.5" stroke-opacity=".75" stroke-dasharray="1 4"></path></svg><div style="font-size:10.5px;line-height:1.45;color:#9095bd">a citation — always dotted, always quiet</div></div>
+<div style="display:flex;flex-direction:column;gap:7px;padding:11px 12px;border:1px solid #171b30;border-radius:9px;background:#0d1020"><div style="display:flex;align-items:center;gap:7px"><span style="width:12px;height:4px;border-radius:2px;background:#6fd39a;box-shadow:0 0 7px rgba(111,211,154,.8)"></span><span style="font-family:'Space Mono',monospace;font-size:11px;color:#e8e9f5">claim</span></div><svg viewBox="0 0 120 8" style="width:100%;height:8px"><path d="M0,4 H120" stroke="#6fd39a" stroke-width="1.8" stroke-opacity=".75"></path></svg><div style="font-size:10.5px;line-height:1.45;color:#9095bd">an assertion under argument</div></div>
+<div style="display:flex;flex-direction:column;gap:7px;padding:11px 12px;border:1px solid #171b30;border-radius:9px;background:#0d1020"><div style="display:flex;align-items:center;gap:7px"><span style="width:12px;height:4px;border-radius:2px;background:#52b8a8;box-shadow:0 0 7px rgba(82,184,168,.8)"></span><span style="font-family:'Space Mono',monospace;font-size:11px;color:#e8e9f5">prop</span></div><svg viewBox="0 0 120 8" style="width:100%;height:8px"><path d="M0,4 H120" stroke="#52b8a8" stroke-width="1.6" stroke-opacity=".75" stroke-dasharray="12 5"></path></svg><div style="font-size:10.5px;line-height:1.45;color:#9095bd">a proposition drawn from a passage</div></div>
+<div style="display:flex;flex-direction:column;gap:7px;padding:11px 12px;border:1px solid #171b30;border-radius:9px;background:#0d1020"><div style="display:flex;align-items:center;gap:7px"><span style="width:12px;height:4px;border-radius:2px;background:#9fd18a;box-shadow:0 0 7px rgba(159,209,138,.8)"></span><span style="font-family:'Space Mono',monospace;font-size:11px;color:#e8e9f5">plant</span></div><svg viewBox="0 0 120 8" style="width:100%;height:8px"><path d="M0,4 H120" stroke="#9fd18a" stroke-width="1.6" stroke-opacity=".75" stroke-dasharray="9 3 2 3"></path></svg><div style="font-size:10.5px;line-height:1.45;color:#9095bd">a setup awaiting its payoff</div></div>
+<div style="display:flex;flex-direction:column;gap:7px;padding:11px 12px;border:1px solid #171b30;border-radius:9px;background:#0d1020"><div style="display:flex;align-items:center;gap:7px"><span style="width:12px;height:4px;border-radius:2px;background:#8f9ff0;box-shadow:0 0 7px rgba(143,159,240,.8)"></span><span style="font-family:'Space Mono',monospace;font-size:11px;color:#e8e9f5">event</span></div><svg viewBox="0 0 120 8" style="width:100%;height:8px"><path d="M0,4 H120" stroke="#8f9ff0" stroke-width="1.6" stroke-opacity=".75" stroke-dasharray="10 4 3 4"></path></svg><div style="font-size:10.5px;line-height:1.45;color:#9095bd">something that happened, on a date</div></div>
+<div style="display:flex;flex-direction:column;gap:7px;padding:11px 12px;border:1px solid #171b30;border-radius:9px;background:#0d1020"><div style="display:flex;align-items:center;gap:7px"><span style="width:12px;height:4px;border-radius:2px;background:#d08fd0;box-shadow:0 0 7px rgba(208,143,208,.8)"></span><span style="font-family:'Space Mono',monospace;font-size:11px;color:#e8e9f5">thread</span></div><svg viewBox="0 0 120 8" style="width:100%;height:8px"><path d="M0,4 H120" stroke="#d08fd0" stroke-width="2.2" stroke-opacity=".8"></path></svg><div style="font-size:10.5px;line-height:1.45;color:#9095bd">the spine of the whole work — heaviest stroke</div></div>
+<div style="display:flex;flex-direction:column;gap:7px;padding:11px 12px;border:1px solid #171b30;border-radius:9px;background:#0d1020"><div style="display:flex;align-items:center;gap:7px"><span style="width:12px;height:4px;border-radius:2px;border:1px solid #8085ad"></span><span style="font-family:'Space Mono',monospace;font-size:11px;color:#e8e9f5">any</span></div><svg viewBox="0 0 120 8" style="width:100%;height:8px"><path d="M0,4 H120" stroke="#8085ad" stroke-width="1.4" stroke-opacity=".6" stroke-dasharray="1 6"></path></svg><div style="font-size:10.5px;line-height:1.45;color:#9095bd">takes anything — the wire keeps its source's colour</div></div>
+<div style="display:flex;flex-direction:column;justify-content:center;gap:6px;padding:11px 12px;border:1px dashed #262b52;border-radius:9px"><div style="font-size:10.5px;line-height:1.5;color:#9095bd;text-wrap:pretty">Relation words — <i>supports</i>, <i>rebuts</i>, <i>serves</i> — ride the wire as a label. They no longer need their own hue.</div></div>
+</div>
+<p style="margin:0 0 4px;padding:0 4px;font-size:11.5px;line-height:1.55;color:#8085ad;max-width:1020px;text-wrap:pretty">This replaces the eleven invented relation hues from earlier. A <span style="font-family:'Space Mono',monospace;font-size:11px;color:#c9cdea">dataKind: 'any'</span> port takes the colour of whatever plugs into it, which is why Claim's <span style="font-family:'Space Mono',monospace;font-size:11px;color:#c9cdea">supports-in</span> shows green from a Claim and blue from a Source.</p>
+
+<!-- ================= 2 · READINESS ================= -->
+<div style="display:flex;align-items:baseline;gap:12px;padding:32px 4px 14px">
+<span style="font-size:16px;font-weight:500">2 · Readiness</span>
+<span style="font:400 11px 'Space Mono',monospace;color:#8085ad">derive.ts — seed · developing · ready · placed</span>
+</div>
+<div data-screen-label="Readiness" style="width:1440px;box-sizing:border-box;display:grid;grid-template-columns:1.55fr 1fr;gap:18px">
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:18px">
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+<div style="display:flex;flex-direction:column;gap:9px;align-items:flex-start"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="8" stroke="#4a4f76" stroke-width="1.6" stroke-dasharray="2 3"></circle></svg><div><div style="font-family:'Space Mono',monospace;font-size:11.5px;color:#e8e9f5">seed</div><div style="font-size:10.5px;line-height:1.45;color:#9095bd;margin-top:3px">a title and nothing else</div></div></div>
+<div style="display:flex;flex-direction:column;gap:9px;align-items:flex-start"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="8" stroke="#4a4f76" stroke-width="1.6"></circle><path d="M13,5 A8,8 0 0 1 13,21" stroke="#f0c96a" stroke-width="1.6"></path></svg><div><div style="font-family:'Space Mono',monospace;font-size:11.5px;color:#e8e9f5">developing</div><div style="font-size:10.5px;line-height:1.45;color:#9095bd;margin-top:3px">text exists, wires are incomplete</div></div></div>
+<div style="display:flex;flex-direction:column;gap:9px;align-items:flex-start"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="8" stroke="#6fd39a" stroke-width="1.8"></circle></svg><div><div style="font-family:'Space Mono',monospace;font-size:11.5px;color:#e8e9f5">ready</div><div style="font-size:10.5px;line-height:1.45;color:#9095bd;margin-top:3px">complete, and nothing is flagged</div></div></div>
+<div style="display:flex;flex-direction:column;gap:9px;align-items:flex-start"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="8" fill="rgba(111,211,154,.18)" stroke="#6fd39a" stroke-width="1.8"></circle><path d="M9.5,13 L12,15.5 L16.5,10.5" stroke="#6fd39a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg><div><div style="font-family:'Space Mono',monospace;font-size:11.5px;color:#e8e9f5">placed</div><div style="font-size:10.5px;line-height:1.45;color:#9095bd;margin-top:3px">wired into a document that compiles it</div></div></div>
+</div>
+<div style="margin-top:16px;padding-top:14px;border-top:1px solid #171b30;font-size:11.5px;line-height:1.55;color:#9095bd;text-wrap:pretty">A ring, not a coloured dot — so readiness never competes with the data-kind hues, and stays legible for anyone who can't separate amber from green. Only <i>placed</i> gets a fill, because it's the only stage that means the work has found its home.</div>
+</div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:18px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad;margin-bottom:13px">Rollup on an assembly</div>
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+<svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="8" stroke="#4a4f76" stroke-width="1.6"></circle><path d="M13,5 A8,8 0 0 1 13,21" stroke="#f0c96a" stroke-width="1.6"></path></svg>
+<div style="flex:1;display:flex;flex-direction:column;gap:5px">
+<div style="display:flex;gap:3px;height:8px;border-radius:4px;overflow:hidden"><span style="flex:2;background:#4a4f76"></span><span style="flex:4;background:#f0c96a"></span><span style="flex:3;background:#6fd39a"></span><span style="flex:1;background:rgba(111,211,154,.4)"></span></div>
+<div style="display:flex;gap:10px;font:400 9px 'Space Mono',monospace;color:#9095bd"><span>2 seed</span><span>4 developing</span><span>3 ready</span><span>1 placed</span></div>
+</div>
+</div>
+<div style="font-size:11.5px;line-height:1.55;color:#9095bd;text-wrap:pretty"><span style="font-family:'Space Mono',monospace;font-size:11px;color:#c9cdea">rollupReadiness</span> takes the lowest stage present, so an assembly is only <i>ready</i> when all ten members are. The bar shows the distribution underneath — one glance says how far off it is.</div>
+</div>
+
+</div>
+
+<!-- ================= 3 · COLLAPSE STATES ================= -->
+<div style="display:flex;align-items:baseline;gap:12px;padding:32px 4px 14px">
+<span style="font-size:16px;font-weight:500">3 · Collapse</span>
+<span style="font:400 11px 'Space Mono',monospace;color:#8085ad">yours to set, sticky per node — zoom borrows it, never overwrites it</span>
+</div>
+<div data-screen-label="Collapse" style="width:1440px;box-sizing:border-box;display:grid;grid-template-columns:repeat(4,1fr);gap:18px">
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:16px">
+<div style="display:flex;align-items:center;gap:7px;margin-bottom:13px"><span style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad">Full</span><span style="padding:1px 6px;border-radius:9999px;background:rgba(165,149,242,.14);border:1px solid rgba(165,149,242,.3);font:400 8px 'Space Mono',monospace;color:#c6bcf5">default</span></div>
+<div style="position:relative;display:flex;background:linear-gradient(180deg,#141731,#0e1024);border:1px solid #282d51;border-radius:9px"><span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:9px 0 0 9px;background:linear-gradient(180deg,#a595f2,transparent)"></span><div style="width:13px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:9px 0 0 9px"></div><div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:6px;padding:7px 9px"><span style="font:500 8px 'Space Grotesk',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#a595f2">Section</span><span style="flex:1"></span><svg width="13" height="13" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="8" stroke="#4a4f76" stroke-width="2"></circle><path d="M13,5 A8,8 0 0 1 13,21" stroke="#f0c96a" stroke-width="2"></path></svg></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#282d51 12%,#282d51 88%,transparent)"></div>
+<div style="padding:8px 10px 9px"><div style="font-size:11.5px;color:#c9cdea;font-family:'Space Grotesk',sans-serif">The last caravan</div><div style="font-family:Spectral,Georgia,serif;font-size:11px;color:#9095bd;line-height:1.55;margin-top:4px">A single passport worked from Kiev to Khanbaliq — until the khanates fractured.</div></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1b1f3c 12%,#1b1f3c 88%,transparent)"></div>
+<div style="padding:5px 10px 6px;font:400 8.5px 'Space Mono',monospace;color:#9095bd">412 w · 4 in · 1 out</div>
+</div><div style="width:13px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:0 9px 9px 0"></div>
+<span style="position:absolute;left:2px;top:44px;width:11px;height:4px;border-radius:2px;background:#e89b8f"></span><span style="position:absolute;left:2px;top:58px;width:11px;height:4px;border-radius:2px;background:#c9a26b"></span><span style="position:absolute;right:2px;top:44px;width:11px;height:4px;border-radius:2px;background:#a595f2"></span></div>
+<div style="margin-top:11px;font-size:11px;line-height:1.5;color:#9095bd;text-wrap:pretty">Everything: title, excerpt, counts, readiness, visible ports. What you see unless you say otherwise.</div>
+</div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:16px">
+<div style="display:flex;align-items:center;gap:7px;margin-bottom:13px"><span style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad">Collapsed</span><span style="padding:1px 6px;border-radius:9999px;border:1px solid #282d51;font:400 8px 'Space Mono',monospace;color:#9095bd">⌥click</span></div>
+<div style="position:relative;display:flex;background:linear-gradient(180deg,#141731,#0e1024);border:1px solid #282d51;border-radius:9px"><span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:9px 0 0 9px;background:linear-gradient(180deg,#a595f2,transparent)"></span><div style="width:13px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:9px 0 0 9px"></div><div style="flex:1;min-width:0;padding:7px 10px">
+<div style="display:flex;align-items:center;gap:6px"><span style="font-size:11.5px;color:#c9cdea;font-family:'Space Grotesk',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">The last caravan</span><svg width="13" height="13" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="8" stroke="#4a4f76" stroke-width="2"></circle><path d="M13,5 A8,8 0 0 1 13,21" stroke="#f0c96a" stroke-width="2"></path></svg></div>
+<div style="font:400 8.5px 'Space Mono',monospace;color:#9095bd;margin-top:3px">Section · 412 w</div>
+</div><div style="width:13px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:0 9px 9px 0"></div>
+<span style="position:absolute;left:2px;top:20px;width:11px;height:4px;border-radius:2px;background:#e89b8f"></span><span style="position:absolute;right:2px;top:20px;width:11px;height:4px;border-radius:2px;background:#a595f2"></span></div>
+<div style="margin-top:11px;font-size:11px;line-height:1.5;color:#9095bd;text-wrap:pretty">Title and subtitle. Ports merge into one dot per side so wires still land. Sticky — it survives zoom, reload and everyone else's view of the canvas.</div>
+</div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:16px">
+<div style="display:flex;align-items:center;gap:7px;margin-bottom:13px"><span style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad">Rolled up</span><span style="padding:1px 6px;border-radius:9999px;border:1px solid #282d51;font:400 8px 'Space Mono',monospace;color:#9095bd">assembly</span></div>
+<div style="position:relative;display:flex;background:linear-gradient(180deg,#151832,#0e1126);border:1px solid #3a4070;border-radius:9px;box-shadow:0 0 0 1px rgba(58,64,112,.5),4px 4px 0 -1px rgba(20,23,49,.9),4px 4px 0 0 #262b52"><span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:9px 0 0 9px;background:linear-gradient(180deg,#d08fd0,transparent)"></span><div style="width:13px;flex:none;border-right:1px solid #262b52;background:rgba(0,0,0,.26);border-radius:9px 0 0 9px"></div><div style="flex:1;min-width:0;padding:7px 10px">
+<div style="display:flex;align-items:center;gap:6px"><i data-lucide="boxes" style="width:11px;height:11px;color:#d08fd0"></i><span style="font-size:11.5px;color:#c9cdea;font-family:'Space Grotesk',sans-serif;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Chapter 4</span><svg width="13" height="13" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="8" stroke="#4a4f76" stroke-width="2"></circle><path d="M13,5 A8,8 0 0 1 13,21" stroke="#f0c96a" stroke-width="2"></path></svg></div>
+<div style="font:400 8.5px 'Space Mono',monospace;color:#9095bd;margin-top:3px">Section: 3 · Person: 2 · Place: 1</div>
+</div><div style="width:13px;flex:none;border-left:1px solid #262b52;background:rgba(0,0,0,.26);border-radius:0 9px 9px 0"></div>
+<span style="position:absolute;left:2px;top:20px;width:11px;height:4px;border-radius:2px;background:#e89b8f"></span><span style="position:absolute;right:2px;top:20px;width:11px;height:4px;border-radius:2px;background:#a595f2"></span></div>
+<div style="margin-top:11px;font-size:11px;line-height:1.5;color:#9095bd;text-wrap:pretty">Children fold into the face. The stacked edge is the only new shape in the system, and it means "there is more inside this". Counts are derived, never typed.</div>
+</div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:16px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad;margin-bottom:13px">The rule</div>
+<div style="display:flex;flex-direction:column;gap:10px;font-size:11.5px;line-height:1.55">
+<div style="color:#9095bd"><b style="color:#c9cdea;font-weight:500">You set it, it sticks.</b> Collapse is a property of the node, saved with the document.</div>
+<div style="color:#9095bd"><b style="color:#c9cdea;font-weight:500">Zoom borrows, never writes.</b> Below 45% everything draws collapsed; back above it, your choices return exactly as you left them.</div>
+<div style="color:#9095bd"><b style="color:#c9cdea;font-weight:500">Collapsing never breaks a wire.</b> Hidden ports merge to one dot per side and the harness re-routes to it.</div>
+</div>
+<div style="margin-top:13px;padding-top:12px;border-top:1px solid #171b30;font-size:11px;line-height:1.5;color:#8085ad;text-wrap:pretty">Shortcuts: ⌥click one, ⌥⇧click a selection, ⌥⇧A for everything on the canvas.</div>
+</div>
+
+</div>
+
+<!-- ================= 4 · ASSEMBLY ================= -->
+<div style="display:flex;align-items:baseline;gap:12px;padding:32px 4px 14px">
+<span style="font-size:16px;font-weight:500">4 · Assembly</span>
+<span style="font:400 11px 'Space Mono',monospace;color:#8085ad">assemblies.ts — the face is the interface; wires attach to it, not to what's inside</span>
+</div>
+<div data-screen-label="Assembly" style="width:1440px;box-sizing:border-box;display:grid;grid-template-columns:1fr 1.35fr;gap:18px">
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:18px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad;margin-bottom:14px">Collapsed face</div>
+<div style="position:relative;display:flex;flex-direction:column;background:linear-gradient(180deg,#151832,#0e1126);border:1px solid #3a4070;border-radius:10px;box-shadow:5px 5px 0 -1px rgba(20,23,49,.95),5px 5px 0 0 #262b52,10px 10px 0 -1px rgba(20,23,49,.95),10px 10px 0 0 #1f2445">
+<span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,#d08fd0,rgba(208,143,208,.2))"></span>
+<div style="display:flex;align-items:center;gap:7px;padding:9px 11px 8px 15px"><i data-lucide="boxes" style="width:12px;height:12px;color:#d08fd0"></i><span style="font:500 8.5px 'Space Grotesk',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#d08fd0">Assembly</span><span style="flex:1"></span><svg width="14" height="14" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="8" stroke="#4a4f76" stroke-width="2"></circle><path d="M13,5 A8,8 0 0 1 13,21" stroke="#f0c96a" stroke-width="2"></path></svg></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#3a4070 12%,#3a4070 88%,transparent)"></div>
+<div style="padding:11px 13px 4px 15px"><div style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:500;color:#e8e9f5">Chapter 4 — The last caravan</div></div>
+<div style="padding:6px 13px 10px 15px;display:flex;flex-wrap:wrap;gap:5px">
+<span style="display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:9999px;background:rgba(165,149,242,.1);border:1px solid rgba(165,149,242,.24);font-size:10.5px;color:#c3bbec"><span style="width:4px;height:4px;border-radius:9px;background:#a595f2"></span>Section 3</span>
+<span style="display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:9999px;background:rgba(232,155,143,.1);border:1px solid rgba(232,155,143,.24);font-size:10.5px;color:#e0a99e"><span style="width:4px;height:4px;border-radius:9px;background:#e89b8f"></span>Person 2</span>
+<span style="display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:9999px;background:rgba(201,162,107,.1);border:1px solid rgba(201,162,107,.24);font-size:10.5px;color:#d4b184"><span style="width:4px;height:4px;border-radius:9px;background:#c9a26b"></span>Place 1</span>
+</div>
+<div style="padding:0 13px 10px 15px"><div style="display:flex;gap:3px;height:6px;border-radius:3px;overflow:hidden"><span style="flex:1;background:#4a4f76"></span><span style="flex:3;background:#f0c96a"></span><span style="flex:2;background:#6fd39a"></span></div></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1f2445 12%,#1f2445 88%,transparent)"></div>
+<div style="display:flex;align-items:center;gap:6px;padding:7px 11px 8px 15px;font:400 9px 'Space Mono',monospace;color:#9095bd"><span>6 members</span><span style="opacity:.5">|</span><span>2h ago</span><span style="flex:1"></span>
+<span style="display:grid;place-items:center;width:21px;height:21px;border-radius:5px;border:1px solid #2a2f57;color:#9095bd"><i data-lucide="door-open" style="width:11px;height:11px"></i></span>
+<span style="display:grid;place-items:center;width:21px;height:21px;border-radius:5px;border:1px solid #2a2f57;color:#9095bd"><i data-lucide="minimize-2" style="width:11px;height:11px"></i></span>
+<span style="display:grid;place-items:center;width:21px;height:21px;border-radius:5px;border:1px solid #2a2f57;color:#9095bd"><i data-lucide="package-open" style="width:11px;height:11px"></i></span></div>
+<span style="position:absolute;left:2px;top:58px;width:12px;height:4px;border-radius:2px;background:#e89b8f;box-shadow:0 0 7px rgba(232,155,143,.8)"></span>
+<span style="position:absolute;left:2px;top:76px;width:12px;height:4px;border-radius:2px;background:#c9a26b;box-shadow:0 0 7px rgba(201,162,107,.8)"></span>
+<span style="position:absolute;right:2px;top:58px;width:12px;height:4px;border-radius:2px;background:#a595f2;box-shadow:0 0 7px rgba(165,149,242,.85)"></span>
+</div>
+<div style="margin-top:13px;font-size:11.5px;line-height:1.55;color:#9095bd;text-wrap:pretty">Three stacked edges say six members. The derived counts, the readiness distribution and the ports are all computed from what's inside — nothing here is typed by hand except the name.</div>
+</div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:18px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad;margin-bottom:14px">Expanded — members visible, face becomes a pill</div>
+<div style="position:relative;width:480px;height:250px;margin:0 auto;border:1px dashed #3a4070;border-radius:12px;background:rgba(165,149,242,.03)">
+<div style="position:absolute;left:12px;top:-11px;display:inline-flex;align-items:center;gap:6px;padding:2px 9px;border-radius:9999px;background:#0e1126;border:1px solid #3a4070;font-family:'Space Grotesk',sans-serif;font-size:10.5px;color:#c3bbec"><i data-lucide="boxes" style="width:11px;height:11px;color:#d08fd0"></i>Chapter 4<span style="font-family:'Space Mono',monospace;font-size:9px;color:#8085ad">6</span><span style="width:1px;height:11px;background:#2a2f57"></span><i data-lucide="minimize-2" style="width:10px;height:10px;color:#9095bd"></i><i data-lucide="package-open" style="width:10px;height:10px;color:#9095bd"></i></div>
+<svg style="position:absolute;left:0;top:0;width:480px;height:250px;pointer-events:none" viewBox="0 0 480 250" fill="none" stroke-linecap="round" stroke-linejoin="round">
+<path d="M150,58 H352 L362,68 V90 L372,100 H392" stroke="#a595f2" stroke-width="1.5" stroke-opacity=".7"></path>
+<path d="M150,158 H176 L186,148 V112 L196,102 H222" stroke="#e89b8f" stroke-width="1.5" stroke-opacity=".7" stroke-dasharray="3 3"></path>
+<path d="M150,208 H196 L206,198 V122 L216,112 H222" stroke="#c9a26b" stroke-width="1.5" stroke-opacity=".7" stroke-dasharray="2 5"></path>
+<path d="M350,108 H392" stroke="#a595f2" stroke-width="1.8" stroke-opacity=".8"></path>
+</svg>
+<div style="position:absolute;left:26px;top:40px;width:124px;display:flex;height:36px;background:linear-gradient(180deg,#141731,#0e1024);border:1px solid #282d51;border-radius:7px"><span style="width:3px;border-radius:7px 0 0 7px;background:#a595f2"></span><div style="flex:1;padding:5px 8px;min-width:0"><div style="font:500 7px 'Space Grotesk',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#a595f2">Section</div><div style="font-size:9.5px;color:#9095bd;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Gates close</div></div></div>
+<div style="position:absolute;left:26px;top:140px;width:124px;display:flex;height:36px;background:linear-gradient(180deg,#141731,#0e1024);border:1px solid #282d51;border-radius:7px"><span style="width:3px;border-radius:7px 0 0 7px;background:#e89b8f"></span><div style="flex:1;padding:5px 8px;min-width:0"><div style="font:500 7px 'Space Grotesk',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#e89b8f">Person</div><div style="font-size:9.5px;color:#9095bd;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Yusuf</div></div></div>
+<div style="position:absolute;left:26px;top:190px;width:124px;display:flex;height:36px;background:linear-gradient(180deg,#141731,#0e1024);border:1px solid #282d51;border-radius:7px"><span style="width:3px;border-radius:7px 0 0 7px;background:#c9a26b"></span><div style="flex:1;padding:5px 8px;min-width:0"><div style="font:500 7px 'Space Grotesk',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#c9a26b">Place</div><div style="font-size:9.5px;color:#9095bd;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Kaffa</div></div></div>
+<div style="position:absolute;left:222px;top:88px;width:128px;display:flex;height:36px;background:linear-gradient(180deg,#141731,#0e1024);border:1px solid #282d51;border-radius:7px"><span style="width:3px;border-radius:7px 0 0 7px;background:#a595f2"></span><div style="flex:1;padding:5px 8px;min-width:0"><div style="font:500 7px 'Space Grotesk',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#a595f2">Section</div><div style="font-size:9.5px;color:#9095bd;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Last caravan</div></div><span style="position:absolute;left:-3px;top:13px;width:8px;height:3px;border-radius:2px;background:#e89b8f;box-shadow:0 0 5px rgba(232,155,143,.8)"></span><span style="position:absolute;left:-3px;top:23px;width:8px;height:3px;border-radius:2px;background:#c9a26b;box-shadow:0 0 5px rgba(201,162,107,.8)"></span><span style="position:absolute;right:-3px;top:18px;width:8px;height:3px;border-radius:2px;background:#a595f2;box-shadow:0 0 5px rgba(165,149,242,.8)"></span></div>
+<div style="position:absolute;left:392px;top:94px;display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:7px;background:#0e1126;border:1px solid #3a4070;font-family:'Space Grotesk',sans-serif;font-size:10px;color:#c3bbec"><span style="position:absolute;left:-3px;top:4px;width:8px;height:3px;border-radius:2px;background:#a595f2;box-shadow:0 0 5px rgba(165,149,242,.8)"></span><span style="position:absolute;left:-3px;top:12px;width:8px;height:3px;border-radius:2px;background:#a595f2;box-shadow:0 0 5px rgba(165,149,242,.8)"></span>out →</div>
+</div>
+<div style="margin-top:13px;display:flex;gap:14px">
+<div style="flex:1;font-size:11.5px;line-height:1.55;color:#9095bd;text-wrap:pretty"><b style="color:#c9cdea;font-weight:500">Drill in</b> opens the assembly as its own canvas — the members fill the screen and the outside world becomes edge stubs.</div>
+<div style="flex:1;font-size:11.5px;line-height:1.55;color:#9095bd;text-wrap:pretty"><b style="color:#c9cdea;font-weight:500">Unpack</b> dissolves the group and leaves the members loose on the parent canvas, wires intact.</div>
+</div>
+</div>
+
+</div>
+
+<!-- ================= 5 · BLOCKS & EMBEDS ================= -->
+<div style="display:flex;align-items:baseline;gap:12px;padding:32px 4px 14px">
+<span style="font-size:16px;font-weight:500">5 · Blocks &amp; embeds</span>
+<span style="font:400 11px 'Space Mono',monospace;color:#8085ad">blocks.ts — this is how the master node gets built from the small ones</span>
+</div>
+<div data-screen-label="Blocks" style="width:1440px;box-sizing:border-box;display:grid;grid-template-columns:1.5fr 1fr;gap:18px">
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:18px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad;margin-bottom:14px">A document is a stack of blocks</div>
+<div style="display:flex;flex-direction:column;gap:9px">
+
+<div style="display:flex;gap:11px;padding:11px 13px;border:1px solid #171b30;border-left:2px solid #2a2f57;border-radius:0 9px 9px 0;background:#0d1020">
+<span style="width:78px;flex:none;font:400 8.5px 'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#8085ad;padding-top:2px">own text</span>
+<span style="flex:1;font-family:Spectral,Georgia,serif;font-size:12.5px;line-height:1.65;color:#b8bdd6">Ghazan's seal opened every gate between Tabriz and the Wall.</span>
+</div>
+
+<div style="display:flex;gap:11px;padding:11px 13px;border:1px solid rgba(165,149,242,.24);border-left:2px solid #a595f2;border-radius:0 9px 9px 0;background:rgba(165,149,242,.045)">
+<span style="width:78px;flex:none;padding-top:1px"><span style="display:inline-flex;align-items:center;gap:4px;font:400 8.5px 'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#a595f2"><i data-lucide="link" style="width:9px;height:9px"></i>embed</span><span style="display:block;font:400 8px 'Space Mono',monospace;color:#8085ad;margin-top:3px">§ Kaffa</span></span>
+<span style="flex:1;font-family:Spectral,Georgia,serif;font-size:12.5px;line-height:1.65;color:#b8bdd6">The gates closed from the inside, which was the part nobody could explain afterwards.</span>
+<span style="flex:none;font:400 8.5px 'Space Mono',monospace;color:#8085ad;padding-top:2px">live</span>
+</div>
+
+<div style="display:flex;gap:11px;padding:11px 13px;border:1px solid rgba(240,201,106,.3);border-left:2px solid #f0c96a;border-radius:0 9px 9px 0;background:rgba(240,201,106,.05)">
+<span style="width:78px;flex:none;padding-top:1px"><span style="display:inline-flex;align-items:center;gap:4px;font:400 8.5px 'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#f0c96a"><i data-lucide="git-branch" style="width:9px;height:9px"></i>forked</span><span style="display:block;font:400 8px 'Space Mono',monospace;color:#8085ad;margin-top:3px">§ Kaffa</span></span>
+<span style="flex:1;min-width:0"><span style="display:block;font-family:Spectral,Georgia,serif;font-size:12.5px;line-height:1.65;color:#b8bdd6">The gates closed from the inside — and nobody could explain it afterwards, least of all Yusuf.</span><span style="display:flex;gap:6px;margin-top:8px"><span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;border:1px solid #2a2f57;font-family:'Space Grotesk',sans-serif;font-size:10px;color:#9095bd"><i data-lucide="undo-2" style="width:10px;height:10px"></i>Revert to source</span><span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;border:1px solid rgba(240,201,106,.4);font-family:'Space Grotesk',sans-serif;font-size:10px;color:#f0d59a"><i data-lucide="upload" style="width:10px;height:10px"></i>Apply to source</span></span></span>
+</div>
+
+<div style="display:flex;gap:11px;padding:11px 13px;border:1px dashed #2a2f57;border-radius:9px;background:transparent">
+<span style="width:78px;flex:none;font:400 8.5px 'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#8085ad;padding-top:2px">new</span>
+<span style="flex:1;font-family:Spectral,Georgia,serif;font-size:12.5px;line-height:1.65;color:#575c86">Write here, or drop a node to embed it…</span>
+</div>
+
+</div>
+<div style="margin-top:15px;padding-top:13px;border-top:1px solid #171b30;font-size:11.5px;line-height:1.6;color:#9095bd;text-wrap:pretty">Embeds are the composition mechanism. Wire a Section into a Document and its text appears as a block — <b style="color:#c9cdea;font-weight:500">live</b>, still owned by the source. The moment you edit it here it <b style="color:#c9cdea;font-weight:500">forks</b>: the document keeps its own version and the source is untouched, exactly as <span style="font-family:'Space Mono',monospace;font-size:11px;color:#c9cdea">blocks.ts</span> has it. Write-back is a deliberate act, never a side effect of typing.</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:18px">
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:18px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad;margin-bottom:13px">Fork notice, on the source</div>
+<div style="position:relative;display:flex;background:linear-gradient(180deg,#141731,#0e1024);border:1px solid #282d51;border-radius:9px"><span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:9px 0 0 9px;background:linear-gradient(180deg,#a595f2,transparent)"></span><div style="width:13px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:9px 0 0 9px"></div><div style="flex:1;min-width:0;padding:8px 10px">
+<div style="display:flex;align-items:center;gap:6px"><span style="font:500 8px 'Space Grotesk',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#a595f2">Section</span><span style="flex:1"></span><span style="display:inline-flex;align-items:center;gap:4px;padding:1px 7px;border-radius:9999px;background:rgba(240,201,106,.12);border:1px solid rgba(240,201,106,.32);font-size:9.5px;color:#f0c96a"><i data-lucide="git-branch" style="width:9px;height:9px"></i>1 fork</span></div>
+<div style="font-size:11.5px;color:#c9cdea;margin-top:5px;font-family:'Space Grotesk',sans-serif">Kaffa, spring 1346</div>
+<div style="font:400 8.5px 'Space Mono',monospace;color:#9095bd;margin-top:4px">diverged in Salt Road · 2h</div>
+</div><div style="width:13px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.22);border-radius:0 9px 9px 0"></div></div>
+<div style="margin-top:12px;font-size:11.5px;line-height:1.55;color:#9095bd;text-wrap:pretty">The source says when a document has diverged from it. Without this, forking silently is a trap — you'd edit the source and wonder why the manuscript never changed.</div>
+</div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:18px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad;margin-bottom:13px">Both directions</div>
+<div style="display:flex;flex-direction:column;gap:11px;font-size:11.5px;line-height:1.55">
+<div style="display:flex;gap:10px"><i data-lucide="arrow-up" style="width:13px;height:13px;color:#6fd39a;flex:none;margin-top:2px"></i><span style="color:#9095bd"><b style="color:#c9cdea;font-weight:500">Upward.</b> Write fragments, wire them into a Document, reorder the intake. The master node is the last thing that exists.</span></div>
+<div style="display:flex;gap:10px"><i data-lucide="arrow-down" style="width:13px;height:13px;color:#f0c96a;flex:none;margin-top:2px"></i><span style="color:#9095bd"><b style="color:#c9cdea;font-weight:500">Downward.</b> Start with one node, split it by preset into stubs already wired back to it, then fill them in.</span></div>
+<div style="display:flex;gap:10px"><i data-lucide="repeat" style="width:13px;height:13px;color:#a595f2;flex:none;margin-top:2px"></i><span style="color:#9095bd"><b style="color:#c9cdea;font-weight:500">Both at once.</b> Nothing distinguishes a node made by splitting from one made by hand, so you can switch direction mid-thought.</span></div>
+</div>
+</div>
+</div>
+
+</div>
+
+<!-- ================= 6 · SPLIT ================= -->
+<div style="display:flex;align-items:baseline;gap:12px;padding:32px 4px 14px">
+<span style="font-size:16px;font-weight:500">6 · Splitting</span>
+<span style="font:400 11px 'Space Mono',monospace;color:#8085ad">any number, any type, at any depth — presets are just splits you saved</span>
+</div>
+<div data-screen-label="Split panel" style="width:1440px;box-sizing:border-box;display:grid;grid-template-columns:1fr 1.3fr;gap:18px;margin-bottom:18px">
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:18px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad;margin-bottom:14px">Split this node</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+
+<div style="display:flex;align-items:center;gap:11px"><span style="width:64px;flex:none;font-size:12px;color:#9095bd">Into</span>
+<span style="display:inline-flex;align-items:center;border:1px solid #2a2f57;border-radius:7px;overflow:hidden"><span style="display:grid;place-items:center;width:26px;height:26px;color:#9095bd;border-right:1px solid #2a2f57">−</span><span style="display:grid;place-items:center;width:34px;height:26px;font-family:'Space Mono',monospace;font-size:12px;color:#e8e9f5">4</span><span style="display:grid;place-items:center;width:26px;height:26px;color:#9095bd;border-left:1px solid #2a2f57">+</span></span>
+<span style="display:inline-flex;align-items:center;gap:7px;padding:5px 10px;border:1px solid #2a2f57;border-radius:7px;font-size:12px;color:#e8e9f5"><span style="width:3px;height:12px;border-radius:2px;background:#a595f2"></span>Section<i data-lucide="chevron-down" style="width:12px;height:12px;color:#8085ad"></i></span>
+</div>
+
+<div style="display:flex;align-items:flex-start;gap:11px"><span style="width:64px;flex:none;font-size:12px;color:#9095bd;padding-top:5px">Titles</span>
+<span style="flex:1;display:flex;gap:2px;padding:2px;border:1px solid #2a2f57;border-radius:7px">
+<span style="flex:1;text-align:center;padding:4px;border-radius:5px;background:rgba(165,149,242,.16);font-size:11px;color:#cbc2ff">Numbered</span>
+<span style="flex:1;text-align:center;padding:4px;border-radius:5px;font-size:11px;color:#8085ad">Blank</span>
+<span style="flex:1;text-align:center;padding:4px;border-radius:5px;font-size:11px;color:#8085ad">Paste a list</span>
+</span></div>
+
+<div style="display:flex;align-items:center;gap:11px"><span style="width:64px;flex:none;font-size:12px;color:#9095bd">Wire back</span>
+<span style="display:inline-flex;align-items:center;gap:8px"><span style="position:relative;width:32px;height:18px;border-radius:9999px;background:rgba(165,149,242,.3);border:1px solid rgba(165,149,242,.5)"><span style="position:absolute;right:2px;top:2px;width:12px;height:12px;border-radius:9px;background:#a595f2"></span></span><span style="font-size:11.5px;color:#9095bd">each child feeds this node's spine port</span></span></div>
+
+<div style="display:flex;align-items:center;gap:11px"><span style="width:64px;flex:none;font-size:12px;color:#9095bd">Keep text</span>
+<span style="display:inline-flex;align-items:center;gap:8px"><span style="position:relative;width:32px;height:18px;border-radius:9999px;background:#1b1f3c;border:1px solid #2a2f57"><span style="position:absolute;left:2px;top:2px;width:12px;height:12px;border-radius:9px;background:#4a4f76"></span></span><span style="font-size:11.5px;color:#8085ad">move this node's prose into child 1</span></span></div>
+
+<div style="margin-top:2px;padding:12px 13px;border:1px dashed #2a2f57;border-radius:9px;display:flex;flex-direction:column;gap:5px">
+<div style="font:400 8.5px 'Space Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#8085ad;margin-bottom:2px">Preview</div>
+<div style="display:flex;align-items:center;gap:7px;padding:4px 8px;border-radius:5px;background:#0d1020;border:1px solid #171b30"><span style="font:400 8.5px 'Space Mono',monospace;color:#8085ad">01</span><span style="width:2px;height:11px;border-radius:2px;background:#a595f2"></span><span style="font-size:11px;color:#9095bd">Section 1</span></div>
+<div style="display:flex;align-items:center;gap:7px;padding:4px 8px;border-radius:5px;background:#0d1020;border:1px solid #171b30"><span style="font:400 8.5px 'Space Mono',monospace;color:#8085ad">02</span><span style="width:2px;height:11px;border-radius:2px;background:#a595f2"></span><span style="font-size:11px;color:#9095bd">Section 2</span></div>
+<div style="display:flex;align-items:center;gap:7px;padding:4px 8px;border-radius:5px;background:#0d1020;border:1px solid #171b30"><span style="font:400 8.5px 'Space Mono',monospace;color:#8085ad">03</span><span style="width:2px;height:11px;border-radius:2px;background:#a595f2"></span><span style="font-size:11px;color:#9095bd">Section 3</span></div>
+<div style="display:flex;align-items:center;gap:7px;padding:4px 8px;border-radius:5px;background:#0d1020;border:1px solid #171b30"><span style="font:400 8.5px 'Space Mono',monospace;color:#8085ad">04</span><span style="width:2px;height:11px;border-radius:2px;background:#a595f2"></span><span style="font-size:11px;color:#9095bd">Section 4</span></div>
+</div>
+
+<div style="display:flex;align-items:center;gap:8px">
+<span style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:7px;border:1px solid rgba(165,149,242,.45);background:rgba(165,149,242,.1);font-size:11.5px;color:#cbc2ff"><i data-lucide="scissors" style="width:12px;height:12px"></i>Split</span>
+<span style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:7px;border:1px solid #2a2f57;font-size:11.5px;color:#9095bd"><i data-lucide="bookmark" style="width:12px;height:12px"></i>Save as preset</span>
+</div>
+</div>
+</div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:18px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad;margin-bottom:14px">Split what you already split — depth is unlimited</div>
+
+<div style="display:flex;flex-direction:column;gap:7px">
+<div style="display:flex;align-items:center;gap:9px"><span style="display:flex;align-items:center;gap:8px;padding:7px 11px;border-radius:8px;background:linear-gradient(180deg,#141731,#0e1024);border:1px solid #282d51;position:relative;min-width:250px"><span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:8px 0 0 8px;background:#a595f2"></span><span style="padding-left:8px;font:500 8px 'Space Grotesk',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#a595f2">Manuscript</span><span style="flex:1"></span><span style="font-size:11.5px;color:#c9cdea">Salt Road</span></span><span style="font:400 9px 'Space Mono',monospace;color:#8085ad">split → 3 chapter stubs</span></div>
+
+<div style="display:flex;align-items:center;gap:9px;padding-left:28px"><span style="width:14px;height:1px;background:#2a2f57;flex:none"></span><span style="display:flex;align-items:center;gap:8px;padding:7px 11px;border-radius:8px;background:linear-gradient(180deg,#141731,#0e1024);border:1px solid #282d51;position:relative;min-width:236px"><span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:8px 0 0 8px;background:#a595f2"></span><span style="padding-left:8px;font:500 8px 'Space Grotesk',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#a595f2">Document</span><span style="flex:1"></span><span style="font-size:11.5px;color:#c9cdea">Ch. 4</span></span><span style="font:400 9px 'Space Mono',monospace;color:#8085ad">split → 4 sections</span></div>
+
+<div style="display:flex;align-items:center;gap:9px;padding-left:56px"><span style="width:14px;height:1px;background:#2a2f57;flex:none"></span><span style="display:flex;align-items:center;gap:8px;padding:7px 11px;border-radius:8px;background:linear-gradient(180deg,#141731,#0e1024);border:1px solid #282d51;position:relative;min-width:208px"><span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:8px 0 0 8px;background:#a595f2"></span><span style="padding-left:8px;font:500 8px 'Space Grotesk',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#a595f2">Section</span><span style="flex:1"></span><span style="font-size:11.5px;color:#c9cdea">The gates close</span></span></div>
+
+<div style="display:flex;align-items:center;gap:9px;padding-left:84px"><span style="width:14px;height:1px;background:#2a2f57;flex:none"></span><span style="display:flex;gap:6px">
+<span style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:7px;background:#0d1020;border:1px solid #171b30"><span style="width:3px;height:11px;border-radius:2px;background:#7fa3e8"></span><span style="font-size:11px;color:#9095bd">Source</span></span>
+<span style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:7px;background:#0d1020;border:1px solid #171b30"><span style="width:3px;height:11px;border-radius:2px;background:#a595f2"></span><span style="font-size:11px;color:#9095bd">Note</span></span>
+<span style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:7px;background:#0d1020;border:1px solid #171b30"><span style="width:3px;height:11px;border-radius:2px;background:#e89b8f"></span><span style="font-size:11px;color:#9095bd">Person</span></span>
+</span><span style="font:400 9px 'Space Mono',monospace;color:#8085ad">feed in</span></div>
+</div>
+
+<div style="margin-top:15px;padding-top:13px;border-top:1px solid #171b30;font-size:11.5px;line-height:1.6;color:#9095bd;text-wrap:pretty">Exactly your example: the manuscript splits into chapters, a chapter splits into its main points, and each point is fed by the sources and notes that back it. Splitting a child is the same command as splitting its parent — nothing marks a node as "already split", so you can keep going down, or stop and start wiring things in from the side.</div>
+</div>
+
+</div>
+
+<div style="display:flex;align-items:baseline;gap:12px;padding:0 4px 12px">
+<span style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:500;color:#c9cdea">Built-in presets</span>
+<span style="font:400 11px 'Space Mono',monospace;color:#8085ad">the same panel with the fields pre-filled — nothing you couldn't build yourself</span>
+</div>
+<div data-screen-label="Split" style="width:1440px;box-sizing:border-box;display:grid;grid-template-columns:repeat(5,1fr);gap:16px">
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:15px"><div style="font-family:'Space Grotesk',sans-serif;font-size:12.5px;font-weight:500;color:#e8e9f5;margin-bottom:11px">3 blank sections</div><div style="display:flex;flex-direction:column;gap:4px">
+<div style="display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:5px;background:#0d1020;border:1px solid #171b30"><span style="width:2px;height:11px;border-radius:2px;background:#a595f2"></span><span style="font-size:10.5px;color:#9095bd">Section 1</span></div>
+<div style="display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:5px;background:#0d1020;border:1px solid #171b30"><span style="width:2px;height:11px;border-radius:2px;background:#a595f2"></span><span style="font-size:10.5px;color:#9095bd">Section 2</span></div>
+<div style="display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:5px;background:#0d1020;border:1px solid #171b30"><span style="width:2px;height:11px;border-radius:2px;background:#a595f2"></span><span style="font-size:10.5px;color:#9095bd">Section 3</span></div>
+</div><div style="margin-top:11px;font-size:10.5px;line-height:1.5;color:#8085ad">The plain one. Three stubs, wired back, nothing assumed.</div></div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:15px"><div style="font-family:'Space Grotesk',sans-serif;font-size:12.5px;font-weight:500;color:#e8e9f5;margin-bottom:11px">Beat sheet</div><div style="display:flex;flex-direction:column;gap:4px">
+<div style="display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:5px;background:#0d1020;border:1px solid #171b30"><span style="width:2px;height:11px;border-radius:2px;background:#a595f2"></span><span style="font-size:10.5px;color:#9095bd">Opening image</span></div>
+<div style="display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:5px;background:#0d1020;border:1px solid #171b30"><span style="width:2px;height:11px;border-radius:2px;background:#a595f2"></span><span style="font-size:10.5px;color:#9095bd">Inciting incident</span></div>
+<div style="display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:5px;background:#0d1020;border:1px solid #171b30"><span style="width:2px;height:11px;border-radius:2px;background:#a595f2"></span><span style="font-size:10.5px;color:#9095bd">Rising action</span></div>
+<div style="display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:5px;background:#0d1020;border:1px solid #171b30"><span style="width:2px;height:11px;border-radius:2px;background:#a595f2"></span><span style="font-size:10.5px;color:#9095bd">Climax</span></div>
+<div style="display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:5px;background:#0d1020;border:1px solid #171b30"><span style="width:2px;height:11px;border-radius:2px;background:#a595f2"></span><span style="font-size:10.5px;color:#9095bd">Resolution</span></div>
+</div><div style="margin-top:11px;font-size:10.5px;line-height:1.5;color:#8085ad">For a novel. Five beats in order, ready to reorder.</div></div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:15px"><div style="font-family:'Space Grotesk',sans-serif;font-size:12.5px;font-weight:500;color:#e8e9f5;margin-bottom:11px">Toulmin scaffold</div><div style="display:flex;flex-direction:column;gap:4px">
+<div style="display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:5px;background:#0d1020;border:1px solid #171b30"><span style="width:2px;height:11px;border-radius:2px;background:#7d84b8"></span><span style="font-size:10.5px;color:#9095bd">Grounds</span></div>
+<div style="display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:5px;background:#0d1020;border:1px solid #171b30"><span style="width:2px;height:11px;border-radius:2px;background:#7d84b8"></span><span style="font-size:10.5px;color:#9095bd">Warrant</span></div>
+<div style="display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:5px;background:#0d1020;border:1px solid #171b30"><span style="width:2px;height:11px;border-radius:2px;background:#7d84b8"></span><span style="font-size:10.5px;color:#9095bd">Backing</span></div>
+<div style="display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:5px;background:#0d1020;border:1px solid #171b30"><span style="width:2px;height:11px;border-radius:2px;background:#7d84b8"></span><span style="font-size:10.5px;color:#9095bd">Rebuttal</span></div>
+</div><div style="margin-top:11px;font-size:10.5px;line-height:1.5;color:#8085ad">For a paper. Splits a Claim into the four parts an argument owes.</div></div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:15px"><div style="font-family:'Space Grotesk',sans-serif;font-size:12.5px;font-weight:500;color:#e8e9f5;margin-bottom:11px">Passage → Propositions</div><div style="display:flex;flex-direction:column;gap:4px">
+<div style="display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:5px;background:#0d1020;border:1px solid #171b30"><span style="width:2px;height:11px;border-radius:2px;background:#52b8a8"></span><span style="font-size:10.5px;color:#9095bd">Proposition 1</span></div>
+<div style="display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:5px;background:#0d1020;border:1px solid #171b30"><span style="width:2px;height:11px;border-radius:2px;background:#52b8a8"></span><span style="font-size:10.5px;color:#9095bd">Proposition 2</span></div>
+<div style="display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:5px;background:#0d1020;border:1px solid #171b30"><span style="width:2px;height:11px;border-radius:2px;background:#52b8a8"></span><span style="font-size:10.5px;color:#9095bd">Proposition 3</span></div>
+</div><div style="margin-top:11px;font-size:10.5px;line-height:1.5;color:#8085ad">For a sermon. Turns a passage into the points it will carry.</div></div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:15px"><div style="font-family:'Space Grotesk',sans-serif;font-size:12.5px;font-weight:500;color:#e8e9f5;margin-bottom:11px">3 chapter stubs</div><div style="display:flex;flex-direction:column;gap:4px">
+<div style="display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:5px;background:#0d1020;border:1px solid #171b30"><span style="width:2px;height:11px;border-radius:2px;background:#a595f2"></span><span style="font-size:10.5px;color:#9095bd">Chapter 1</span></div>
+<div style="display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:5px;background:#0d1020;border:1px solid #171b30"><span style="width:2px;height:11px;border-radius:2px;background:#a595f2"></span><span style="font-size:10.5px;color:#9095bd">Chapter 2</span></div>
+<div style="display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:5px;background:#0d1020;border:1px solid #171b30"><span style="width:2px;height:11px;border-radius:2px;background:#a595f2"></span><span style="font-size:10.5px;color:#9095bd">Chapter 3</span></div>
+</div><div style="margin-top:11px;font-size:10.5px;line-height:1.5;color:#8085ad">Splits a Manuscript one level down into Documents.</div></div>
+</div>
+
+<!-- ================= 7 · REGISTRY ================= -->
+<div style="display:flex;align-items:baseline;gap:12px;padding:32px 4px 14px">
+<span style="font-size:16px;font-weight:500">7 · Node registry</span>
+<span style="font-family:'Space Mono',monospace;font-size:11px;color:#8085ad">all 16 types · ● give ○ take · spine ports carry the ordered intake · ⚑ flags when empty</span>
+</div>
+<div data-screen-label="Registry" style="width:1440px;box-sizing:border-box;display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+
+<div style="border:1px solid #1c2038;border-radius:11px;background:#0a0c18;padding:14px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #1b2036"><span style="width:4px;height:20px;border-radius:2px;background:#d08fd0"></span><span style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;letter-spacing:-.012em;color:#f2f3fa">Title</span></div><div style="display:flex;flex-direction:column;gap:4px;font-family:'Space Mono',monospace;font-size:10px">
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#d08fd0">●</span><span style="color:#c9cdea">Thread</span><span style="flex:1"></span><span style="color:#8085ad">thread</span></div>
+<div style="display:flex;align-items:center;gap:7px;opacity:.55"><span style="color:#a595f2">○</span><span style="color:#c9cdea">Subject</span><span style="flex:1"></span><span style="color:#8085ad">text · 1</span></div>
+<div style="display:flex;align-items:center;gap:7px;opacity:.55"><span style="color:#a595f2">○</span><span style="color:#c9cdea">Complement</span><span style="flex:1"></span><span style="color:#8085ad">text · 1</span></div>
+</div><div style="margin-top:9px;font-size:10.5px;line-height:1.45;color:#8085ad">The work's one-line spine. Everything else serves it.</div></div>
+
+<div style="border:1px solid #1c2038;border-radius:11px;background:#0a0c18;padding:14px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #1b2036"><span style="width:4px;height:20px;border-radius:2px;background:#a595f2"></span><span style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;letter-spacing:-.012em;color:#f2f3fa">Note</span></div><div style="display:flex;flex-direction:column;gap:4px;font-family:'Space Mono',monospace;font-size:10px">
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#a595f2">●</span><span style="color:#c9cdea">Text</span><span style="flex:1"></span><span style="color:#8085ad">text</span></div>
+</div><div style="margin-top:9px;font-size:10.5px;line-height:1.45;color:#8085ad">One port, no obligations. The only type that fits the map plate as-is.</div></div>
+
+<div style="border:1px solid #1c2038;border-radius:11px;background:#0a0c18;padding:14px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #1b2036"><span style="width:4px;height:20px;border-radius:2px;background:#a595f2"></span><span style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;letter-spacing:-.012em;color:#f2f3fa">Document</span></div><div style="display:flex;flex-direction:column;gap:4px;font-family:'Space Mono',monospace;font-size:10px">
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#a595f2">◉</span><span style="color:#c9cdea">Sections</span><span style="flex:1"></span><span style="color:#8085ad">text · ∞</span></div>
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#a595f2">●</span><span style="color:#c9cdea">Compiled text</span><span style="flex:1"></span><span style="color:#8085ad">text</span></div>
+<div style="display:flex;align-items:center;gap:7px;opacity:.55"><span style="color:#d08fd0">○</span><span style="color:#c9cdea">Thread ⚑</span><span style="flex:1"></span><span style="color:#8085ad">thread · 1</span></div>
+<div style="display:flex;align-items:center;gap:7px;opacity:.55"><span style="color:#7fa3e8">○</span><span style="color:#c9cdea">Footnotes</span><span style="flex:1"></span><span style="color:#8085ad">cite · ∞</span></div>
+</div><div style="margin-top:9px;font-size:10.5px;line-height:1.45;color:#8085ad">The master node. Its spine port is the ordered stack of blocks.</div></div>
+
+<div style="border:1px solid #1c2038;border-radius:11px;background:#0a0c18;padding:14px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #1b2036"><span style="width:4px;height:20px;border-radius:2px;background:#a595f2"></span><span style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;letter-spacing:-.012em;color:#f2f3fa">Manuscript</span></div><div style="display:flex;flex-direction:column;gap:4px;font-family:'Space Mono',monospace;font-size:10px">
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#a595f2">◉</span><span style="color:#c9cdea">Documents</span><span style="flex:1"></span><span style="color:#8085ad">text · ∞</span></div>
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#a595f2">●</span><span style="color:#c9cdea">Compiled work</span><span style="flex:1"></span><span style="color:#8085ad">text</span></div>
+<div style="display:flex;align-items:center;gap:7px;opacity:.55"><span style="color:#d08fd0">○</span><span style="color:#c9cdea">Thread ⚑</span><span style="flex:1"></span><span style="color:#8085ad">thread · 1</span></div>
+</div><div style="margin-top:9px;font-size:10.5px;line-height:1.45;color:#8085ad">A Document of Documents — the whole book, one level up.</div></div>
+
+<div style="border:1px solid #1c2038;border-radius:11px;background:#0a0c18;padding:14px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #1b2036"><span style="width:4px;height:20px;border-radius:2px;background:#a595f2"></span><span style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;letter-spacing:-.012em;color:#f2f3fa">Section</span></div><div style="display:flex;flex-direction:column;gap:4px;font-family:'Space Mono',monospace;font-size:10px">
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#a595f2">●</span><span style="color:#c9cdea">Text</span><span style="flex:1"></span><span style="color:#8085ad">text</span></div>
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#e89b8f">○</span><span style="color:#c9cdea">People</span><span style="flex:1"></span><span style="color:#8085ad">person · ∞</span></div>
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#c9a26b">○</span><span style="color:#c9cdea">Setting</span><span style="flex:1"></span><span style="color:#8085ad">place · 1</span></div>
+<div style="display:flex;align-items:center;gap:7px;opacity:.55"><span style="color:#e89b8f">○</span><span style="color:#c9cdea">POV</span><span style="flex:1"></span><span style="color:#8085ad">person · 1</span></div>
+<div style="display:flex;align-items:center;gap:7px;opacity:.55"><span style="color:#d08fd0">○</span><span style="color:#c9cdea">Serves</span><span style="flex:1"></span><span style="color:#8085ad">thread · 1</span></div>
+</div><div style="margin-top:9px;font-size:10.5px;line-height:1.45;color:#8085ad">Where prose lives. Scene, chapter or paper section — same type.</div></div>
+
+<div style="border:1px solid #1c2038;border-radius:11px;background:#0a0c18;padding:14px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #1b2036"><span style="width:4px;height:20px;border-radius:2px;background:#a595f2"></span><span style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;letter-spacing:-.012em;color:#f2f3fa">Question</span></div><div style="display:flex;flex-direction:column;gap:4px;font-family:'Space Mono',monospace;font-size:10px">
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#a595f2">○</span><span style="color:#c9cdea">Answer</span><span style="flex:1"></span><span style="color:#8085ad">text · 1</span></div>
+</div><div style="margin-top:9px;font-size:10.5px;line-height:1.45;color:#8085ad">Takes only. A question that gives something has become a claim.</div></div>
+
+<div style="border:1px solid #1c2038;border-radius:11px;background:#0a0c18;padding:14px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #1b2036"><span style="width:4px;height:20px;border-radius:2px;background:#e89b8f"></span><span style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;letter-spacing:-.012em;color:#f2f3fa">Person</span></div><div style="display:flex;flex-direction:column;gap:4px;font-family:'Space Mono',monospace;font-size:10px">
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#e89b8f">●</span><span style="color:#c9cdea">Identity</span><span style="flex:1"></span><span style="color:#8085ad">person</span></div>
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#e89b8f">○</span><span style="color:#c9cdea">Bond</span><span style="flex:1"></span><span style="color:#8085ad">person · ∞</span></div>
+<div style="display:flex;align-items:center;gap:7px;opacity:.55"><span style="color:#7fd4c1">○</span><span style="color:#c9cdea">Possession</span><span style="flex:1"></span><span style="color:#8085ad">thing · ∞</span></div>
+</div><div style="margin-top:9px;font-size:10.5px;line-height:1.45;color:#8085ad">Cast, collaborator or historical figure. Bonds are person-to-person.</div></div>
+
+<div style="border:1px solid #1c2038;border-radius:11px;background:#0a0c18;padding:14px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #1b2036"><span style="width:4px;height:20px;border-radius:2px;background:#c9a26b"></span><span style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;letter-spacing:-.012em;color:#f2f3fa">Place</span></div><div style="display:flex;flex-direction:column;gap:4px;font-family:'Space Mono',monospace;font-size:10px">
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#c9a26b">●</span><span style="color:#c9cdea">Identity</span><span style="flex:1"></span><span style="color:#8085ad">place</span></div>
+<div style="display:flex;align-items:center;gap:7px;opacity:.55"><span style="color:#c9a26b">○</span><span style="color:#c9cdea">Contains</span><span style="flex:1"></span><span style="color:#8085ad">place · ∞</span></div>
+</div><div style="margin-top:9px;font-size:10.5px;line-height:1.45;color:#8085ad">Places nest — a room inside a hall inside a city.</div></div>
+
+<div style="border:1px solid #1c2038;border-radius:11px;background:#0a0c18;padding:14px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #1b2036"><span style="width:4px;height:20px;border-radius:2px;background:#7fd4c1"></span><span style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;letter-spacing:-.012em;color:#f2f3fa">Thing</span></div><div style="display:flex;flex-direction:column;gap:4px;font-family:'Space Mono',monospace;font-size:10px">
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#7fd4c1">●</span><span style="color:#c9cdea">Identity</span><span style="flex:1"></span><span style="color:#8085ad">thing</span></div>
+</div><div style="margin-top:9px;font-size:10.5px;line-height:1.45;color:#8085ad">An object that matters. Pairs with Plant when it has to come back.</div></div>
+
+<div style="border:1px solid #1c2038;border-radius:11px;background:#0a0c18;padding:14px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #1b2036"><span style="width:4px;height:20px;border-radius:2px;background:#7fa3e8"></span><span style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;letter-spacing:-.012em;color:#f2f3fa">Source</span></div><div style="display:flex;flex-direction:column;gap:4px;font-family:'Space Mono',monospace;font-size:10px">
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#7fa3e8">●</span><span style="color:#c9cdea">Citation</span><span style="flex:1"></span><span style="color:#8085ad">cite</span></div>
+</div><div style="margin-top:9px;font-size:10.5px;line-height:1.45;color:#8085ad">Holds the file and the page. Its wire is the citation in your text.</div></div>
+
+<div style="border:1px solid #1c2038;border-radius:11px;background:#0a0c18;padding:14px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #1b2036"><span style="width:4px;height:20px;border-radius:2px;background:#6fd39a"></span><span style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;letter-spacing:-.012em;color:#f2f3fa">Claim</span></div><div style="display:flex;flex-direction:column;gap:4px;font-family:'Space Mono',monospace;font-size:10px">
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#6fd39a">●</span><span style="color:#c9cdea">Claim</span><span style="flex:1"></span><span style="color:#8085ad">claim</span></div>
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#8085ad">◉</span><span style="color:#c9cdea">Supports ⚑</span><span style="flex:1"></span><span style="color:#8085ad">any · ∞</span></div>
+<div style="display:flex;align-items:center;gap:7px;opacity:.55"><span style="color:#8085ad">○</span><span style="color:#c9cdea">Rebuts</span><span style="flex:1"></span><span style="color:#8085ad">any · ∞</span></div>
+<div style="display:flex;align-items:center;gap:7px;opacity:.55"><span style="color:#a595f2">○</span><span style="color:#c9cdea">Warrant</span><span style="flex:1"></span><span style="color:#8085ad">text · 1</span></div>
+</div><div style="margin-top:9px;font-size:10.5px;line-height:1.45;color:#8085ad">Flags itself when nothing supports it. An unsupported claim is a to-do.</div></div>
+
+<div style="border:1px solid #1c2038;border-radius:11px;background:#0a0c18;padding:14px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #1b2036"><span style="width:4px;height:20px;border-radius:2px;background:#a595f2"></span><span style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;letter-spacing:-.012em;color:#f2f3fa">Passage</span></div><div style="display:flex;flex-direction:column;gap:4px;font-family:'Space Mono',monospace;font-size:10px">
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#a595f2">●</span><span style="color:#c9cdea">Text</span><span style="flex:1"></span><span style="color:#8085ad">text</span></div>
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#52b8a8">◉</span><span style="color:#c9cdea">Propositions</span><span style="flex:1"></span><span style="color:#8085ad">prop · ∞</span></div>
+</div><div style="margin-top:9px;font-size:10.5px;line-height:1.45;color:#8085ad">A quoted text the work is built on. Split it into what it asserts.</div></div>
+
+<div style="border:1px solid #1c2038;border-radius:11px;background:#0a0c18;padding:14px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #1b2036"><span style="width:4px;height:20px;border-radius:2px;background:#52b8a8"></span><span style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;letter-spacing:-.012em;color:#f2f3fa">Proposition</span></div><div style="display:flex;flex-direction:column;gap:4px;font-family:'Space Mono',monospace;font-size:10px">
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#52b8a8">●</span><span style="color:#c9cdea">Proposition</span><span style="flex:1"></span><span style="color:#8085ad">prop</span></div>
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#52b8a8">○</span><span style="color:#c9cdea">Arcs</span><span style="flex:1"></span><span style="color:#8085ad">prop · ∞</span></div>
+<div style="display:flex;align-items:center;gap:7px;opacity:.55"><span style="color:#a595f2">●</span><span style="color:#c9cdea">Text</span><span style="flex:1"></span><span style="color:#8085ad">text</span></div>
+</div><div style="margin-top:9px;font-size:10.5px;line-height:1.45;color:#8085ad">One point. Two or more in an assembly become an arc.</div></div>
+
+<div style="border:1px solid #1c2038;border-radius:11px;background:#0a0c18;padding:14px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #1b2036"><span style="width:4px;height:20px;border-radius:2px;background:#9fd18a"></span><span style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;letter-spacing:-.012em;color:#f2f3fa">Plant</span></div><div style="display:flex;flex-direction:column;gap:4px;font-family:'Space Mono',monospace;font-size:10px">
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#9fd18a">●</span><span style="color:#c9cdea">Plant ⚑</span><span style="flex:1"></span><span style="color:#8085ad">plant</span></div>
+</div><div style="margin-top:9px;font-size:10.5px;line-height:1.45;color:#8085ad">Flags while nothing consumes it — a setup with no payoff yet.</div></div>
+
+<div style="border:1px solid #1c2038;border-radius:11px;background:#0a0c18;padding:14px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #1b2036"><span style="width:4px;height:20px;border-radius:2px;background:#9fd18a"></span><span style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;letter-spacing:-.012em;color:#f2f3fa">Payoff</span></div><div style="display:flex;flex-direction:column;gap:4px;font-family:'Space Mono',monospace;font-size:10px">
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#9fd18a">○</span><span style="color:#c9cdea">Resolves ⚑</span><span style="flex:1"></span><span style="color:#8085ad">plant · ∞</span></div>
+</div><div style="margin-top:9px;font-size:10.5px;line-height:1.45;color:#8085ad">The other half. Flags while it resolves nothing.</div></div>
+
+<div style="border:1px solid #1c2038;border-radius:11px;background:#0a0c18;padding:14px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #1b2036"><span style="width:4px;height:20px;border-radius:2px;background:#8f9ff0"></span><span style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;letter-spacing:-.012em;color:#f2f3fa">Event</span></div><div style="display:flex;flex-direction:column;gap:4px;font-family:'Space Mono',monospace;font-size:10px">
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#8f9ff0">●</span><span style="color:#c9cdea">Event</span><span style="flex:1"></span><span style="color:#8085ad">event</span></div>
+<div style="display:flex;align-items:center;gap:7px"><span style="color:#e89b8f">○</span><span style="color:#c9cdea">Involves</span><span style="flex:1"></span><span style="color:#8085ad">person · ∞</span></div>
+</div><div style="margin-top:9px;font-size:10.5px;line-height:1.45;color:#8085ad">A dated fact. The only type with a place on a timeline.</div></div>
+
+</div>
+
+<!-- ================= 8 · PORT GRAMMAR ================= -->
+<div style="display:flex;align-items:baseline;gap:12px;padding:32px 4px 14px">
+<span style="font-size:16px;font-weight:500">8 · Port grammar</span>
+<span style="font:400 11px 'Space Mono',monospace;color:#8085ad">every attribute in the registry has one visual consequence</span>
+</div>
+<div data-screen-label="Ports" style="width:1440px;box-sizing:border-box;display:grid;grid-template-columns:repeat(5,1fr);gap:16px">
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:15px"><div style="font-family:'Space Mono',monospace;font-size:11px;color:#e8e9f5;margin-bottom:11px">direction</div><div style="display:flex;flex-direction:column;gap:9px"><div style="display:flex;align-items:center;gap:9px"><span style="width:14px;height:5px;border-radius:2px;background:#a595f2;box-shadow:0 0 7px rgba(165,149,242,.8)"></span><span style="font-size:11px;color:#9095bd">give — right edge</span></div><div style="display:flex;align-items:center;gap:9px"><span style="width:14px;height:5px;border-radius:2px;background:#a595f2;box-shadow:0 0 7px rgba(165,149,242,.8)"></span><span style="font-size:11px;color:#9095bd">take — left edge</span></div></div><div style="margin-top:11px;font-size:10.5px;line-height:1.5;color:#8085ad">Side carries direction, so a wire never needs an arrowhead.</div></div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:15px"><div style="font-family:'Space Mono',monospace;font-size:11px;color:#e8e9f5;margin-bottom:11px">capacity</div><div style="display:flex;flex-direction:column;gap:9px"><div style="display:flex;align-items:center;gap:9px"><span style="width:14px;height:5px;border-radius:2px;background:#a595f2"></span><span style="font-size:11px;color:#9095bd">one — a single slot</span></div><div style="display:flex;align-items:center;gap:9px"><span style="display:flex;flex-direction:column;gap:2px"><span style="width:14px;height:3px;border-radius:2px;background:#a595f2"></span><span style="width:14px;height:3px;border-radius:2px;background:#a595f2;opacity:.5"></span></span><span style="font-size:11px;color:#9095bd">many — a stacked slot</span></div></div><div style="margin-top:11px;font-size:10.5px;line-height:1.5;color:#8085ad">A doubled slot accepts more. Full single slots refuse the drop.</div></div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:15px"><div style="font-family:'Space Mono',monospace;font-size:11px;color:#e8e9f5;margin-bottom:11px">spine</div><div style="display:flex;align-items:center;gap:9px"><span style="width:5px;height:34px;border-radius:2px;background:linear-gradient(180deg,#a595f2,rgba(165,149,242,.3))"></span><span style="display:flex;flex-direction:column;gap:3px"><span style="display:flex;align-items:center;gap:5px"><span style="font:400 8px 'Space Mono',monospace;color:#8085ad">01</span><span style="width:44px;height:3px;border-radius:2px;background:#2a2f57"></span></span><span style="display:flex;align-items:center;gap:5px"><span style="font:400 8px 'Space Mono',monospace;color:#8085ad">02</span><span style="width:44px;height:3px;border-radius:2px;background:#2a2f57"></span></span><span style="display:flex;align-items:center;gap:5px"><span style="font:400 8px 'Space Mono',monospace;color:#8085ad">03</span><span style="width:44px;height:3px;border-radius:2px;background:#2a2f57"></span></span></span></div><div style="margin-top:11px;font-size:10.5px;line-height:1.5;color:#8085ad">The ordered intake. Numbered, draggable — this is the outline.</div></div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:15px"><div style="font-family:'Space Mono',monospace;font-size:11px;color:#e8e9f5;margin-bottom:11px">defaultVisible</div><div style="display:flex;flex-direction:column;gap:9px"><div style="display:flex;align-items:center;gap:9px"><span style="width:14px;height:5px;border-radius:2px;background:#a595f2"></span><span style="font-size:11px;color:#9095bd">shown</span></div><div style="display:flex;align-items:center;gap:9px"><span style="width:14px;height:5px;border-radius:2px;border:1px solid #3a3f65"></span><span style="font-size:11px;color:#9095bd">hidden until used</span></div></div><div style="margin-top:11px;font-size:10.5px;line-height:1.5;color:#8085ad">Rare ports stay out of sight. Wire one and it appears for good.</div></div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:15px"><div style="font-family:'Space Mono',monospace;font-size:11px;color:#e8e9f5;margin-bottom:11px">flagWhenEmpty ⚑</div><div style="display:flex;align-items:center;gap:9px"><span style="position:relative;width:14px;height:5px;border-radius:2px;border:1px solid #f0c96a"><span style="position:absolute;left:-4px;top:-5px;width:5px;height:5px;border-radius:9px;background:#f0c96a;box-shadow:0 0 6px rgba(240,201,106,.8)"></span></span><span style="font-size:11px;color:#9095bd">unfilled, and it matters</span></div><div style="margin-top:11px;font-size:10.5px;line-height:1.5;color:#8085ad">The port asks for something. It's the difference between an empty slot and a missing one — and it's what holds a node at <i>developing</i>.</div></div>
+
+</div>
+
+<!-- ================= 9 · ROOMS ================= -->
+<div style="display:flex;align-items:baseline;gap:12px;padding:32px 4px 14px">
+<span style="font-size:16px;font-weight:500">9 · Rooms</span>
+<span style="font:400 11px 'Space Mono',monospace;color:#8085ad">four views on one document — the toolbar tabs now mean something</span>
+</div>
+<div data-screen-label="Rooms" style="width:1440px;box-sizing:border-box;display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+
+<div style="border:1px solid rgba(165,149,242,.35);border-radius:12px;background:#0a0c18;padding:15px">
+<div style="display:flex;align-items:center;gap:7px;margin-bottom:12px"><i data-lucide="git-branch" style="width:13px;height:13px;color:#a595f2"></i><span style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;letter-spacing:-.012em;color:#f2f3fa">Canvas</span></div>
+<svg viewBox="0 0 260 116" style="width:100%;display:block" fill="none"><g fill="#141731" stroke="#282d51"><rect x="10" y="16" width="60" height="20" rx="4"></rect><rect x="10" y="48" width="60" height="20" rx="4"></rect><rect x="10" y="80" width="60" height="20" rx="4"></rect><rect x="106" y="30" width="64" height="20" rx="4"></rect><rect x="106" y="66" width="64" height="20" rx="4"></rect><rect x="200" y="44" width="52" height="30" rx="4"></rect></g><g stroke-width="1.2" stroke-opacity=".7"><path d="M70,26 H88 L96,34 V36 L104,40" stroke="#a595f2"></path><path d="M70,58 H88 L96,50 V44 L104,40" stroke="#e89b8f"></path><path d="M70,90 H88 L96,82 V76 L104,76" stroke="#c9a26b"></path><path d="M170,40 H186 L194,48 V52 L200,56" stroke="#a595f2"></path><path d="M170,76 H186 L194,68 V64 L200,60" stroke="#a595f2"></path></g></svg>
+<div style="margin-top:11px;font-size:11px;line-height:1.5;color:#9095bd;text-wrap:pretty">The map. Everything at once, spatially. Where you think.</div>
+</div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:15px">
+<div style="display:flex;align-items:center;gap:7px;margin-bottom:12px"><i data-lucide="list" style="width:13px;height:13px;color:#8085ad"></i><span style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;letter-spacing:-.012em;color:#f2f3fa">Document room</span></div>
+<svg viewBox="0 0 260 116" style="width:100%;display:block" fill="none"><g fill="#141731" stroke="#282d51"><rect x="10" y="10" width="150" height="18" rx="4"></rect><rect x="10" y="34" width="150" height="18" rx="4"></rect><rect x="10" y="58" width="150" height="18" rx="4"></rect><rect x="10" y="82" width="150" height="18" rx="4"></rect></g><g fill="#a595f2"><rect x="14" y="14" width="2" height="10" rx="1"></rect><rect x="14" y="38" width="2" height="10" rx="1"></rect><rect x="14" y="62" width="2" height="10" rx="1"></rect></g><rect x="14" y="86" width="2" height="10" rx="1" fill="#f0c96a"></rect><g fill="#2a2f57"><rect x="180" y="12" width="70" height="3" rx="1.5"></rect><rect x="180" y="20" width="70" height="3" rx="1.5"></rect><rect x="180" y="28" width="52" height="3" rx="1.5"></rect><rect x="180" y="40" width="70" height="3" rx="1.5"></rect><rect x="180" y="48" width="70" height="3" rx="1.5"></rect><rect x="180" y="56" width="40" height="3" rx="1.5"></rect><rect x="180" y="68" width="70" height="3" rx="1.5"></rect><rect x="180" y="76" width="60" height="3" rx="1.5"></rect></g></svg>
+<div style="margin-top:11px;font-size:11px;line-height:1.5;color:#9095bd;text-wrap:pretty">The block stack on the left, the compiled prose on the right. Reorder here and the spine port reorders with it.</div>
+</div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:15px">
+<div style="display:flex;align-items:center;gap:7px;margin-bottom:12px"><i data-lucide="spline" style="width:13px;height:13px;color:#8085ad"></i><span style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;letter-spacing:-.012em;color:#f2f3fa">Arc room</span></div>
+<svg viewBox="0 0 260 116" style="width:100%;display:block" fill="none"><path d="M14,92 C60,92 70,30 130,30 C190,30 200,74 246,74" stroke="#52b8a8" stroke-width="1.6" stroke-opacity=".65"></path><g fill="#141731" stroke="#52b8a8" stroke-opacity=".55"><circle cx="14" cy="92" r="7"></circle><circle cx="72" cy="52" r="7"></circle><circle cx="130" cy="30" r="7"></circle><circle cx="188" cy="44" r="7"></circle><circle cx="246" cy="74" r="7"></circle></g><g fill="#8085ad" font-family="Space Mono,monospace" font-size="7"><text x="14" y="110" text-anchor="middle">1</text><text x="72" y="110" text-anchor="middle">2</text><text x="130" y="110" text-anchor="middle">3</text><text x="188" y="110" text-anchor="middle">4</text><text x="246" y="110" text-anchor="middle">5</text></g></svg>
+<div style="margin-top:11px;font-size:11px;line-height:1.5;color:#9095bd;text-wrap:pretty">Propositions in order as a shape. For a sermon or an argument, where the sequence <i>is</i> the work.</div>
+</div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:15px">
+<div style="display:flex;align-items:center;gap:7px;margin-bottom:12px"><i data-lucide="expand" style="width:13px;height:13px;color:#8085ad"></i><span style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;letter-spacing:-.012em;color:#f2f3fa">Focus editor</span></div>
+<svg viewBox="0 0 260 116" style="width:100%;display:block" fill="none"><g fill="#2a2f57"><rect x="66" y="16" width="128" height="4" rx="2"></rect><rect x="66" y="32" width="128" height="3" rx="1.5"></rect><rect x="66" y="42" width="128" height="3" rx="1.5"></rect><rect x="66" y="52" width="128" height="3" rx="1.5"></rect><rect x="66" y="62" width="96" height="3" rx="1.5"></rect><rect x="66" y="78" width="128" height="3" rx="1.5"></rect><rect x="66" y="88" width="110" height="3" rx="1.5"></rect></g></svg>
+<div style="margin-top:11px;font-size:11px;line-height:1.5;color:#9095bd;text-wrap:pretty">One column, no canvas, no rail. For the hour when you're not navigating, just writing.</div>
+</div>
+
+</div>
+
+<p style="margin:26px 4px 0;font-size:12px;line-height:1.65;color:#8085ad;max-width:1000px;text-wrap:pretty">Two things still undesigned, both noted earlier and both real: an inverse of <span style="font-family:'Space Mono',monospace;font-size:11px;color:#c9cdea">splitNode</span> that folds several nodes back into one, and any notion of time — what changed since yesterday, who changed it, and a way back.</p>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1200}}">
+class Component extends DCLogic {
+  componentDidMount(){ this.icons(); }
+  componentDidUpdate(){ this.icons(); }
+  icons(){
+    const go = () => { try { window.lucide && window.lucide.createIcons(); } catch(e){} };
+    go(); setTimeout(go, 250); setTimeout(go, 900);
+  }
+}
+</script>
+</body>
+</html>

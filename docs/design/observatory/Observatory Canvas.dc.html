@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Spectral:ital,wght@0,400;0,500;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<style>
+body{margin:0;background:#05060d}
+a{color:#a595f2}a:hover{color:#c9c0ff}
+@keyframes ob-flow{from{stroke-dashoffset:1200}to{stroke-dashoffset:0}}
+@keyframes ob-crawl{from{stroke-dashoffset:20}to{stroke-dashoffset:0}}
+@keyframes ob-breathe{0%,100%{opacity:.35}50%{opacity:1}}
+@keyframes ob-neb-a{0%{transform:translate3d(0,0,0) scale(1.05) rotate(0deg)}50%{transform:translate3d(4%,-3%,0) scale(1.22) rotate(6deg)}100%{transform:translate3d(0,0,0) scale(1.05) rotate(0deg)}}
+@keyframes ob-neb-b{0%{transform:translate3d(0,0,0) scale(1.15) rotate(0deg)}50%{transform:translate3d(-5%,4%,0) scale(1) rotate(-8deg)}100%{transform:translate3d(0,0,0) scale(1.15) rotate(0deg)}}
+@keyframes ob-neb-c{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(3%,5%,0) scale(1.3)}100%{transform:translate3d(0,0,0) scale(1)}}
+@keyframes ob-stars{from{transform:translate3d(0,0,0)}to{transform:translate3d(-270px,-160px,0)}}
+@keyframes ob-stars2{from{transform:translate3d(0,0,0)}to{transform:translate3d(-190px,110px,0)}}
+@keyframes ob-tw{0%,100%{opacity:.25}50%{opacity:1}}
+@keyframes ob-dash{to{stroke-dashoffset:-86}}
+@keyframes ob-dashc{to{stroke-dashoffset:-16}}
+</style>
+</helmet>
+
+<div style="width:1440px;margin:0 auto;padding:26px 0 60px;font-family:'Space Grotesk',system-ui,sans-serif;color:#e8e9f5">
+
+<div style="display:flex;align-items:baseline;gap:12px;padding:0 4px 16px">
+<span style="font-size:19px;font-weight:500;letter-spacing:-.01em">Observatory</span>
+<span style="font:400 11px 'Space Mono',monospace;color:#575c86">app build · 11 relation types · living nebula · ink layer</span>
+</div>
+
+<!-- ================= CANVAS ================= -->
+<div data-screen-label="Canvas" style="position:relative;width:1440px;height:920px;overflow:hidden;border:1px solid #1c2038;border-radius:12px;background:#05060d;font-family:Spectral,Georgia,serif">
+
+<!-- nebula: billowing layers -->
+<div style="position:absolute;inset:-22%;pointer-events:none;z-index:0;filter:blur(46px);opacity:.85;background:radial-gradient(38% 42% at 62% 22%,rgba(122,98,214,.5),transparent 68%);animation:ob-neb-a 78s ease-in-out infinite"></div>
+<div style="position:absolute;inset:-22%;pointer-events:none;z-index:0;filter:blur(58px);opacity:.7;background:radial-gradient(42% 38% at 22% 74%,rgba(38,120,158,.46),transparent 70%);animation:ob-neb-b 104s ease-in-out infinite"></div>
+<div style="position:absolute;inset:-22%;pointer-events:none;z-index:0;filter:blur(64px);opacity:.55;background:radial-gradient(34% 36% at 86% 66%,rgba(190,96,74,.34),transparent 72%);animation:ob-neb-c 126s ease-in-out infinite"></div>
+<div style="position:absolute;inset:-22%;pointer-events:none;z-index:0;filter:blur(70px);opacity:.4;background:radial-gradient(30% 30% at 44% 46%,rgba(56,150,124,.3),transparent 74%);animation:ob-neb-b 92s ease-in-out infinite reverse"></div>
+<div style="position:absolute;inset:0;pointer-events:none;z-index:0;background:linear-gradient(114deg,transparent 34%,rgba(168,152,232,.05) 45%,rgba(214,196,246,.07) 51%,rgba(96,148,196,.05) 58%,transparent 70%)"></div>
+
+<!-- drifting star fields -->
+<div style="position:absolute;inset:-30%;pointer-events:none;z-index:1;background-image:radial-gradient(1.4px 1.4px at 31px 47px,#fff,transparent),radial-gradient(1.2px 1.2px at 151px 103px,rgba(255,212,164,.9),transparent),radial-gradient(1px 1px at 219px 188px,rgba(150,232,220,.85),transparent),radial-gradient(1px 1px at 60px 150px,rgba(255,255,255,.55),transparent);background-size:270px 270px,310px 310px,190px 190px,220px 220px;animation:ob-stars 220s linear infinite"></div>
+<div style="position:absolute;inset:-30%;pointer-events:none;z-index:1;opacity:.75;background-image:radial-gradient(1.5px 1.5px at 96px 238px,rgba(255,178,192,.8),transparent),radial-gradient(1px 1px at 198px 66px,rgba(178,204,255,.85),transparent),radial-gradient(1px 1px at 268px 300px,rgba(255,255,255,.5),transparent);background-size:430px 430px,350px 350px,290px 290px;animation:ob-stars2 300s linear infinite"></div>
+<span style="position:absolute;left:243px;top:118px;width:2px;height:2px;border-radius:9px;background:#fff;box-shadow:0 0 9px 2px rgba(214,222,255,.8);animation:ob-tw 5.5s ease-in-out infinite;z-index:1"></span>
+<span style="position:absolute;left:1128px;top:648px;width:2px;height:2px;border-radius:9px;background:#ffd4a4;box-shadow:0 0 9px 2px rgba(255,212,164,.75);animation:ob-tw 7s ease-in-out infinite .8s;z-index:1"></span>
+<span style="position:absolute;left:398px;top:838px;width:1.8px;height:1.8px;border-radius:9px;background:#ffb2c0;box-shadow:0 0 8px 2px rgba(255,178,192,.65);animation:ob-tw 8s ease-in-out infinite 3.4s;z-index:1"></span>
+<span style="position:absolute;left:1362px;top:206px;width:1.6px;height:1.6px;border-radius:9px;background:#96e8dc;box-shadow:0 0 7px 2px rgba(150,232,220,.7);animation:ob-tw 6.2s ease-in-out infinite 2.1s;z-index:1"></span>
+
+<!-- grid -->
+<div style="position:absolute;inset:0;pointer-events:none;z-index:2;background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.05) 1px,transparent 0);background-size:26px 26px"></div>
+
+<!-- INK LAYER — below plates, above ground -->
+<svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3" viewBox="0 0 1440 920" fill="none" stroke-linecap="round" stroke-linejoin="round">
+<g stroke="#84dcf2" stroke-opacity=".5" stroke-width="2">
+<path d="M1322,150 c26,-14 52,4 44,26 c-8,22 -46,20 -52,2 c-7,-22 24,-40 48,-30"></path>
+<path d="M1330,236 c14,26 -6,44 -22,52"></path>
+<path d="M1308,282 l-6,10 l14,2"></path>
+<path d="M1344,332 h72 M1344,346 h52 M1344,360 h64"></path>
+<path d="M332,866 c30,-16 74,-10 104,10"></path>
+<path d="M436,876 l-4,-13 l14,5"></path>
+<path d="M460,824 h58 M460,840 h84 M460,856 h44"></path>
+<path d="M868,842 c40,26 96,26 140,-4"></path>
+</g>
+<g stroke="#84dcf2" stroke-opacity=".28" stroke-width="1.6" stroke-dasharray="5 6">
+<path d="M742,452 c22,10 26,38 22,66 c-4,26 -6,54 2,78 c4,12 -4,18 -20,16"></path>
+</g>
+<g stroke="#84dcf2" stroke-opacity=".42" stroke-width="1.8" stroke-linecap="round" fill="none">
+<path d="M744,862 c22,-52 34,-124 26,-200"></path>
+<path d="M762,672 l8,-16 l10,14"></path>
+</g>
+<text x="700" y="886" font-family="Spectral,Georgia,serif" font-style="italic" font-size="15" fill="#84dcf2" fill-opacity=".6">is this the real thesis?</text>
+</svg>
+
+<!-- top rail -->
+<div style="position:absolute;left:0;top:0;right:0;height:42px;display:flex;align-items:center;gap:12px;padding:0 16px;background:rgba(5,6,13,.72);border-bottom:1px solid #1c2038;backdrop-filter:blur(8px);z-index:40;font-family:'Space Grotesk',sans-serif">
+<span style="display:flex;align-items:center;gap:7px;font-size:11.5px;color:#9095bd"><i data-lucide="folder" style="width:12px;height:12px;color:#575c86"></i>Drafts<span style="color:#575c86">/</span><span style="color:#e8e9f5">Salt Road</span></span>
+<span style="width:1px;height:16px;background:#22263f"></span>
+<span style="display:flex;gap:2px;padding:2px;border:1px solid #22263f;border-radius:7px">
+<span style="padding:2px 9px;border-radius:5px;font-size:10.5px;background:rgba(165,149,242,.16);color:#cbc2ff">Canvas</span>
+<span style="padding:2px 9px;border-radius:5px;font-size:10.5px;color:#575c86">Outline</span>
+<span style="padding:2px 9px;border-radius:5px;font-size:10.5px;color:#575c86">Draft</span>
+</span>
+<span style="width:1px;height:16px;background:#22263f"></span>
+<span style="display:flex;gap:5px">
+<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;border:1px solid rgba(132,220,242,.4);background:rgba(132,220,242,.1);font-size:10.5px;color:#9fe4f5"><i data-lucide="pen-line" style="width:11px;height:11px"></i>Ink</span>
+<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;border:1px solid #22263f;font-size:10.5px;color:#9095bd"><i data-lucide="hand" style="width:11px;height:11px"></i>Pan</span>
+</span>
+<span style="flex:1"></span>
+<span style="display:flex;align-items:center;gap:6px;font:400 10px 'Space Mono',monospace;color:#9095bd"><i data-lucide="git-branch" style="width:12px;height:12px;color:#575c86"></i>11 nodes · 11 wires</span>
+<span style="padding:2px 8px;border:1px solid #282d51;border-radius:6px;font:400 10px 'Space Mono',monospace;color:#9095bd">74%</span>
+</div>
+
+<!-- lane guides -->
+<svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4" viewBox="0 0 1440 920" fill="none">
+<g stroke="#a595f2" stroke-opacity=".1" stroke-dasharray="2 8">
+<path d="M318,66 V800"></path><path d="M332,66 V800"></path><path d="M346,66 V800"></path><path d="M360,66 V800"></path><path d="M374,66 V800"></path><path d="M388,66 V800"></path><path d="M402,66 V800"></path><path d="M416,66 V800"></path>
+<path d="M762,66 V800"></path><path d="M776,66 V800"></path><path d="M790,66 V800"></path><path d="M818,66 V800"></path>
+</g>
+<text x="367" y="60" text-anchor="middle" font-family="Space Mono,monospace" font-size="8.5" letter-spacing="1.4" fill="#4a4f76">BUNDLE 1 · 8 LANES</text>
+<text x="790" y="60" text-anchor="middle" font-family="Space Mono,monospace" font-size="8.5" letter-spacing="1.4" fill="#4a4f76">BUNDLE 2 · 4 LANES</text>
+</svg>
+
+<!-- ================= WIRES ================= -->
+<svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5" viewBox="0 0 1440 920" fill="none" stroke-linecap="round" stroke-linejoin="round">
+
+<!-- halos -->
+<g stroke-width="7" stroke-opacity=".085">
+<path d="M304,134 H322 L332,144 V264 A6,6 0 0 1 332,276 V290 A6,6 0 0 1 332,302 V436 A6,6 0 0 1 332,448 V494 L342,504 H428" stroke="#6fd39a"></path>
+<path d="M304,270 H336 L346,280 V290 A6,6 0 0 1 346,302 V436 A6,6 0 0 1 346,448 V498 A6,6 0 0 1 346,510 V520 L356,530 H428" stroke="#f0685e"></path>
+<path d="M304,296 H350 L360,306 V362 L370,372 H428" stroke="#f0c96a"></path>
+<path d="M728,516 H808 L818,526 V536 A6,6 0 0 1 818,548 V564 A6,6 0 0 1 818,576 V870 L808,880 H426 L416,870 V688 A6,6 0 0 0 416,676 V662 A6,6 0 0 0 416,650 V562 A6,6 0 0 0 416,550 V536 A6,6 0 0 0 416,524 V510 A6,6 0 0 0 416,498 V408 L426,398 H428" stroke="#4fc9e8"></path>
+<path d="M728,158 H780 L790,168 V504 L800,514 H858" stroke="#a595f2"></path>
+<path d="M304,160 H308 L318,150 V140 A6,6 0 0 0 318,128 V86 L328,76 H838 L848,86 V128 L858,138" stroke="#7fa3e8"></path>
+<path d="M304,442 H364 L374,452 V498 A6,6 0 0 1 374,510 V524 A6,6 0 0 1 374,536 V566 A6,6 0 0 1 374,578 V646 L384,656 H428" stroke="#e8934a"></path>
+<path d="M728,668 H752 L762,658 V580 L772,570 H858" stroke="#52b8a8"></path>
+<path d="M304,572 H392 L402,582 V650 A6,6 0 0 1 402,662 V672 L412,682 H428" stroke="#e89b8f"></path>
+<path d="M304,790 H378 L388,780 V662 A6,6 0 0 0 388,650 V578 A6,6 0 0 0 388,566 L398,556 H428" stroke="#9a92c4"></path>
+<path d="M728,184 H766 L776,194 V510 A6,6 0 0 1 776,522 V532 L786,542 H858" stroke="#d07fd0"></path>
+</g>
+
+<!-- base strokes -->
+<path d="M304,134 H322 L332,144 V264 A6,6 0 0 1 332,276 V290 A6,6 0 0 1 332,302 V436 A6,6 0 0 1 332,448 V494 L342,504 H428" stroke="#6fd39a" stroke-width="1.6" stroke-opacity=".68"></path>
+<path d="M304,270 H336 L346,280 V290 A6,6 0 0 1 346,302 V436 A6,6 0 0 1 346,448 V498 A6,6 0 0 1 346,510 V520 L356,530 H428" stroke="#f0685e" stroke-width="1.6" stroke-opacity=".68" stroke-dasharray="7 4"></path>
+<path d="M304,296 H350 L360,306 V362 L370,372 H428" stroke="#f0c96a" stroke-width="1.5" stroke-opacity=".68" stroke-dasharray="2 5"></path>
+<path d="M728,516 H808 L818,526 V536 A6,6 0 0 1 818,548 V564 A6,6 0 0 1 818,576 V870 L808,880 H426 L416,870 V688 A6,6 0 0 0 416,676 V662 A6,6 0 0 0 416,650 V562 A6,6 0 0 0 416,550 V536 A6,6 0 0 0 416,524 V510 A6,6 0 0 0 416,498 V408 L426,398 H428" stroke="#4fc9e8" stroke-width="1.6" stroke-opacity=".68"></path>
+<path d="M728,158 H780 L790,168 V504 L800,514 H858" stroke="#a595f2" stroke-width="1.9" stroke-opacity=".74"></path>
+<path d="M304,160 H308 L318,150 V140 A6,6 0 0 0 318,128 V86 L328,76 H838 L848,86 V128 L858,138" stroke="#7fa3e8" stroke-width="1.5" stroke-opacity=".68" stroke-dasharray="1 4"></path>
+<path d="M304,442 H364 L374,452 V498 A6,6 0 0 1 374,510 V524 A6,6 0 0 1 374,536 V566 A6,6 0 0 1 374,578 V646 L384,656 H428" stroke="#e8934a" stroke-width="1.6" stroke-opacity=".68" stroke-dasharray="9 3 2 3"></path>
+<path d="M728,668 H752 L762,658 V580 L772,570 H858" stroke="#52b8a8" stroke-width="1.6" stroke-opacity=".68" stroke-dasharray="12 5"></path>
+<path d="M304,572 H392 L402,582 V650 A6,6 0 0 1 402,662 V672 L412,682 H428" stroke="#e89b8f" stroke-width="1.5" stroke-opacity=".68" stroke-dasharray="3 3"></path>
+<path d="M304,790 H378 L388,780 V662 A6,6 0 0 0 388,650 V578 A6,6 0 0 0 388,566 L398,556 H428" stroke="#9a92c4" stroke-width="1.4" stroke-opacity=".6" stroke-dasharray="1 6"></path>
+<path d="M728,184 H766 L776,194 V510 A6,6 0 0 1 776,522 V532 L786,542 H858" stroke="#d07fd0" stroke-width="1.6" stroke-opacity=".68" stroke-dasharray="10 4 3 4"></path>
+
+<!-- travelling flow: speed varies by relation -->
+<g stroke-width="2.6" stroke-linecap="round">
+<path d="M304,134 H322 L332,144 V264 A6,6 0 0 1 332,276 V290 A6,6 0 0 1 332,302 V436 A6,6 0 0 1 332,448 V494 L342,504 H428" stroke="#c6f5db" stroke-dasharray="14 1186" style="animation:ob-flow 3.4s linear infinite"></path>
+<path d="M304,270 H336 L346,280 V290 A6,6 0 0 1 346,302 V436 A6,6 0 0 1 346,448 V498 A6,6 0 0 1 346,510 V520 L356,530 H428" stroke="#ffc2bb" stroke-dasharray="12 1188" style="animation:ob-flow 2.2s steps(11,end) infinite"></path>
+<path d="M304,296 H350 L360,306 V362 L370,372 H428" stroke="#ffe6ac" stroke-dasharray="4 6 4 6 4 1176" style="animation:ob-flow 4.6s linear infinite"></path>
+<path d="M728,516 H808 L818,526 V536 A6,6 0 0 1 818,548 V564 A6,6 0 0 1 818,576 V870 L808,880 H426 L416,870 V688 A6,6 0 0 0 416,676 V662 A6,6 0 0 0 416,650 V562 A6,6 0 0 0 416,550 V536 A6,6 0 0 0 416,524 V510 A6,6 0 0 0 416,498 V408 L426,398 H428" stroke="#b6f0ff" stroke-dasharray="26 1174" style="animation:ob-flow 2.8s cubic-bezier(.85,0,.15,1) infinite"></path>
+<path d="M728,158 H780 L790,168 V504 L800,514 H858" stroke="#e2dcff" stroke-width="3" stroke-dasharray="44 1156" style="animation:ob-flow 5.2s linear infinite"></path>
+<path d="M304,160 H308 L318,150 V140 A6,6 0 0 0 318,128 V86 L328,76 H838 L848,86 V128 L858,138" stroke="#cfdcff" stroke-width="2.2" stroke-dasharray="5 1195" style="animation:ob-flow 6s linear infinite"></path>
+<path d="M304,442 H364 L374,452 V498 A6,6 0 0 1 374,510 V524 A6,6 0 0 1 374,536 V566 A6,6 0 0 1 374,578 V646 L384,656 H428" stroke="#ffd3ac" stroke-dasharray="9 7 9 1175" style="animation:ob-flow 3s linear infinite"></path>
+<path d="M728,668 H752 L762,658 V580 L772,570 H858" stroke="#b6ece2" stroke-width="2.2" stroke-dasharray="6 14" style="animation:ob-crawl 1.1s linear infinite"></path>
+<path d="M304,572 H392 L402,582 V650 A6,6 0 0 1 402,662 V672 L412,682 H428" stroke="#ffd2c9" stroke-width="4.4" stroke-opacity=".75" stroke-dasharray="34 1166" style="animation:ob-flow 5.6s cubic-bezier(.4,0,.6,1) infinite"></path>
+<path d="M304,790 H378 L388,780 V662 A6,6 0 0 0 388,650 V578 A6,6 0 0 0 388,566 L398,556 H428" stroke="#d6d1ee" stroke-width="2.2" stroke-dasharray="5 1195" style="animation:ob-flow 7.5s cubic-bezier(.45,0,.55,1) infinite"></path>
+<path d="M728,184 H766 L776,194 V510 A6,6 0 0 1 776,522 V532 L786,542 H858" stroke="#f2c6f2" stroke-dasharray="10 5 10 1175" style="animation:ob-flow 4s linear infinite"></path>
+</g>
+
+<!-- cable tie on the lane-1 bundle -->
+<g stroke="#8286ad" stroke-width="1">
+<path d="M368,612 H422"></path><path d="M368,606 V618"></path><path d="M422,606 V618"></path>
+</g>
+<text x="362" y="616" text-anchor="end" font-family="Space Mono,monospace" font-size="8.5" fill="#6b709a">×4</text>
+</svg>
+
+<!-- wire labels -->
+<div style="position:absolute;left:793px;top:300px;transform:translate(-50%,-50%);z-index:8;display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:9999px;background:rgba(13,16,36,.92);border:1px solid rgba(165,149,242,.4);font-family:'Space Grotesk',sans-serif;font-size:10px;color:#cbc2ff;backdrop-filter:blur(4px)"><span style="width:5px;height:5px;border-radius:9px;background:#a595f2"></span>compiles into</div>
+<div style="position:absolute;left:600px;top:880px;transform:translate(-50%,-50%);z-index:8;display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:9999px;background:rgba(13,16,36,.92);border:1px solid rgba(79,201,232,.4);font-family:'Space Grotesk',sans-serif;font-size:10px;color:#8fdcf0;backdrop-filter:blur(4px)"><span style="width:5px;height:5px;border-radius:9px;background:#4fc9e8"></span>answers · return lane</div>
+<div style="position:absolute;left:620px;top:76px;transform:translate(-50%,-50%);z-index:8;display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:9999px;background:rgba(13,16,36,.92);border:1px solid rgba(127,163,232,.4);font-family:'Space Grotesk',sans-serif;font-size:10px;color:#a8c0f2;backdrop-filter:blur(4px)"><span style="width:5px;height:5px;border-radius:9px;background:#7fa3e8"></span>references</div>
+
+<!-- ================= PLATES ================= -->
+
+<!-- A1 SOURCE -->
+<div style="position:absolute;left:52px;top:92px;width:252px;z-index:10;--sp:#7fd4c1">
+<div style="position:relative;display:flex;min-height:112px;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 16px 34px -16px rgba(0,0,0,.96);backdrop-filter:blur(3px)">
+<span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,var(--sp),transparent)"></span>
+<div style="width:16px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:10px 0 0 10px"></div>
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:7px;padding:7px 9px 6px;font-family:'Space Grotesk',sans-serif;background:linear-gradient(96deg,rgba(127,212,193,.15),rgba(127,212,193,.04) 46%,transparent 72%)"><i data-lucide="library" style="width:12px;height:12px;color:var(--sp)"></i><span style="font-size:9px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--sp)">Source</span><span style="flex:1"></span><span style="font:400 9px 'Space Mono',monospace;color:#575c86">N-07</span><span style="width:7px;height:7px;border-radius:9px;background:#6fd39a;box-shadow:0 0 6px rgba(111,211,154,.6)"></span></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,rgba(127,212,193,.5) 13%,#282d51 52%,#282d51 86%,transparent)"></div>
+<div style="padding:9px 12px 10px"><div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:500;color:#c9cdea;margin-bottom:5px">Findlay &amp; O'Rourke</div><div style="font-size:12.5px;line-height:1.6;color:#9095bd"><i>Power and Plenty</i> (2007), ch. 3</div></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1b1f3c 14%,#1b1f3c 86%,transparent)"></div>
+<div style="display:flex;align-items:center;gap:9px;padding:5px 10px 6px;font:400 9.5px 'Space Mono',monospace;color:#575c86"><span>PDF</span><span style="opacity:.5">|</span><span>2 quotes</span><span style="flex:1"></span><span>0 in · 2 out</span></div>
+</div>
+<div style="width:16px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:0 10px 10px 0"></div>
+<span style="position:absolute;right:2px;top:40px;width:12px;height:4px;border-radius:2px;background:#6fd39a;box-shadow:0 0 7px rgba(111,211,154,.8)"></span>
+<span style="position:absolute;right:2px;top:66px;width:12px;height:4px;border-radius:2px;background:#7fa3e8;box-shadow:0 0 7px rgba(127,163,232,.8)"></span>
+</div></div>
+
+<!-- A2 NOTE -->
+<div style="position:absolute;left:52px;top:228px;width:252px;z-index:10;--sp:#7d84b8">
+<div style="position:relative;display:flex;min-height:118px;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 16px 34px -16px rgba(0,0,0,.96);backdrop-filter:blur(3px)">
+<span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,var(--sp),transparent)"></span>
+<div style="width:16px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:10px 0 0 10px"></div>
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:7px;padding:7px 9px 6px;font-family:'Space Grotesk',sans-serif;background:linear-gradient(96deg,rgba(125,132,184,.15),rgba(125,132,184,.04) 46%,transparent 72%)"><i data-lucide="sticky-note" style="width:12px;height:12px;color:var(--sp)"></i><span style="font-size:9px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--sp)">Note</span><span style="flex:1"></span><span style="font:400 9px 'Space Mono',monospace;color:#575c86">N-04</span><span style="width:7px;height:7px;border-radius:9px;background:#3f446b"></span></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,rgba(125,132,184,.5) 13%,#282d51 52%,#282d51 86%,transparent)"></div>
+<div style="padding:9px 12px 10px"><div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:500;color:#c9cdea;margin-bottom:5px">Caravan economics</div><div style="font-size:12.5px;line-height:1.6;color:#9095bd;text-wrap:pretty">Sea freight undercut the overland route roughly twenty to one by 1500.</div></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1b1f3c 14%,#1b1f3c 86%,transparent)"></div>
+<div style="display:flex;align-items:center;gap:9px;padding:5px 10px 6px;font:400 9.5px 'Space Mono',monospace;color:#575c86"><span>21 w</span><span style="opacity:.5">|</span><span>0 in · 2 out</span></div>
+</div>
+<div style="width:16px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:0 10px 10px 0"></div>
+<span style="position:absolute;right:2px;top:40px;width:12px;height:4px;border-radius:2px;background:#f0685e;box-shadow:0 0 7px rgba(240,104,94,.8)"></span>
+<span style="position:absolute;right:2px;top:66px;width:12px;height:4px;border-radius:2px;background:#f0c96a;box-shadow:0 0 7px rgba(240,201,106,.8)"></span>
+</div></div>
+
+<!-- A3 TASK -->
+<div style="position:absolute;left:52px;top:400px;width:252px;z-index:10;--sp:#e8934a">
+<div style="position:relative;display:flex;min-height:88px;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 16px 34px -16px rgba(0,0,0,.96);backdrop-filter:blur(3px)">
+<span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,var(--sp),transparent)"></span>
+<div style="width:16px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:10px 0 0 10px"></div>
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:7px;padding:7px 9px 6px;font-family:'Space Grotesk',sans-serif;background:linear-gradient(96deg,rgba(232,147,74,.15),rgba(232,147,74,.04) 46%,transparent 72%)"><i data-lucide="square-check" style="width:12px;height:12px;color:var(--sp)"></i><span style="font-size:9px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--sp)">Task</span><span style="flex:1"></span><span style="font:400 9px 'Space Mono',monospace;color:#575c86">N-09</span><span style="width:7px;height:7px;border-radius:9px;background:#e8934a;box-shadow:0 0 6px rgba(232,147,74,.6)"></span></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,rgba(232,147,74,.5) 13%,#282d51 52%,#282d51 86%,transparent)"></div>
+<div style="padding:9px 12px 10px;font-size:12.5px;line-height:1.6;color:#b2b7d8;text-wrap:pretty">Pull the 1346 quarantine records before writing the harbour scene.</div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1b1f3c 14%,#1b1f3c 86%,transparent)"></div>
+<div style="display:flex;align-items:center;gap:9px;padding:5px 10px 6px;font:400 9.5px 'Space Mono',monospace;color:#575c86"><span>0 in · 1 out</span><span style="flex:1"></span><span style="color:#e8934a">due Fri</span></div>
+</div>
+<div style="width:16px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:0 10px 10px 0"></div>
+<span style="position:absolute;right:2px;top:40px;width:12px;height:4px;border-radius:2px;background:#e8934a;box-shadow:0 0 7px rgba(232,147,74,.8)"></span>
+</div></div>
+
+<!-- A4 CAST -->
+<div style="position:absolute;left:52px;top:530px;width:252px;z-index:10;--sp:#e89b8f">
+<div style="position:relative;display:flex;min-height:110px;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 16px 34px -16px rgba(0,0,0,.96);backdrop-filter:blur(3px)">
+<span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,var(--sp),transparent)"></span>
+<div style="width:16px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:10px 0 0 10px"></div>
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:7px;padding:7px 9px 6px;font-family:'Space Grotesk',sans-serif;background:linear-gradient(96deg,rgba(232,155,143,.15),rgba(232,155,143,.04) 46%,transparent 72%)"><i data-lucide="user-round" style="width:12px;height:12px;color:var(--sp)"></i><span style="font-size:9px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--sp)">Cast</span><span style="flex:1"></span><span style="font:400 9px 'Space Mono',monospace;color:#575c86">N-06</span><span style="width:7px;height:7px;border-radius:9px;background:#6fd39a;box-shadow:0 0 6px rgba(111,211,154,.55)"></span></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,rgba(232,155,143,.5) 13%,#282d51 52%,#282d51 86%,transparent)"></div>
+<div style="display:flex;gap:10px;padding:9px 12px 8px">
+<div style="width:40px;height:48px;flex:none;border-radius:6px;border:1px solid #282d51;background:linear-gradient(155deg,rgba(232,155,143,.16),rgba(20,23,49,.9));display:grid;place-items:center"><i data-lucide="user-round" style="width:16px;height:16px;color:rgba(232,155,143,.55)"></i></div>
+<div style="min-width:0;flex:1">
+<div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:500;color:#c9cdea">Yusuf al-Tabrizi</div>
+<div style="font-size:11.5px;color:#9095bd;margin:1px 0 6px">caravan master · 44</div>
+<div style="display:flex;flex-wrap:wrap;gap:4px"><span style="padding:1.5px 7px;border-radius:9999px;background:rgba(232,155,143,.1);border:1px solid rgba(232,155,143,.26);font-size:10px;color:#e0a99e">POV</span><span style="padding:1.5px 7px;border-radius:9999px;background:rgba(255,255,255,.03);border:1px solid #282d51;font-size:10px;color:#9095bd">ch. 1–7</span></div>
+</div></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1b1f3c 14%,#1b1f3c 86%,transparent)"></div>
+<div style="display:grid;grid-template-columns:52px 1fr;gap:3px 8px;padding:7px 12px 8px;font-size:11.5px">
+<span style="font:400 9px 'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#4a4f76;padding-top:2px">Wants</span><span style="color:#b2b7d8;line-height:1.45">One more season on the road</span>
+<span style="font:400 9px 'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#4a4f76;padding-top:2px">Arc</span><span style="color:#575c86;line-height:1.45;border-bottom:1px dashed #2a2f57;padding-bottom:1px">Add a line…</span>
+</div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1b1f3c 14%,#1b1f3c 86%,transparent)"></div>
+<div style="display:flex;align-items:center;gap:9px;padding:5px 10px 6px;font:400 9.5px 'Space Mono',monospace;color:#575c86"><span>0 in · 1 out</span><span style="flex:1"></span><span>appears in 5</span></div>
+</div>
+<div style="width:16px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:0 10px 10px 0"></div>
+<span style="position:absolute;right:2px;top:40px;width:12px;height:4px;border-radius:2px;background:#e89b8f;box-shadow:0 0 7px rgba(232,155,143,.8)"></span>
+</div></div>
+
+<!-- A5 TERM -->
+<div style="position:absolute;left:52px;top:748px;width:252px;z-index:10;--sp:#9a92c4">
+<div style="position:relative;display:flex;min-height:96px;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 16px 34px -16px rgba(0,0,0,.96);backdrop-filter:blur(3px)">
+<span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,var(--sp),transparent)"></span>
+<div style="width:16px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:10px 0 0 10px"></div>
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:7px;padding:7px 9px 6px;font-family:'Space Grotesk',sans-serif;background:linear-gradient(96deg,rgba(154,146,196,.15),rgba(154,146,196,.04) 46%,transparent 72%)"><i data-lucide="book-marked" style="width:12px;height:12px;color:var(--sp)"></i><span style="font-size:9px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--sp)">Term</span><span style="flex:1"></span><span style="font:400 9px 'Space Mono',monospace;color:#575c86">N-11</span><span style="width:7px;height:7px;border-radius:9px;background:#3f446b"></span></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,rgba(154,146,196,.5) 13%,#282d51 52%,#282d51 86%,transparent)"></div>
+<div style="padding:9px 12px 10px"><div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:500;color:#c9cdea;margin-bottom:4px">Pax Mongolica</div><div style="font-size:12.5px;line-height:1.6;color:#9095bd;text-wrap:pretty">c. 1260–1350. Contested — see Question N-02.</div></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1b1f3c 14%,#1b1f3c 86%,transparent)"></div>
+<div style="display:flex;align-items:center;gap:9px;padding:5px 10px 6px;font:400 9.5px 'Space Mono',monospace;color:#575c86"><span>0 in · 1 out</span></div>
+</div>
+<div style="width:16px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:0 10px 10px 0"></div>
+<span style="position:absolute;right:2px;top:40px;width:12px;height:4px;border-radius:2px;background:#9a92c4;box-shadow:0 0 7px rgba(154,146,196,.7)"></span>
+</div></div>
+
+<!-- B1 SECTION (SELECTED) -->
+<div style="position:absolute;left:428px;top:104px;width:300px;z-index:20;--sp:#d08fd0">
+<div style="position:relative;display:flex;min-height:186px;background:linear-gradient(180deg,rgba(26,29,60,.96),rgba(15,17,40,.96));border:1px solid #7a6ec4;border-radius:10px;box-shadow:0 0 0 3px rgba(165,149,242,.15),0 22px 48px -20px rgba(0,0,0,.96);backdrop-filter:blur(3px)">
+<span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,var(--sp),rgba(208,143,208,.25))"></span>
+<div style="width:16px;flex:none;border-right:1px solid #262b52;background:rgba(0,0,0,.26);border-radius:10px 0 0 10px"></div>
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:7px;padding:7px 9px 6px;font-family:'Space Grotesk',sans-serif;background:linear-gradient(96deg,rgba(208,143,208,.16),rgba(208,143,208,.04) 46%,transparent 72%)"><i data-lucide="layers" style="width:12px;height:12px;color:var(--sp)"></i><span style="font-size:9px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--sp)">Section</span><span style="padding:1px 6px;border-radius:9999px;background:rgba(165,149,242,.15);border:1px solid rgba(165,149,242,.32);font:400 8.5px 'Space Mono',monospace;color:#c6bcf5">ch4</span><span style="flex:1"></span><span style="display:grid;place-items:center;width:15px;height:15px;border-radius:4px;background:#2a2f57;font:400 8px 'Space Mono',monospace;color:#b6bbdf">SM</span><span style="font:400 9px 'Space Mono',monospace;color:#575c86">N-03</span><span style="width:7px;height:7px;border-radius:9px;background:#f0c96a;box-shadow:0 0 6px rgba(240,201,106,.6)"></span></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,rgba(208,143,208,.55) 13%,#373d6b 52%,#373d6b 86%,transparent)"></div>
+<div style="padding:10px 12px 11px 88px"><div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:500;color:#e8e9f5;margin-bottom:6px">Ch. 4 — The last caravan</div><div style="font-size:12.5px;line-height:1.62;color:#b2b7d8;text-wrap:pretty">A single passport worked from Kiev to Khanbaliq — until the khanates fractured.</div></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1b1f3c 14%,#1b1f3c 86%,transparent)"></div>
+<div style="display:flex;align-items:center;gap:9px;padding:5px 10px 6px 88px;font:400 9.5px 'Space Mono',monospace;color:#575c86"><span>412 w</span><span style="opacity:.5">|</span><span>0 in · 2 out</span><span style="flex:1"></span><span style="color:#9095bd">2h</span></div>
+</div>
+<div style="width:16px;flex:none;border-left:1px solid #262b52;background:rgba(0,0,0,.26);border-radius:0 10px 10px 0"></div>
+<span style="position:absolute;left:2px;top:44px;width:12px;height:4px;border-radius:2px;border:1px solid #3a3f65"></span>
+<span style="position:absolute;left:2px;top:70px;width:12px;height:4px;border-radius:2px;border:1px solid #3a3f65"></span>
+<span style="position:absolute;left:2px;top:96px;width:12px;height:4px;border-radius:2px;border:1px solid #3a3f65"></span>
+<span style="position:absolute;left:2px;top:122px;width:12px;height:4px;border-radius:2px;border:1px solid #3a3f65"></span>
+<span style="position:absolute;left:2px;top:148px;width:12px;height:4px;border-radius:2px;border:1px solid #3a3f65"></span>
+<span style="position:absolute;right:2px;top:52px;width:12px;height:4px;border-radius:2px;background:#a595f2;box-shadow:0 0 7px rgba(165,149,242,.85)"></span>
+<span style="position:absolute;right:2px;top:78px;width:12px;height:4px;border-radius:2px;background:#d07fd0;box-shadow:0 0 7px rgba(208,127,208,.8)"></span>
+<span style="position:absolute;left:96px;top:36px;height:130px;width:1px;background:linear-gradient(180deg,transparent,#262b52 12%,#262b52 88%,transparent)"></span>
+<span style="position:absolute;left:22px;top:42px;font-family:'Space Grotesk',sans-serif;font-size:9.5px;color:#575c86">Cites</span>
+<span style="position:absolute;left:22px;top:68px;font-family:'Space Grotesk',sans-serif;font-size:9.5px;color:#575c86">Cast</span>
+<span style="position:absolute;left:22px;top:94px;font-family:'Space Grotesk',sans-serif;font-size:9.5px;color:#575c86">Revised by</span>
+<span style="position:absolute;left:22px;top:120px;font-family:'Space Grotesk',sans-serif;font-size:9.5px;color:#575c86">Scene</span>
+<span style="position:absolute;left:22px;top:146px;font-family:'Space Grotesk',sans-serif;font-size:9.5px;color:#575c86">Note</span>
+<span style="position:absolute;left:-5px;top:-5px;width:10px;height:10px;border-left:1.5px solid #a595f2;border-top:1.5px solid #a595f2;border-radius:3px 0 0 0"></span>
+<span style="position:absolute;right:-5px;top:-5px;width:10px;height:10px;border-right:1.5px solid #a595f2;border-top:1.5px solid #a595f2;border-radius:0 3px 0 0"></span>
+<span style="position:absolute;left:-5px;bottom:-5px;width:10px;height:10px;border-left:1.5px solid #a595f2;border-bottom:1.5px solid #a595f2;border-radius:0 0 0 3px"></span>
+<span style="position:absolute;right:-5px;bottom:-5px;width:10px;height:10px;border-right:1.5px solid #a595f2;border-bottom:1.5px solid #a595f2;border-radius:0 0 3px 0"></span>
+</div></div>
+
+<!-- B2 QUESTION -->
+<div style="position:absolute;left:428px;top:330px;width:300px;z-index:10;--sp:#f0c96a">
+<div style="position:relative;display:flex;min-height:116px;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 16px 34px -16px rgba(0,0,0,.96);backdrop-filter:blur(3px)">
+<span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:repeating-linear-gradient(180deg,var(--sp) 0 5px,transparent 5px 10px)"></span>
+<div style="width:16px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:10px 0 0 10px"></div>
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:7px;padding:7px 9px 6px;font-family:'Space Grotesk',sans-serif;background:linear-gradient(96deg,rgba(240,201,106,.15),rgba(240,201,106,.04) 46%,transparent 72%)"><i data-lucide="help-circle" style="width:12px;height:12px;color:var(--sp)"></i><span style="font-size:9px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--sp)">Question</span><span style="flex:1"></span><span style="font:400 9px 'Space Mono',monospace;color:#575c86">N-02</span><span style="width:7px;height:7px;border-radius:9px;background:var(--sp);box-shadow:0 0 6px rgba(240,201,106,.55)"></span></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,rgba(240,201,106,.5) 13%,#282d51 52%,#282d51 86%,transparent)"></div>
+<div style="padding:9px 12px 10px;font-size:13px;line-height:1.6;color:#bfc3e2;text-wrap:pretty">Whose road is it once the empire that policed it walks away?</div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1b1f3c 14%,#1b1f3c 86%,transparent)"></div>
+<div style="display:flex;align-items:center;gap:9px;padding:5px 10px 6px;font:400 9.5px 'Space Mono',monospace;color:#575c86"><span>2 in · 0 out</span><span style="flex:1"></span><span style="color:#6fd39a">answered</span></div>
+</div>
+<div style="width:16px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:0 10px 10px 0"></div>
+<span style="position:absolute;left:2px;top:40px;width:12px;height:4px;border-radius:2px;background:#f0c96a;box-shadow:0 0 7px rgba(240,201,106,.8)"></span>
+<span style="position:absolute;left:2px;top:66px;width:12px;height:4px;border-radius:2px;background:#4fc9e8;box-shadow:0 0 7px rgba(79,201,232,.8)"></span>
+</div></div>
+
+<!-- B3 CLAIM -->
+<div style="position:absolute;left:428px;top:462px;width:300px;z-index:10;--sp:#6fd39a">
+<div style="position:relative;display:flex;min-height:136px;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 16px 34px -16px rgba(0,0,0,.96);backdrop-filter:blur(3px)">
+<span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,var(--sp),transparent)"></span>
+<div style="width:16px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:10px 0 0 10px"></div>
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:7px;padding:7px 9px 6px;font-family:'Space Grotesk',sans-serif;background:linear-gradient(96deg,rgba(111,211,154,.15),rgba(111,211,154,.04) 46%,transparent 72%)"><i data-lucide="scale" style="width:12px;height:12px;color:var(--sp)"></i><span style="font-size:9px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--sp)">Claim</span><span style="flex:1"></span><span style="font:400 9px 'Space Mono',monospace;color:#575c86">N-05</span><span style="width:7px;height:7px;border-radius:9px;background:#6fd39a;box-shadow:0 0 6px rgba(111,211,154,.6)"></span></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,rgba(111,211,154,.5) 13%,#282d51 52%,#282d51 86%,transparent)"></div>
+<div style="padding:9px 12px 10px"><div style="font-size:13px;line-height:1.62;color:#c2c6e4;text-wrap:pretty">The road did not close. Its guarantor dissolved, and the cost of trust rose faster than the cost of freight.</div></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1b1f3c 14%,#1b1f3c 86%,transparent)"></div>
+<div style="display:flex;align-items:center;gap:9px;padding:5px 10px 6px;font:400 9.5px 'Space Mono',monospace;color:#575c86"><span>3 in · 1 out</span><span style="flex:1"></span><span style="color:#f0685e">1 contested</span></div>
+</div>
+<div style="width:16px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:0 10px 10px 0"></div>
+<span style="position:absolute;left:2px;top:40px;width:12px;height:4px;border-radius:2px;background:#6fd39a;box-shadow:0 0 7px rgba(111,211,154,.8)"></span>
+<span style="position:absolute;left:2px;top:66px;width:12px;height:4px;border-radius:2px;background:#f0685e;box-shadow:0 0 7px rgba(240,104,94,.8)"></span>
+<span style="position:absolute;left:2px;top:92px;width:12px;height:4px;border-radius:2px;background:#9a92c4;box-shadow:0 0 7px rgba(154,146,196,.7)"></span>
+<span style="position:absolute;right:2px;top:52px;width:12px;height:4px;border-radius:2px;background:#4fc9e8;box-shadow:0 0 7px rgba(79,201,232,.8)"></span>
+<span style="position:absolute;right:2px;top:78px;width:12px;height:4px;border-radius:2px;border:1px solid #3a3f65"></span>
+</div></div>
+
+<!-- B4 SCENE -->
+<div style="position:absolute;left:428px;top:614px;width:300px;z-index:10;--sp:#9fd18a">
+<div style="position:relative;display:flex;min-height:140px;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 16px 34px -16px rgba(0,0,0,.96);backdrop-filter:blur(3px)">
+<span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,var(--sp),transparent)"></span>
+<div style="width:16px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:10px 0 0 10px"></div>
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:7px;padding:7px 9px 6px;font-family:'Space Grotesk',sans-serif;background:linear-gradient(96deg,rgba(159,209,138,.15),rgba(159,209,138,.04) 46%,transparent 72%)"><i data-lucide="clapperboard" style="width:12px;height:12px;color:var(--sp)"></i><span style="font-size:9px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--sp)">Scene</span><span style="padding:1px 6px;border-radius:9999px;background:rgba(159,209,138,.1);border:1px solid rgba(159,209,138,.24);font:400 8.5px 'Space Mono',monospace;color:#8fae7f">beat 3</span><span style="flex:1"></span><span style="font:400 9px 'Space Mono',monospace;color:#575c86">N-08</span><span style="width:7px;height:7px;border-radius:9px;background:#3f446b"></span></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,rgba(159,209,138,.5) 13%,#282d51 52%,#282d51 86%,transparent)"></div>
+<div style="padding:9px 12px 10px"><div style="font-family:'Space Grotesk',sans-serif;font-size:13.5px;font-weight:500;color:#c9cdea;margin-bottom:5px">Kaffa, spring 1346</div><div style="font-size:12.5px;line-height:1.6;color:#9095bd;text-wrap:pretty">The gates close from the inside. Nobody has a name for the thing in the harbour yet.</div></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1b1f3c 14%,#1b1f3c 86%,transparent)"></div>
+<div style="display:flex;align-items:center;gap:9px;padding:5px 10px 6px;font:400 9.5px 'Space Mono',monospace;color:#575c86"><span>640 w</span><span style="opacity:.5">|</span><span>2 in · 1 out</span><span style="flex:1"></span><span>draft</span></div>
+</div>
+<div style="width:16px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:0 10px 10px 0"></div>
+<span style="position:absolute;left:2px;top:40px;width:12px;height:4px;border-radius:2px;background:#e8934a;box-shadow:0 0 7px rgba(232,147,74,.8)"></span>
+<span style="position:absolute;left:2px;top:66px;width:12px;height:4px;border-radius:2px;background:#e89b8f;box-shadow:0 0 7px rgba(232,155,143,.8)"></span>
+<span style="position:absolute;right:2px;top:52px;width:12px;height:4px;border-radius:2px;background:#52b8a8;box-shadow:0 0 7px rgba(82,184,168,.8)"></span>
+</div></div>
+
+<!-- C1 MEDIA -->
+<div style="position:absolute;left:858px;top:88px;width:440px;z-index:10;--sp:#7fa3e8">
+<div style="position:relative;display:flex;min-height:344px;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 16px 34px -16px rgba(0,0,0,.96);backdrop-filter:blur(3px)">
+<span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,var(--sp),transparent)"></span>
+<div style="width:16px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:10px 0 0 10px"></div>
+<div style="flex:1;min-width:0;display:flex;flex-direction:column">
+<div style="display:flex;align-items:center;gap:7px;padding:7px 9px 6px;font-family:'Space Grotesk',sans-serif;background:linear-gradient(96deg,rgba(127,163,232,.15),rgba(127,163,232,.04) 46%,transparent 72%)"><i data-lucide="file-text" style="width:12px;height:12px;color:var(--sp)"></i><span style="font-size:9px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--sp)">Media · PDF</span><span style="flex:1"></span><span style="padding:1px 7px;border-radius:9999px;background:rgba(79,201,232,.12);border:1px solid rgba(79,201,232,.3);font-size:9px;color:#8fdcf0">2 clips</span><span style="font:400 9px 'Space Mono',monospace;color:#575c86">N-10</span><span style="width:7px;height:7px;border-radius:9px;background:#6fd39a;box-shadow:0 0 6px rgba(111,211,154,.6)"></span></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,rgba(127,163,232,.5) 13%,#282d51 52%,#282d51 86%,transparent)"></div>
+<div style="padding:10px 12px 6px"><div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:500;color:#e8e9f5">Power and Plenty — ch. 3</div><div style="font:400 9.5px 'Space Mono',monospace;color:#575c86;margin-top:3px">findlay-orourke-2007.pdf · 41 pp</div></div>
+<div style="margin:6px 12px 0;border:1px solid #262b52;border-radius:7px;background:#ece7dc;padding:16px 20px 14px;position:relative">
+<div style="font-family:Spectral,Georgia,serif;font-size:11px;line-height:1.62;color:#3a3831;text-wrap:pretty">The Mongol peace did not so much build a road as underwrite one. Merchants who had priced protection into every league of the journey found, for a few decades, that the premium had been socialised.</div>
+<div style="font-family:Spectral,Georgia,serif;font-size:11px;line-height:1.62;color:#3a3831;margin-top:8px;text-wrap:pretty"><span style="background:rgba(79,201,232,.42);box-shadow:0 0 0 2px rgba(79,201,232,.42)">the cost of trust rose faster than the cost of freight</span>, and the caravan trade contracted long before the sea route was ready to replace it.</div>
+<span style="position:absolute;right:10px;bottom:8px;font:400 9px 'Space Mono',monospace;color:#8c8578">p. 118</span>
+</div>
+<div style="display:flex;align-items:center;gap:8px;padding:9px 12px 10px">
+<span style="display:grid;place-items:center;width:24px;height:24px;border-radius:6px;border:1px solid #282d51;color:#9095bd"><i data-lucide="chevron-left" style="width:13px;height:13px"></i></span>
+<span style="display:grid;place-items:center;width:24px;height:24px;border-radius:6px;border:1px solid #3a3f65;color:#cbc2ff"><i data-lucide="chevron-right" style="width:13px;height:13px"></i></span>
+<span style="font:400 10px 'Space Mono',monospace;color:#9095bd">118 / 140</span>
+<span style="flex:1;height:3px;border-radius:2px;background:#1b1f3c;position:relative;overflow:hidden"><span style="position:absolute;left:18%;top:0;bottom:0;width:6%;border-radius:2px;background:#7fa3e8"></span></span>
+<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;border:1px solid rgba(79,201,232,.4);background:rgba(79,201,232,.1);font-family:'Space Grotesk',sans-serif;font-size:10px;color:#8fdcf0"><i data-lucide="scissors" style="width:11px;height:11px"></i>Clip → node</span>
+</div>
+<div style="flex:1"></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1b1f3c 14%,#1b1f3c 86%,transparent)"></div>
+<div style="display:flex;align-items:center;gap:9px;padding:6px 10px 7px;font:400 9.5px 'Space Mono',monospace;color:#575c86"><span>1 in · 0 out</span><span style="flex:1"></span><span>dropped 2d ago</span></div>
+</div>
+<div style="width:16px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:0 10px 10px 0"></div>
+<span style="position:absolute;left:2px;top:48px;width:12px;height:4px;border-radius:2px;background:#7fa3e8;box-shadow:0 0 7px rgba(127,163,232,.8)"></span>
+</div></div>
+
+<!-- C2 DOCUMENT -->
+<div style="position:absolute;left:858px;top:464px;width:440px;z-index:10;--sp:#a595f2">
+<div style="position:relative;display:flex;min-height:316px;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 16px 34px -16px rgba(0,0,0,.96);backdrop-filter:blur(3px)">
+<span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,var(--sp),transparent)"></span>
+<div style="width:16px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:10px 0 0 10px"></div>
+<div style="flex:1;min-width:0;display:flex;flex-direction:column">
+<div style="display:flex;align-items:center;gap:7px;padding:7px 9px 6px;font-family:'Space Grotesk',sans-serif;background:linear-gradient(96deg,rgba(165,149,242,.16),rgba(165,149,242,.04) 46%,transparent 72%)"><i data-lucide="book-open-text" style="width:12px;height:12px;color:var(--sp)"></i><span style="font-size:9px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--sp)">Document</span><span style="flex:1"></span><span style="font:400 9px 'Space Mono',monospace;color:#575c86">N-01</span><span style="width:7px;height:7px;border-radius:9px;background:#6fd39a;box-shadow:0 0 6px rgba(111,211,154,.6)"></span></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,rgba(165,149,242,.55) 13%,#282d51 52%,#282d51 86%,transparent)"></div>
+<div style="padding:11px 12px 4px"><div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:500;color:#e8e9f5">Salt Road — manuscript</div></div>
+<div style="padding:8px 12px 2px;display:flex;align-items:center;gap:7px"><span style="font:400 8.5px 'Space Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#575c86">Wire order</span><span style="flex:1;height:1px;background:linear-gradient(90deg,#1b1f3c,transparent)"></span></div>
+<ol style="margin:0;padding:2px 10px 8px;list-style:none;display:flex;flex-direction:column;gap:1px">
+<li style="display:flex;align-items:center;gap:8px;padding:4px;border-radius:5px;font-size:12.5px;color:#b2b7d8"><span style="width:14px;text-align:right;font:400 9.5px 'Space Mono',monospace;color:#575c86">01</span><span style="width:2px;height:13px;border-radius:2px;background:#d08fd0;opacity:.5"></span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">The road that was never one road</span><span style="font:400 9px 'Space Mono',monospace;color:#575c86">318w</span></li>
+<li style="display:flex;align-items:center;gap:8px;padding:4px;border-radius:5px;font-size:12.5px;color:#b2b7d8"><span style="width:14px;text-align:right;font:400 9.5px 'Space Mono',monospace;color:#575c86">02</span><span style="width:2px;height:13px;border-radius:2px;background:#d08fd0;opacity:.5"></span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Ghazan's passport</span><span style="font:400 9px 'Space Mono',monospace;color:#575c86">402w</span></li>
+<li style="display:flex;align-items:center;gap:8px;padding:4px;border-radius:5px;font-size:12.5px;color:#b2b7d8"><span style="width:14px;text-align:right;font:400 9.5px 'Space Mono',monospace;color:#575c86">03</span><span style="width:2px;height:13px;border-radius:2px;background:#9fd18a;opacity:.55"></span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Kaffa, spring 1346</span><span style="font:400 9px 'Space Mono',monospace;color:#575c86">640w</span></li>
+<li style="display:flex;align-items:center;gap:8px;padding:4px;border-radius:5px;font-size:12.5px;color:#e8e9f5;background:rgba(165,149,242,.1);box-shadow:inset 0 0 0 1px rgba(165,149,242,.18)"><span style="width:14px;text-align:right;font:400 9.5px 'Space Mono',monospace;color:#8b81bd">04</span><span style="width:2px;height:13px;border-radius:2px;background:#d08fd0"></span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">The last caravan</span><span style="font:400 9px 'Space Mono',monospace;color:#8b81bd">412w</span></li>
+</ol>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1b1f3c 14%,#1b1f3c 86%,transparent)"></div>
+<div style="padding:10px 12px;font-size:13px;line-height:1.72;color:#a6abcd;text-wrap:pretty">Ghazan's seal opened every gate between Tabriz and the Wall, and for forty years the only tax a man paid was the one he expected. <span style="background:rgba(165,149,242,.14);box-shadow:0 1px 0 rgba(165,149,242,.42);color:#cbc2ff">Then the khanates went to war with each other</span>, and the road became a list of borders again.</div>
+<div style="flex:1"></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1b1f3c 14%,#1b1f3c 86%,transparent)"></div>
+<div style="display:flex;align-items:center;gap:9px;padding:6px 10px 7px;font:400 9.5px 'Space Mono',monospace;color:#575c86"><span>1,772 w</span><span style="opacity:.5">|</span><span>3 in · 0 out</span><span style="flex:1"></span><span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;border:1px solid rgba(165,149,242,.42);color:#cbc2ff;font-family:'Space Grotesk',sans-serif;font-size:10px"><i data-lucide="eye" style="width:11px;height:11px"></i>Preview</span></div>
+</div>
+<div style="width:16px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:0 10px 10px 0"></div>
+<span style="position:absolute;left:2px;top:48px;width:12px;height:4px;border-radius:2px;background:#a595f2;box-shadow:0 0 7px rgba(165,149,242,.85)"></span>
+<span style="position:absolute;left:2px;top:76px;width:12px;height:4px;border-radius:2px;background:#d07fd0;box-shadow:0 0 7px rgba(208,127,208,.8)"></span>
+<span style="position:absolute;left:2px;top:104px;width:12px;height:4px;border-radius:2px;background:#52b8a8;box-shadow:0 0 7px rgba(82,184,168,.8)"></span>
+</div></div>
+
+</div>
+
+<!-- ================= LINE GRAMMAR ================= -->
+<div style="display:flex;align-items:baseline;gap:12px;padding:34px 4px 14px">
+<span style="font-size:16px;font-weight:500">Line grammar</span>
+<span style="font:400 11px 'Space Mono',monospace;color:#575c86">hue = relation · dash = rhythm · signal = character · all flow toward the target</span>
+</div>
+<div data-screen-label="Line grammar" style="width:1440px;box-sizing:border-box;border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:18px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+
+<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid #171b30;border-radius:9px;background:#0d1020">
+<svg width="86" height="18" viewBox="0 0 86 18" style="flex:none"><path d="M2,9 H84" stroke="#6fd39a" stroke-opacity=".62" stroke-width="1.6"></path><path d="M2,9 H84" stroke="#c6f5db" stroke-width="2.6" stroke-dasharray="10 76" stroke-linecap="round" style="animation:ob-dash 3.4s linear infinite"></path></svg>
+<div style="min-width:0"><div style="font-size:12px;color:#e8e9f5">supports</div><div style="font:400 9.5px 'Space Mono',monospace;color:#575c86">comet · even glide · 3.4s</div></div>
+</div>
+
+<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid #171b30;border-radius:9px;background:#0d1020">
+<svg width="86" height="18" viewBox="0 0 86 18" style="flex:none"><path d="M2,9 H84" stroke="#f0685e" stroke-opacity=".62" stroke-width="1.6" stroke-dasharray="7 4"></path><path d="M2,9 H84" stroke="#ffc2bb" stroke-width="2.6" stroke-dasharray="9 77" stroke-linecap="round" style="animation:ob-dash 2.2s steps(11,end) infinite"></path></svg>
+<div style="min-width:0"><div style="font-size:12px;color:#e8e9f5">contradicts</div><div style="font:400 9.5px 'Space Mono',monospace;color:#575c86">stutter · jumps in steps · 2.2s</div></div>
+</div>
+
+<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid #171b30;border-radius:9px;background:#0d1020">
+<svg width="86" height="18" viewBox="0 0 86 18" style="flex:none"><path d="M2,9 H84" stroke="#4fc9e8" stroke-opacity=".62" stroke-width="1.6"></path><path d="M2,9 H84" stroke="#b6f0ff" stroke-width="2.6" stroke-dasharray="18 68" stroke-linecap="round" style="animation:ob-dash 2.8s cubic-bezier(.85,0,.15,1) infinite"></path></svg>
+<div style="min-width:0"><div style="font-size:12px;color:#e8e9f5">answers</div><div style="font:400 9.5px 'Space Mono',monospace;color:#575c86">surge · slow, then arrives · 2.8s</div></div>
+</div>
+
+<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid #171b30;border-radius:9px;background:#0d1020">
+<svg width="86" height="18" viewBox="0 0 86 18" style="flex:none"><path d="M2,9 H84" stroke="#f0c96a" stroke-opacity=".62" stroke-width="1.5" stroke-dasharray="2 5"></path><path d="M2,9 H84" stroke="#ffe6ac" stroke-width="2.6" stroke-dasharray="3 5 3 5 3 67" stroke-linecap="round" style="animation:ob-dash 4.6s linear infinite"></path></svg>
+<div style="min-width:0"><div style="font-size:12px;color:#e8e9f5">raises a question</div><div style="font:400 9.5px 'Space Mono',monospace;color:#575c86">triple bead · knocks · 4.6s</div></div>
+</div>
+
+<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid #171b30;border-radius:9px;background:#0d1020">
+<svg width="86" height="18" viewBox="0 0 86 18" style="flex:none"><path d="M2,9 H84" stroke="#a595f2" stroke-opacity=".7" stroke-width="1.9"></path><path d="M2,9 H84" stroke="#e2dcff" stroke-width="3" stroke-dasharray="30 56" stroke-linecap="round" style="animation:ob-dash 5.2s linear infinite"></path></svg>
+<div style="min-width:0"><div style="font-size:12px;color:#e8e9f5">compiles into</div><div style="font:400 9.5px 'Space Mono',monospace;color:#575c86">freight · long, heavy, slow · 5.2s</div></div>
+</div>
+
+<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid #171b30;border-radius:9px;background:#0d1020">
+<svg width="86" height="18" viewBox="0 0 86 18" style="flex:none"><path d="M2,9 H84" stroke="#7fa3e8" stroke-opacity=".62" stroke-width="1.5" stroke-dasharray="1 4"></path><path d="M2,9 H84" stroke="#cfdcff" stroke-width="2.2" stroke-dasharray="4 82" stroke-linecap="round" style="animation:ob-dash 6s linear infinite"></path></svg>
+<div style="min-width:0"><div style="font-size:12px;color:#e8e9f5">references / cites</div><div style="font:400 9.5px 'Space Mono',monospace;color:#575c86">single bead · quiet · 6s</div></div>
+</div>
+
+<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid #171b30;border-radius:9px;background:#0d1020">
+<svg width="86" height="18" viewBox="0 0 86 18" style="flex:none"><path d="M2,9 H84" stroke="#e8934a" stroke-opacity=".62" stroke-width="1.6" stroke-dasharray="9 3 2 3"></path><path d="M2,9 H84" stroke="#ffd3ac" stroke-width="2.6" stroke-dasharray="7 5 7 67" stroke-linecap="round" style="animation:ob-dash 3s linear infinite"></path></svg>
+<div style="min-width:0"><div style="font-size:12px;color:#e8e9f5">depends on</div><div style="font:400 9.5px 'Space Mono',monospace;color:#575c86">twin · two cars coupled · 3s</div></div>
+</div>
+
+<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid #171b30;border-radius:9px;background:#0d1020">
+<svg width="86" height="18" viewBox="0 0 86 18" style="flex:none"><path d="M2,9 H84" stroke="#52b8a8" stroke-opacity=".62" stroke-width="1.6" stroke-dasharray="12 5"></path><path d="M2,9 H84" stroke="#b6ece2" stroke-width="2.2" stroke-dasharray="5 11" stroke-linecap="round" style="animation:ob-dashc 1.1s linear infinite"></path></svg>
+<div style="min-width:0"><div style="font-size:12px;color:#e8e9f5">comes after</div><div style="font:400 9.5px 'Space Mono',monospace;color:#575c86">crawl · the whole line moves · 1.1s</div></div>
+</div>
+
+<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid #171b30;border-radius:9px;background:#0d1020">
+<svg width="86" height="18" viewBox="0 0 86 18" style="flex:none"><path d="M2,9 H84" stroke="#e89b8f" stroke-opacity=".62" stroke-width="1.5" stroke-dasharray="3 3"></path><path d="M2,9 H84" stroke="#ffd2c9" stroke-width="4.4" stroke-opacity=".75" stroke-dasharray="24 62" stroke-linecap="round" style="animation:ob-dash 5.6s cubic-bezier(.4,0,.6,1) infinite"></path></svg>
+<div style="min-width:0"><div style="font-size:12px;color:#e8e9f5">appears in</div><div style="font:400 9.5px 'Space Mono',monospace;color:#575c86">glow sweep · wide, soft · 5.6s</div></div>
+</div>
+
+<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid #171b30;border-radius:9px;background:#0d1020">
+<svg width="86" height="18" viewBox="0 0 86 18" style="flex:none"><path d="M2,9 H84" stroke="#9a92c4" stroke-opacity=".55" stroke-width="1.4" stroke-dasharray="1 6"></path><path d="M2,9 H84" stroke="#d6d1ee" stroke-width="2.2" stroke-dasharray="4 82" stroke-linecap="round" style="animation:ob-dash 7.5s cubic-bezier(.45,0,.55,1) infinite"></path></svg>
+<div style="min-width:0"><div style="font-size:12px;color:#e8e9f5">inspired by</div><div style="font:400 9.5px 'Space Mono',monospace;color:#575c86">drift · eases, never hurries · 7.5s</div></div>
+</div>
+
+<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid #171b30;border-radius:9px;background:#0d1020">
+<svg width="86" height="18" viewBox="0 0 86 18" style="flex:none"><path d="M2,9 H84" stroke="#d07fd0" stroke-opacity=".62" stroke-width="1.6" stroke-dasharray="10 4 3 4"></path><path d="M2,9 H84" stroke="#f2c6f2" stroke-width="2.6" stroke-dasharray="8 4 8 66" stroke-linecap="round" style="animation:ob-dash 4s linear infinite"></path></svg>
+<div style="min-width:0"><div style="font-size:12px;color:#e8e9f5">revises / supersedes</div><div style="font:400 9.5px 'Space Mono',monospace;color:#575c86">double flash · strikes twice · 4s</div></div>
+</div>
+
+<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px dashed #262b52;border-radius:9px;background:transparent">
+<svg width="86" height="18" viewBox="0 0 86 18" style="flex:none"><path d="M2,9 H84" stroke="#4c447a" stroke-width="1.3" stroke-dasharray="1 4"></path></svg>
+<div style="min-width:0"><div style="font-size:12px;color:#9095bd">rejected / muted</div><div style="font:400 9.5px 'Space Mono',monospace;color:#575c86">no hue · no flow</div></div>
+</div>
+
+</div>
+
+<!-- ================= MEDIA NODE ================= -->
+<div style="display:flex;align-items:baseline;gap:12px;padding:34px 4px 14px">
+<span style="font-size:16px;font-weight:500">Media node</span>
+<span style="font:400 11px 'Space Mono',monospace;color:#575c86">drop → page → clip a highlight into a new wired node</span>
+</div>
+<div data-screen-label="Media node" style="width:1440px;box-sizing:border-box;display:grid;grid-template-columns:repeat(3,1fr);gap:18px">
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:16px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#575c86;margin-bottom:12px">1 · drop</div>
+<div style="border:1.5px dashed #4a5488;border-radius:10px;background:rgba(127,163,232,.06);padding:34px 18px;display:flex;flex-direction:column;align-items:center;gap:9px">
+<i data-lucide="file-down" style="width:26px;height:26px;color:#7fa3e8"></i>
+<div style="font-size:12.5px;color:#c9cdea">Drop to create a Media node</div>
+<div style="font:400 10px 'Space Mono',monospace;color:#575c86">pdf · png · jpg · epub</div>
+</div>
+<div style="margin-top:12px;font-size:11.5px;line-height:1.6;color:#9095bd;text-wrap:pretty">The file lands where the cursor is. Page count and title are read from the file; nothing else is asked for.</div>
+</div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:16px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#575c86;margin-bottom:12px">2 · page &amp; highlight</div>
+<div style="border:1px solid #262b52;border-radius:10px;background:#ece7dc;padding:15px 17px;position:relative;min-height:150px">
+<div style="font-family:Spectral,Georgia,serif;font-size:11px;line-height:1.62;color:#3a3831;text-wrap:pretty">Merchants who had priced protection into every league of the journey found, for a few decades, that the premium had been socialised. When the khanates turned on one another, <span style="background:rgba(79,201,232,.42);box-shadow:0 0 0 2px rgba(79,201,232,.42)">the cost of trust rose faster than the cost of freight</span>, and the caravan trade contracted long before the sea route was ready.</div>
+<span style="position:absolute;right:10px;bottom:8px;font:400 9px 'Space Mono',monospace;color:#8c8578">p. 118</span>
+</div>
+<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:5px">
+<span style="padding:3px 9px;border-radius:6px;border:1px solid rgba(111,211,154,.4);background:rgba(111,211,154,.1);font-size:10.5px;color:#8fe3b6">Evidence</span>
+<span style="padding:3px 9px;border-radius:6px;border:1px solid #282d51;font-size:10.5px;color:#9095bd">Quote</span>
+<span style="padding:3px 9px;border-radius:6px;border:1px solid #282d51;font-size:10.5px;color:#9095bd">Note</span>
+<span style="padding:3px 9px;border-radius:6px;border:1px solid #282d51;font-size:10.5px;color:#9095bd">Claim</span>
+<span style="padding:3px 9px;border-radius:6px;border:1px solid #282d51;font-size:10.5px;color:#9095bd">Term</span>
+</div>
+<div style="margin-top:11px;font-size:11.5px;line-height:1.6;color:#9095bd;text-wrap:pretty">Select text or drag a region, then pick the node type. Works the same on an image crop.</div>
+</div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:16px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#575c86;margin-bottom:12px">3 · lands beside the source, wired</div>
+<div style="position:relative;height:150px">
+<div style="position:absolute;left:0;top:14px;width:120px;border:1px solid #262b52;border-radius:8px;background:#141731;padding:8px 9px">
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:5px"><span style="width:6px;height:6px;border-radius:9px;background:#7fa3e8"></span><span style="font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:#7fa3e8">Media</span></div>
+<div style="font-size:10.5px;color:#9095bd;line-height:1.4">Power and Plenty</div>
+<div style="font:400 8.5px 'Space Mono',monospace;color:#4a4f76;margin-top:4px">p. 118</div>
+</div>
+<svg style="position:absolute;left:118px;top:0;width:110px;height:150px" viewBox="0 0 110 150" fill="none" stroke-linecap="round" stroke-linejoin="round">
+<path d="M2,44 H36 L46,54 V70 L56,80 H104" stroke="#6fd39a" stroke-opacity=".62" stroke-width="1.6"></path>
+<path d="M2,44 H36 L46,54 V70 L56,80 H104" stroke="#c6f5db" stroke-width="2.6" stroke-dasharray="12 130" stroke-linecap="round" style="animation:ob-dash 3.4s linear infinite"></path>
+</svg>
+<div style="position:absolute;left:222px;top:48px;right:0;border:1px solid rgba(111,211,154,.45);border-radius:8px;background:#141731;box-shadow:0 0 0 3px rgba(111,211,154,.1);padding:8px 9px">
+<div style="display:flex;align-items:center;gap:5px;margin-bottom:5px"><span style="width:6px;height:6px;border-radius:9px;background:#6fd39a"></span><span style="font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:#6fd39a">Evidence</span><span style="flex:1"></span><span style="font:400 8px 'Space Mono',monospace;color:#4a4f76">new</span></div>
+<div style="font-size:10.5px;color:#c2c6e4;line-height:1.5">"the cost of trust rose faster than the cost of freight"</div>
+</div>
+<div style="position:absolute;left:150px;top:104px;font-size:9.5px;color:#8fe3b6;font-family:'Space Grotesk',sans-serif">supports</div>
+</div>
+<div style="margin-top:11px;font-size:11.5px;line-height:1.6;color:#9095bd;text-wrap:pretty">The clip keeps its page number and stays wired back to the file, so the citation survives the note.</div>
+</div>
+
+</div>
+
+<div style="display:flex;align-items:baseline;gap:12px;padding:34px 4px 14px">
+<span style="font-size:16px;font-weight:500">Node interiors</span>
+<span style="font:400 11px 'Space Mono',monospace;color:#575c86">field rows — a label column and a place to write, in every node that has facts to hold</span>
+</div>
+<div data-screen-label="Node interiors" style="width:1440px;box-sizing:border-box;display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px">
+
+<!-- expanded Cast -->
+<div style="position:relative;display:flex;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 16px 34px -16px rgba(0,0,0,.96)">
+<span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,#e89b8f,transparent)"></span>
+<div style="width:16px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:10px 0 0 10px"></div>
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:7px;padding:8px 10px 7px;font-family:'Space Grotesk',sans-serif;background:linear-gradient(96deg,rgba(232,155,143,.15),rgba(232,155,143,.04) 46%,transparent 72%)"><i data-lucide="user-round" style="width:12px;height:12px;color:#e89b8f"></i><span style="font-size:9px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:#e89b8f">Cast</span><span style="flex:1"></span><span style="font:400 9px 'Space Mono',monospace;color:#575c86">N-06</span><span style="width:7px;height:7px;border-radius:9px;background:#6fd39a;box-shadow:0 0 6px rgba(111,211,154,.6)"></span></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,rgba(232,155,143,.5) 13%,#282d51 52%,#282d51 86%,transparent)"></div>
+<div style="display:flex;gap:12px;padding:12px 14px 10px">
+<div style="width:62px;height:78px;flex:none;border-radius:7px;border:1px solid #282d51;background:linear-gradient(155deg,rgba(232,155,143,.18),rgba(20,23,49,.9));display:grid;place-items:center"><i data-lucide="user-round" style="width:22px;height:22px;color:rgba(232,155,143,.5)"></i></div>
+<div style="min-width:0;flex:1">
+<div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:500;color:#e8e9f5">Yusuf al-Tabrizi</div>
+<div style="font-size:12px;color:#9095bd;margin:2px 0 8px">caravan master · 44 · Tabriz</div>
+<div style="display:flex;flex-wrap:wrap;gap:4px"><span style="padding:2px 8px;border-radius:9999px;background:rgba(232,155,143,.1);border:1px solid rgba(232,155,143,.26);font-size:10.5px;color:#e0a99e">POV</span><span style="padding:2px 8px;border-radius:9999px;background:rgba(255,255,255,.03);border:1px solid #282d51;font-size:10.5px;color:#9095bd">ch. 1–7</span><span style="padding:2px 8px;border-radius:9999px;background:rgba(255,255,255,.03);border:1px solid #282d51;font-size:10.5px;color:#9095bd">alive</span></div>
+</div></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1b1f3c 14%,#1b1f3c 86%,transparent)"></div>
+<div style="display:grid;grid-template-columns:64px 1fr;gap:5px 10px;padding:11px 14px 12px;font-size:12.5px">
+<span style="font:400 9px 'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#4a4f76;padding-top:2px">Wants</span><span style="color:#b2b7d8;line-height:1.5;font-family:Spectral,Georgia,serif">One more season on the road</span>
+<span style="font:400 9px 'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#4a4f76;padding-top:2px">Fears</span><span style="color:#b2b7d8;line-height:1.5;font-family:Spectral,Georgia,serif">Being the last to know a route has died</span>
+<span style="font:400 9px 'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#4a4f76;padding-top:2px">Voice</span><span style="color:#b2b7d8;line-height:1.5;font-family:Spectral,Georgia,serif">Clipped. Counts before he speaks.</span>
+<span style="font:400 9px 'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#4a4f76;padding-top:2px">Arc</span><span style="color:#575c86;line-height:1.5;font-family:Spectral,Georgia,serif;border-bottom:1px dashed #2a2f57;padding-bottom:2px">Add a line…</span>
+</div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1b1f3c 14%,#1b1f3c 86%,transparent)"></div>
+<div style="padding:9px 14px 4px;display:flex;align-items:center;gap:7px"><span style="font:400 8.5px 'Space Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#575c86">Relationships</span><span style="flex:1;height:1px;background:linear-gradient(90deg,#1b1f3c,transparent)"></span></div>
+<div style="padding:2px 12px 10px;display:flex;flex-direction:column;gap:2px">
+<div style="display:flex;align-items:center;gap:8px;padding:4px;border-radius:5px;font-size:12px;color:#b2b7d8"><span style="width:2px;height:13px;border-radius:2px;background:#e89b8f"></span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Bekhi — second, and the one who leaves</span><span style="font:400 9px 'Space Mono',monospace;color:#575c86">trusts</span></div>
+<div style="display:flex;align-items:center;gap:8px;padding:4px;border-radius:5px;font-size:12px;color:#b2b7d8"><span style="width:2px;height:13px;border-radius:2px;background:#e89b8f"></span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">The Genoese factor at Kaffa</span><span style="font:400 9px 'Space Mono',monospace;color:#575c86">owes</span></div>
+<div style="display:flex;align-items:center;gap:8px;padding:4px;border-radius:5px;font-size:12px;color:#575c86"><span style="width:2px;height:13px;border-radius:2px;border-left:2px dashed #2a2f57"></span><span style="flex:1;border-bottom:1px dashed #2a2f57;padding-bottom:1px">Add a relationship…</span></div>
+</div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1b1f3c 14%,#1b1f3c 86%,transparent)"></div>
+<div style="display:flex;align-items:center;gap:9px;padding:6px 12px 8px;font:400 9.5px 'Space Mono',monospace;color:#575c86"><span>0 in · 6 out</span><span style="opacity:.5">|</span><span>appears in 5 scenes</span></div>
+</div>
+<div style="width:16px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:0 10px 10px 0"></div>
+<span style="position:absolute;right:2px;top:58px;width:12px;height:4px;border-radius:2px;background:#e89b8f;box-shadow:0 0 7px rgba(232,155,143,.8)"></span>
+<span style="position:absolute;right:2px;top:84px;width:12px;height:4px;border-radius:2px;background:#e89b8f;box-shadow:0 0 7px rgba(232,155,143,.8)"></span>
+</div>
+
+<!-- Person / collaborator -->
+<div style="display:flex;flex-direction:column;gap:18px">
+<div style="position:relative;display:flex;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 16px 34px -16px rgba(0,0,0,.96)">
+<span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,#7fd4c1,transparent)"></span>
+<div style="width:16px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:10px 0 0 10px"></div>
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:7px;padding:8px 10px 7px;font-family:'Space Grotesk',sans-serif;background:linear-gradient(96deg,rgba(127,212,193,.15),rgba(127,212,193,.04) 46%,transparent 72%)"><i data-lucide="users-round" style="width:12px;height:12px;color:#7fd4c1"></i><span style="font-size:9px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:#7fd4c1">Person</span><span style="flex:1"></span><span style="font:400 9px 'Space Mono',monospace;color:#575c86">N-12</span><span style="width:7px;height:7px;border-radius:9px;background:#f0c96a;box-shadow:0 0 6px rgba(240,201,106,.6)"></span></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,rgba(127,212,193,.5) 13%,#282d51 52%,#282d51 86%,transparent)"></div>
+<div style="display:flex;align-items:center;gap:11px;padding:11px 14px 10px">
+<span style="display:grid;place-items:center;width:34px;height:34px;flex:none;border-radius:8px;background:#2a2f57;font:500 12px 'Space Mono',monospace;color:#b6bbdf">RK</span>
+<div style="min-width:0;flex:1"><div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:500;color:#e8e9f5">Rania Kaur</div><div style="font-size:11.5px;color:#9095bd;margin-top:1px">co-author · reads ch. 3–5</div></div>
+</div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1b1f3c 14%,#1b1f3c 86%,transparent)"></div>
+<div style="display:grid;grid-template-columns:64px 1fr;gap:5px 10px;padding:11px 14px 12px;font-size:12.5px">
+<span style="font:400 9px 'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#4a4f76;padding-top:2px">Owns</span><span style="color:#b2b7d8;line-height:1.5;font-family:Spectral,Georgia,serif">Sources, the bibliography, ch. 3</span>
+<span style="font:400 9px 'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#4a4f76;padding-top:2px">Waiting</span><span style="color:#b2b7d8;line-height:1.5;font-family:Spectral,Georgia,serif">On the 1346 quarantine records</span>
+<span style="font:400 9px 'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#4a4f76;padding-top:2px">Note</span><span style="color:#575c86;line-height:1.5;font-family:Spectral,Georgia,serif;border-bottom:1px dashed #2a2f57;padding-bottom:2px">Add a line…</span>
+</div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1b1f3c 14%,#1b1f3c 86%,transparent)"></div>
+<div style="display:flex;align-items:center;gap:9px;padding:6px 12px 8px;font:400 9.5px 'Space Mono',monospace;color:#575c86"><span>2 in · 3 out</span><span style="flex:1"></span><span style="color:#f0c96a">3 open comments</span></div>
+</div>
+<div style="width:16px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:0 10px 10px 0"></div>
+</div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:15px 16px 16px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#575c86;margin-bottom:10px">Field rows by node type</div>
+<div style="display:flex;flex-direction:column;gap:8px;font-size:11.5px;line-height:1.5">
+<div style="display:flex;gap:9px"><span style="width:76px;flex:none;color:#d08fd0">Section</span><span style="color:#9095bd">Purpose · Beats · Open threads</span></div>
+<div style="display:flex;gap:9px"><span style="width:76px;flex:none;color:#9fd18a">Scene</span><span style="color:#9095bd">Where · When · Who · Turn</span></div>
+<div style="display:flex;gap:9px"><span style="width:76px;flex:none;color:#7fd4c1">Source</span><span style="color:#9095bd">Author · Year · Pages · Standing</span></div>
+<div style="display:flex;gap:9px"><span style="width:76px;flex:none;color:#6fd39a">Claim</span><span style="color:#9095bd">Assertion · Scope · Strength</span></div>
+<div style="display:flex;gap:9px"><span style="width:76px;flex:none;color:#f0c96a">Question</span><span style="color:#9095bd">Asks · Stakes · Answered by</span></div>
+<div style="display:flex;gap:9px"><span style="width:76px;flex:none;color:#e8934a">Task</span><span style="color:#9095bd">Doing · Owner · Due · Blocked by</span></div>
+<div style="display:flex;gap:9px"><span style="width:76px;flex:none;color:#9a92c4">Term</span><span style="color:#9095bd">Means · Contested · First used</span></div>
+</div>
+</div>
+</div>
+
+<!-- field row anatomy -->
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:16px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#575c86;margin-bottom:12px">How a field row behaves</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+
+<div style="border:1px solid #171b30;border-radius:9px;background:#0d1020;padding:11px 13px">
+<div style="display:grid;grid-template-columns:64px 1fr;gap:10px;font-size:12.5px;align-items:start"><span style="font:400 9px 'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#4a4f76;padding-top:2px">Wants</span><span style="font-family:Spectral,Georgia,serif;color:#b2b7d8;line-height:1.5">One more season on the road</span></div>
+<div style="margin-top:8px;font-size:11px;color:#575c86;line-height:1.5">Filled — mono label, serif value. The label column is fixed so rows align down the node.</div>
+</div>
+
+<div style="border:1px solid #171b30;border-radius:9px;background:#0d1020;padding:11px 13px">
+<div style="display:grid;grid-template-columns:64px 1fr;gap:10px;font-size:12.5px;align-items:start"><span style="font:400 9px 'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#4a4f76;padding-top:2px">Arc</span><span style="font-family:Spectral,Georgia,serif;color:#575c86;line-height:1.5;border-bottom:1px dashed #2a2f57;padding-bottom:2px">Add a line…</span></div>
+<div style="margin-top:8px;font-size:11px;color:#575c86;line-height:1.5">Empty — a dashed baseline, not a box. It reads as a place to write without adding a control.</div>
+</div>
+
+<div style="border:1px solid rgba(165,149,242,.4);border-radius:9px;background:#0d1020;box-shadow:0 0 0 3px rgba(165,149,242,.1);padding:11px 13px">
+<div style="display:grid;grid-template-columns:64px 1fr;gap:10px;font-size:12.5px;align-items:start"><span style="font:400 9px 'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#a595f2;padding-top:2px">Arc</span><span style="font-family:Spectral,Georgia,serif;color:#e8e9f5;line-height:1.5;border-bottom:1px solid #a595f2;padding-bottom:2px">Learns the road was never the<span style="display:inline-block;width:1.5px;height:13px;background:#a595f2;vertical-align:-2px;margin-left:2px;animation:ob-breathe 1.1s steps(2,end) infinite"></span></span></div>
+<div style="margin-top:8px;font-size:11px;color:#575c86;line-height:1.5">Writing — the baseline goes solid accent and the row grows. No modal, no side panel.</div>
+</div>
+
+<div style="border:1px solid #171b30;border-radius:9px;background:#0d1020;padding:11px 13px">
+<div style="display:grid;grid-template-columns:64px 1fr;gap:10px;font-size:12.5px;align-items:start"><span style="font:400 9px 'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#4a4f76;padding-top:2px">Fears</span><span style="min-width:0"><span style="font-family:Spectral,Georgia,serif;color:#b2b7d8;line-height:1.5">Being the last to know a route has died</span> <span style="display:inline-flex;align-items:center;gap:4px;padding:1px 7px;border-radius:9999px;background:rgba(159,209,138,.1);border:1px solid rgba(159,209,138,.3);font-family:'Space Grotesk',sans-serif;font-size:10px;color:#9fd18a;vertical-align:1px"><i data-lucide="clapperboard" style="width:9px;height:9px"></i>Kaffa</span></span></div>
+<div style="margin-top:8px;font-size:11px;color:#575c86;line-height:1.5">A value can hold a node chip. Dropping one in creates the wire — the field is how most links get made.</div>
+</div>
+
+</div>
+</div>
+
+</div>
+
+<p style="margin:26px 4px 0;font-size:12px;line-height:1.65;color:#575c86;max-width:900px;text-wrap:pretty">Next: the node library sheet — Structure, Narrative, Research, Argument, Working, Faith, World-building and Media families drawn at full detail.</p>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1100}}">
+class Component extends DCLogic {
+  componentDidMount(){ this.icons(); }
+  componentDidUpdate(){ this.icons(); }
+  icons(){
+    const go = () => { try { window.lucide && window.lucide.createIcons(); } catch(e){} };
+    go(); setTimeout(go, 250); setTimeout(go, 900);
+  }
+}
+</script>
+</body>
+</html>
