@@ -56,9 +56,11 @@ describe('connection accessibility requirements', () => {
     expect(canvas).toContain('isValidConnection={isValidConnection}');
   });
 
-  it('star ports keep a >=24px invisible hit area and validity colors', () => {
+  it('port slots keep a >=24px invisible hit area and validity colors', () => {
+    // Observatory slots are 12x4; inset -10px makes the hit area 32x24 --
+    // the >=24px floor (rule 1) holds on the short axis.
     const styles = read('./styles.css');
-    expect(styles).toMatch(/\.port-star\.react-flow__handle::after\s*\{[^}]*inset:\s*-9px/s);
+    expect(styles).toMatch(/\.port-star\.react-flow__handle::after\s*\{[^}]*inset:\s*-10px/s);
     expect(styles).toContain('.port-star.react-flow__handle.valid');
   });
 

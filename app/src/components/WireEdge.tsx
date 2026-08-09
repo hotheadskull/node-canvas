@@ -10,11 +10,17 @@ import {
   useViewport,
   type EdgeProps,
 } from '@xyflow/react';
-import { arcRelationsByFamily, getArcRelation } from '@node-canvas/core';
+import {
+  arcRelationsByFamily,
+  DATA_KIND_STYLES,
+  getArcRelation,
+  WIRE_OPACITY,
+  WIRE_OPACITY_HEAVY,
+  type DataKind,
+} from '@node-canvas/core';
 import { Check, Trash2, X } from 'lucide-react';
 import { memo } from 'react';
 import { useCanvasStore } from '../store/canvasStore';
-import { PORT_KIND_COLORS } from './CanvasNode';
 
 export type WireEdgeData = {
   status: 'live' | 'tentative';
@@ -58,16 +64,37 @@ function WireEdgeComponent({
 
   const interactionWidth = Math.max(24, 24 / Math.max(zoom, 0.05));
   const tentative = data?.status === 'tentative';
-  const color = PORT_KIND_COLORS[data?.dataKind ?? ''] ?? '#94a3b8';
+  // Observatory color law: a wire is the colour of what travels down it --
+  // hue, stroke weight, AND dash pattern all come from the dataKind.
+  const kind = (data?.dataKind ?? 'any') as DataKind;
+  const kindStyle = DATA_KIND_STYLES[kind] ?? DATA_KIND_STYLES.any;
+  const color = kindStyle.hue;
+  const opacity = kind === 'thread' ? WIRE_OPACITY_HEAVY : WIRE_OPACITY;
 
   return (
     <>
+      {/* the halo: same path, wide and faint -- live wires only */}
+      {!tentative && (
+        <path
+          d={path}
+          fill="none"
+          stroke={color}
+          strokeWidth={7}
+          strokeOpacity={0.09}
+          className="wire-halo"
+        />
+      )}
       <BaseEdge
         id={id}
         path={path}
         interactionWidth={interactionWidth}
         className={`wire-edge ${tentative ? 'is-tentative' : 'is-live'} ${selected ? 'is-selected' : ''}`}
-        style={{ ['--wire-color' as string]: color }}
+        style={{
+          ['--wire-color' as string]: color,
+          strokeWidth: kindStyle.stroke,
+          strokeDasharray: tentative ? '7 5' : kindStyle.dash,
+          opacity: tentative ? undefined : opacity,
+        }}
       />
       <EdgeLabelRenderer>
         <div

@@ -20,23 +20,18 @@ export function matchesQuery(haystack: string, query: string): boolean {
   return words.every((word) => text.includes(word));
 }
 
+/** Thin always-mounted gate: owns only the shortcut and the open flag, so a
+ * CLOSED palette costs nothing per keystroke (dev-profile: every full-
+ * document subscriber re-renders on every edit; overlays must not). */
 export function CommandPalette() {
-  const document_ = useCanvasStore((state) => state.document);
   const paletteOpen = useCanvasStore((state) => state.paletteOpen);
   const setPaletteOpen = useCanvasStore((state) => state.setPaletteOpen);
-  const capture = useCanvasStore((state) => state.capture);
-  const { setCenter } = useReactFlow();
-  const [query, setQuery] = useState('');
-  const [highlighted, setHighlighted] = useState(0);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
         setPaletteOpen(!useCanvasStore.getState().paletteOpen);
-        setQuery('');
-        setHighlighted(0);
       }
       if (event.key === 'Escape' && useCanvasStore.getState().paletteOpen) {
         setPaletteOpen(false);
@@ -46,9 +41,22 @@ export function CommandPalette() {
     return () => window.removeEventListener('keydown', onKey);
   }, [setPaletteOpen]);
 
+  if (!paletteOpen) return null;
+  return <PaletteOpen />;
+}
+
+function PaletteOpen() {
+  const document_ = useCanvasStore((state) => state.document);
+  const setPaletteOpen = useCanvasStore((state) => state.setPaletteOpen);
+  const capture = useCanvasStore((state) => state.capture);
+  const { setCenter } = useReactFlow();
+  const [query, setQuery] = useState('');
+  const [highlighted, setHighlighted] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
-    if (paletteOpen) inputRef.current?.focus();
-  }, [paletteOpen]);
+    inputRef.current?.focus();
+  }, []);
 
   const matches = useMemo(() => {
     if (query.trim() === '') return document_.nodes.slice(0, 8);
@@ -129,8 +137,6 @@ export function CommandPalette() {
       runCommand(commands[index - matches.length]!);
     } else doCapture();
   };
-
-  if (!paletteOpen) return null;
 
   return (
     <div className="palette-backdrop" data-palette onClick={() => setPaletteOpen(false)}>

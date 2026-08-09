@@ -5,11 +5,14 @@
 import { compileBlocks, wordCount } from '@node-canvas/core';
 import { Minimize2 } from 'lucide-react';
 import { useEffect } from 'react';
-import { useCanvasStore } from '../store/canvasStore';
+import { CLOSED_DOCUMENT, useCanvasStore } from '../store/canvasStore';
 import { BlocksEditor } from './faces/BlocksFace';
 
 export function DocumentRoom() {
-  const document_ = useCanvasStore((state) => state.document);
+  // Closed room = zero cost (see CLOSED_DOCUMENT)
+  const document_ = useCanvasStore((state) =>
+    state.docRoomId === null ? CLOSED_DOCUMENT : state.document,
+  );
   const docRoomId = useCanvasStore((state) => state.docRoomId);
   const openDocRoom = useCanvasStore((state) => state.openDocRoom);
   const setNodeTitle = useCanvasStore((state) => state.setNodeTitle);

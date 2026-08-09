@@ -6,11 +6,14 @@ import { spineWiresInto, wordCount } from '@node-canvas/core';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo } from 'react';
 import { getNodeDef, nodeLabel } from '@node-canvas/core';
-import { useCanvasStore } from '../store/canvasStore';
+import { CLOSED_DOCUMENT, useCanvasStore } from '../store/canvasStore';
 import { RichText } from './RichText';
 
 export function FocusEditor() {
-  const document_ = useCanvasStore((state) => state.document);
+  // Closed editor = zero cost (see CLOSED_DOCUMENT)
+  const document_ = useCanvasStore((state) =>
+    state.editorNodeId === null ? CLOSED_DOCUMENT : state.document,
+  );
   const editorNodeId = useCanvasStore((state) => state.editorNodeId);
   const openEditor = useCanvasStore((state) => state.openEditor);
   const setNodeContent = useCanvasStore((state) => state.setNodeContent);

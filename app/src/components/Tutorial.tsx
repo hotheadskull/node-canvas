@@ -8,7 +8,7 @@
 
 import { X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useCanvasStore } from '../store/canvasStore';
+import { CLOSED_DOCUMENT, useCanvasStore } from '../store/canvasStore';
 import { TUTORIAL_STEPS, type TutorialLatches } from '../tutorial/steps';
 
 export const TUTORIAL_DONE_KEY = 'nodecanvas.v2.tutorialDone';
@@ -18,7 +18,8 @@ type SpotRect = { left: number; top: number; width: number; height: number };
 export function Tutorial() {
   const open = useCanvasStore((state) => state.tutorialOpen);
   const setOpen = useCanvasStore((state) => state.setTutorialOpen);
-  const document_ = useCanvasStore((state) => state.document);
+  // Closed tour = zero cost: subscribe to the live document only while open
+  const document_ = useCanvasStore((state) => (state.tutorialOpen ? state.document : CLOSED_DOCUMENT));
   const paletteOpen = useCanvasStore((state) => state.paletteOpen);
 
   const [step, setStep] = useState(0);

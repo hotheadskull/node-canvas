@@ -16,14 +16,17 @@ import {
 } from '@node-canvas/core';
 import { X } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
-import { useCanvasStore } from '../store/canvasStore';
+import { CLOSED_DOCUMENT, useCanvasStore } from '../store/canvasStore';
 import { RichText } from './RichText';
 
 const ROW_HEIGHT = 84;
 const ARC_FAMILIES = arcRelationsByFamily();
 
 export function ArcRoom() {
-  const document_ = useCanvasStore((state) => state.document);
+  // Closed room = zero cost (see CLOSED_DOCUMENT)
+  const document_ = useCanvasStore((state) =>
+    state.arcRoomId === null ? CLOSED_DOCUMENT : state.document,
+  );
   const arcRoomId = useCanvasStore((state) => state.arcRoomId);
   const openArcRoom = useCanvasStore((state) => state.openArcRoom);
   const setNodeContent = useCanvasStore((state) => state.setNodeContent);

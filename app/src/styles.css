@@ -3,16 +3,48 @@
 @import '@xyflow/react/dist/style.css';
 
 :root {
-  --background: #0a0a0c;
-  --foreground: #f8fafc;
-  --panel: rgba(21, 21, 24, 0.85);
-  --panel-solid: #151518;
-  --panel-raised: #1a1a20;
+  /* ---- Observatory tokens (docs/design/observatory/README.md — literal,
+     final). Ground/surfaces/text/state; data-kind hues live in core. ---- */
+  --ground: #05060d;
+  --surface: linear-gradient(180deg, rgba(20, 23, 49, 0.94), rgba(11, 13, 32, 0.94));
+  --surface-selected: linear-gradient(180deg, rgba(26, 29, 60, 0.96), rgba(15, 17, 40, 0.96));
+  --surface-panel: #0a0c18;
+  --surface-inset: #0d1020;
+  --gutter-fill: rgba(0, 0, 0, 0.24);
+  --border: #282d51;
+  --border-quiet: #1b1f3c;
+  --border-panel: #1c2038;
+  --border-selected: #7a6ec4;
+  --ring-selected: 0 0 0 3px rgba(165, 149, 242, 0.15);
+  --shadow-plate: 0 14px 30px -14px rgba(0, 0, 0, 0.94);
+  --shadow-open: 0 40px 90px -30px rgba(0, 0, 0, 0.98);
+  --text: #e8e9f5;
+  --text-strong: #f2f3fa;
+  --text-body: #cdd1e6;
+  --text-muted: #b8bdd6;
+  --obs-dim: #9095bd;
+  --obs-dimmer: #8085ad;
+  --text-faint: #575c86;
+  --state-flag: #f0c96a;
+  --state-conflict: #f0685e;
+  --state-healthy: #6fd39a;
+  --state-ink: #84dcf2;
+  --font-ui: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+  --font-prose: 'Spectral', Georgia, serif;
+  --font-mono: 'Space Mono', Consolas, monospace;
+
+  /* ---- Legacy vars still feeding panels/toolbar until their Observatory
+     pass (menus/panels re-skin rides with Phase B follow-through). ---- */
+  --background: #05060d;
+  --foreground: #e8e9f5;
+  --panel: rgba(10, 12, 24, 0.88);
+  --panel-solid: #0a0c18;
+  --panel-raised: #0d1020;
   --hairline: rgba(240, 192, 80, 0.18);
   --gold: #f0c050;
   --gold-soft: rgba(240, 192, 80, 0.6);
-  --text-dim: #8b8b93;
-  font-family: 'Segoe UI', system-ui, sans-serif;
+  --text-dim: #9095bd;
+  font-family: var(--font-ui);
 }
 
 * { box-sizing: border-box; }
@@ -100,44 +132,93 @@ html, body, #root {
   position: relative;
   height: 100%; width: 100%; min-height: 70px;
   display: flex; flex-direction: row;
-  background: rgba(21, 21, 24, 0.92);
-  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
-  border-radius: 10px; border-top-left-radius: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
   overflow: visible;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--shadow-plate);
+  font-family: var(--font-ui);
+  color: var(--text);
 }
-/* Connector design B (user-picked 2026-07-15): dedicated port GUTTERS.
-   Data has a fixed home -- takes enter LEFT, gives leave RIGHT; a side
-   with no ports keeps a whisper of gutter so the system reads everywhere. */
-.canvas-node-gutter { flex: none; background: rgba(13, 13, 20, 0.75); position: relative; }
-.gutter-left { width: 18px; border-right: 1px solid rgba(255, 255, 255, 0.05); border-radius: 0 0 0 9px; }
-.gutter-right { width: 18px; border-left: 1px solid rgba(255, 255, 255, 0.05); border-radius: 0 9px 9px 0; }
-.canvas-node-gutter.is-empty { width: 6px; }
 .canvas-node.is-selected {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent), 0 0 18px color-mix(in srgb, var(--accent) 35%, transparent);
+  border-color: var(--border-selected);
+  background: var(--surface-selected);
+  box-shadow: var(--ring-selected), var(--shadow-plate);
 }
-/* The tab: hangs above the card's top-left; also the drag grip. */
-.canvas-node-tab {
-  position: absolute; top: -20px; left: -1px;
+/* selection registration ticks: 10x10, 1.5px, corner brackets */
+.plate-tick {
+  position: absolute; width: 10px; height: 10px; z-index: 7;
+  border: 1.5px solid #a595f2; pointer-events: none;
+}
+.tick-tl { left: -5px; top: -5px; border-right: none; border-bottom: none; }
+.tick-tr { right: -5px; top: -5px; border-left: none; border-bottom: none; }
+.tick-bl { left: -5px; bottom: -5px; border-right: none; border-top: none; }
+.tick-br { right: -5px; bottom: -5px; border-left: none; border-top: none; }
+/* type spine: 3px, the colour of the primary give, fading downward */
+.plate-spine {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  border-radius: 10px 0 0 10px; z-index: 5; pointer-events: none;
+  background: linear-gradient(180deg, var(--kind), transparent);
+}
+/* Port GUTTERS (13px, divider, dark fill): takes LEFT, gives RIGHT; a side
+   with no ports keeps a whisper so the grammar reads everywhere. */
+.canvas-node-gutter { flex: none; width: 13px; background: var(--gutter-fill); position: relative; }
+.gutter-left { border-right: 1px solid var(--border-quiet); border-radius: 9px 0 0 9px; }
+.gutter-right { border-left: 1px solid var(--border-quiet); border-radius: 0 9px 9px 0; }
+.canvas-node-gutter.is-empty { width: 6px; }
+/* Body column between the gutters: header rail / rule / content / rule / meta */
+.plate-column { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.plate-header {
   display: flex; align-items: center; gap: 6px;
-  height: 20px; padding: 0 8px;
-  background: color-mix(in srgb, var(--accent) 18%, #14141a);
-  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
-  border-bottom: none;
-  border-radius: 7px 7px 0 0;
-  cursor: grab; z-index: 5;
-  max-width: calc(100% - 8px);
+  padding: 7px 9px 6px; min-height: 27px;
+  background: linear-gradient(
+    96deg,
+    color-mix(in srgb, var(--kind) 15%, transparent),
+    color-mix(in srgb, var(--kind) 4%, transparent) 46%,
+    transparent 72%
+  );
+  border-radius: 0 9px 0 0;
+  cursor: grab;
 }
-.canvas-node-tab:active { cursor: grabbing; }
-.canvas-node.is-selected .canvas-node-tab {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 28%, #14141a);
+.plate-header:active { cursor: grabbing; }
+.plate-spacer { flex: 1; }
+.plate-id {
+  font-family: var(--font-mono); font-size: 8.5px;
+  color: var(--obs-dimmer); letter-spacing: 0.04em;
 }
-.canvas-node-glyph { color: var(--accent); flex: none; }
+.readiness-ring-button {
+  display: grid; place-items: center; padding: 0;
+  background: transparent; border: none; cursor: pointer;
+  transition: transform 0.12s ease;
+}
+.readiness-ring-button:hover { transform: scale(1.2); }
+/* hairline rules fade at both ends; the top one is tinted by the kind */
+.plate-rule {
+  display: block; height: 1px; flex: none;
+  background: linear-gradient(90deg, transparent, var(--border-quiet) 13%, var(--border-quiet) 86%, transparent);
+}
+.plate-rule.is-tinted {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--kind) 50%, transparent) 13%,
+    var(--border) 52%,
+    var(--border) 86%,
+    transparent
+  );
+}
+/* meta rail: Space Mono truth strip -- counts match attached wires */
+.plate-meta {
+  display: flex; align-items: center; gap: 10px;
+  padding: 5px 9px 6px;
+  font-family: var(--font-mono); font-size: 8.5px; color: var(--obs-dim);
+  white-space: nowrap;
+}
+.plate-meta-state { margin-left: auto; text-transform: uppercase; letter-spacing: 0.08em; }
+.canvas-node-glyph { color: var(--kind); flex: none; }
 .canvas-node-kind {
-  font-size: 10px; letter-spacing: 0.6px; text-transform: uppercase;
-  color: var(--accent); white-space: nowrap;
+  font-size: 8.5px; letter-spacing: 0.15em; text-transform: uppercase;
+  font-weight: 500; color: var(--kind); white-space: nowrap;
 }
 /* Content column: clips to the card's rounded corners so the card itself
    can keep overflow visible for the tab, stars, and floating labels. */
@@ -158,10 +239,11 @@ html, body, #root {
 .canvas-node-title {
   display: block; width: 100%;
   background: transparent; border: none; outline: none;
-  color: var(--accent); font-size: 15px; font-weight: 600;
-  padding: 9px 12px 0;
+  color: var(--text-strong); font-family: var(--font-ui);
+  font-size: 13px; font-weight: 500; letter-spacing: -0.01em;
+  padding: 8px 12px 0;
 }
-.canvas-node-title::placeholder { color: var(--text-dim); font-weight: 500; }
+.canvas-node-title::placeholder { color: var(--text-faint); font-weight: 500; }
 .canvas-node-fit {
   display: grid; place-items: center;
   width: 16px; height: 16px; border-radius: 4px;
@@ -198,42 +280,53 @@ html, body, #root {
   transform: rotate(45deg) scale(1.3);
 }
 
-/* ---------- Star ports in the gutters (connector design B) ----------
-   Stars sit inside their gutter; labels float OUTSIDE the card. The body
-   still owns its full column -- nothing paints over text (anatomy, bug 2).
-   24px+ invisible hit area (rule 1), colored by dataKind. Stars are STEADY:
-   always visible, never resize on hover (user feedback 2026-07-15) -- hover
-   answers with a brighter glow only. */
+/* ---------- Port SLOTS in the gutters (Observatory port grammar) ----------
+   12x4 rounded slots inside their gutter; labels float OUTSIDE the card.
+   The body still owns its full column -- nothing paints over text.
+   THE RULE: a filled, glowing slot corresponds to a REAL wire; an outline
+   slot is open. 24px+ invisible hit area (rule 1), colored by dataKind.
+   Slots are STEADY: hover answers with glow, never a size change. */
 .port-star.react-flow__handle {
-  width: 9px; height: 9px;
+  width: 12px; height: 4px;
+  border-radius: 2px;
+  background: transparent;
+  border: 1px solid #3a3f65;
+  box-shadow: none;
+  transition: box-shadow 0.12s ease, background 0.12s ease, opacity 0.12s ease;
+}
+.port-star.react-flow__handle.is-wired {
   background: var(--port-color);
-  border: none; border-radius: 9999px;
-  box-shadow: 0 0 7px var(--port-color), 0 0 14px color-mix(in srgb, var(--port-color) 45%, transparent);
-  transition: box-shadow 0.12s ease, opacity 0.12s ease;
+  border-color: transparent;
+  box-shadow: 0 0 7px color-mix(in srgb, var(--port-color) 80%, transparent);
 }
 .port-star.react-flow__handle::after {
-  content: ''; position: absolute; inset: -9px; border-radius: 9999px;
+  content: ''; position: absolute; inset: -10px; border-radius: 9999px;
 }
 .port-star.react-flow__handle:hover {
-  box-shadow: 0 0 10px var(--port-color), 0 0 22px var(--port-color);
+  border-color: var(--port-color);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--port-color) 70%, transparent);
+}
+.port-star.react-flow__handle.is-wired:hover {
+  box-shadow: 0 0 10px var(--port-color), 0 0 18px color-mix(in srgb, var(--port-color) 50%, transparent);
 }
 /* live validity coloring during a connection drag: green = will connect,
    red WITH AN × = won't (user asked for an unmissable "no") */
 .port-star.react-flow__handle.connectingto.valid,
 .port-star.react-flow__handle.valid {
-  box-shadow: 0 0 10px #22c55e, 0 0 20px rgba(34, 197, 94, 0.7);
-  background: #22c55e;
+  box-shadow: 0 0 10px var(--state-healthy), 0 0 20px rgba(111, 211, 154, 0.7);
+  background: var(--state-healthy);
+  border-color: transparent;
 }
 .port-star.react-flow__handle.connectingto:not(.valid) {
-  box-shadow: 0 0 10px #ef4444, 0 0 20px rgba(239, 68, 68, 0.7);
-  background: #ef4444;
+  box-shadow: 0 0 10px var(--state-conflict), 0 0 20px rgba(240, 104, 94, 0.7);
+  background: var(--state-conflict);
+  border-color: transparent;
 }
 .port-star.react-flow__handle.connectingto:not(.valid)::before {
   content: '×';
-  position: absolute; inset: 0;
+  position: absolute; inset: -7px -2px;
   display: grid; place-items: center;
   color: #16060a; font-size: 11px; font-weight: 800; line-height: 1;
-  transform: scale(1.05);
 }
 
 /* Port labels: float beside the star; visibility is a canvas setting. */
@@ -463,6 +556,7 @@ html, body, #root {
 .palette-empty { padding: 14px; font-size: 12.5px; color: #6a6a72; font-style: italic; }
 
 /* ---------- Workflow: readiness + ownership ---------- */
+/* legacy dot kept only for non-plate spots that still render it */
 .readiness-dot {
   flex-shrink: 0; width: 10px; height: 10px; border-radius: 9999px;
   border: 1.5px solid rgba(0, 0, 0, 0.45); cursor: pointer; padding: 0;
@@ -558,7 +652,12 @@ html, body, #root {
 .richtext-toolbar button:hover { color: var(--gold); background: rgba(240, 192, 80, 0.1); }
 .richtext-toolbar button.is-active { color: var(--gold); background: rgba(240, 192, 80, 0.18); }
 .richtext-editor { flex: 1; min-height: 0; overflow-y: auto; }
-.richtext-content { outline: none; padding: 8px 10px; font-size: 13px; line-height: 1.6; color: #d5d5dc; }
+/* Prose is Spectral (Observatory type stack) -- the words look like words */
+.richtext-content {
+  outline: none; padding: 8px 10px;
+  font-family: var(--font-prose);
+  font-size: 12.5px; line-height: 1.6; color: var(--text-body);
+}
 .richtext-content p { margin: 0 0 0.6em; }
 .richtext-content h2 { margin: 0.4em 0; font-size: 1.15em; color: #e8e8ee; }
 .richtext-content blockquote {
@@ -640,9 +739,16 @@ html, body, #root {
 }
 .react-flow__edge:hover .react-flow__edge-path { stroke: var(--gold); }
 
+/* Interaction rule 2: the chip is ALWAYS clickable. The label renderer
+   layer rides above the node layer so a tall plate can never cover a chip
+   (found when the Observatory meta rail grew every card ~20px and a
+   tentative wire's Commit button vanished under a Title plate). */
+.react-flow__edgelabel-renderer { z-index: 1001; }
 .edge-chip {
   position: absolute; pointer-events: all; z-index: 10;
 }
+/* the meta rail is informational -- it must never eat a click */
+.plate-meta { pointer-events: none; }
 .edge-chip-face {
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 22px; min-height: 22px; padding: 2px 8px;
@@ -674,11 +780,12 @@ html, body, #root {
 }
 .edge-chip-delete:hover { border-color: #b56060; color: #e88; }
 
-/* ---------- Data wires ---------- */
+/* ---------- Data wires (hue/weight/dash come inline from DATA_KIND_STYLES;
+   selection and hover answer with full opacity) ---------- */
 .wire-edge.react-flow__edge-path {
-  stroke: var(--wire-color, #94a3b8);
-  stroke-width: 2.25;
+  stroke: var(--wire-color, #8085ad);
 }
+.wire-edge.is-selected { opacity: 1 !important; }
 .react-flow__edge:has(.wire-edge.is-tentative) .react-flow__edge-path,
 .wire-edge.is-tentative {
   stroke-dasharray: 7 5;

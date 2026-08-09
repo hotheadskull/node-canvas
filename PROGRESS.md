@@ -45,8 +45,8 @@ Build in the README's suggested order, full suite green between phases:
 
 | Phase | Scope | Status |
 |---|---|---|
-| A | Data-kind color law (core/src/colors.ts) + closed DataKind union + readiness ring component | **color law + union DONE (2026-08-09, tested)**; ring next |
-| B | Plate anatomy (spine/gutters/rails) + three collapse states (schema field; zoom borrows, never writes) | not started |
+| A | Data-kind color law (core/src/colors.ts) + closed DataKind union + readiness ring component | **completed 2026-08-09** (fonts bundled via fontsource; ReadinessRing per spec) |
+| B | Plate anatomy (spine/gutters/rails) + three collapse states (schema field; zoom borrows, never writes) | **anatomy + wire color law DONE 2026-08-09**; collapse states remain (next session) |
 | C | Wire rendering: chamfers, hops, lanes; junction dots; the 11 signal animations (budget ~8, reduced-motion) | not started |
 | D | Corridor derivation from free space; ghost-and-settle on drag (new core/src/routing.ts) | not started |
 | E | Assembly face (stacked edges) + block/embed states + fork notice | not started |
@@ -123,6 +123,43 @@ suite, academic-pack polish, merge-progress faces, citation formatting,
 presentation-walk mode. All registry entries + isolated reducers (invariant I8).
 
 ## Session log
+
+### 2026-08-09 (later) — Observatory Phases A + B-anatomy (completed)
+
+- **Phase A done:** fonts bundled (@fontsource Space Grotesk/Spectral/Space
+  Mono — offline desktop); ReadinessRing component per spec §3 (26×26, r=8;
+  seed dashed / developing amber half-arc / ready green / placed fill+tick)
+  replaces the readiness dot on plates.
+- **Phase B anatomy done:** CanvasNode rebuilt to the plate —
+  [spine 3px][take gutter 13px][body][give gutter 13px]; body =
+  header rail (kind-tinted gradient, registry label at 8.5px/.15em, owner
+  chip, Space Mono short id, readiness ring) / tinted fading hairline /
+  content / hairline / META RAIL (words, n in · n out, stage — counts come
+  from real wires). Port slots are 12×4 outline-when-open,
+  filled+glow-when-wired (the port grammar). Selection = #7a6ec4 border +
+  ring + four corner registration ticks. Tokens in :root are the literal
+  handoff values. Wire color law live in WireEdge: hue/weight/dash from
+  DATA_KIND_STYLES + 7px halo at .09, opacity .68/.74.
+- **Chips above plates (rule 2 upheld):** the meta rail grew every card
+  ~20px and a tentative wire's Commit chip vanished under a plate —
+  .react-flow__edgelabel-renderer now rides above the node layer and
+  .plate-meta is pointer-transparent.
+- **Per-keystroke perf:** typing profiled at ~45ms/key in dev-mode e2e —
+  pre-existing, React dev-mode JSX overhead (not app code; prod unaffected).
+  Mitigations: the five always-mounted overlays (palette, tutorial, focus
+  editor, doc room, arc room) now subscribe to CLOSED_DOCUMENT while closed
+  (zero re-render per edit); Playwright timeout 30→45s with the profile
+  documented in the config comment.
+- **Spec fix, not app fix:** the anatomy reload test compared boundingBox
+  heights across two fitAll zooms; taller plates changed the second zoom.
+  It now compares unscaled offsetHeight (same intent, no zoom coupling).
+  Verified byte-identical reload heights by hand first.
+- **I8 amended** (INVARIANT-CHANGE-APPROVED): look/feel authority is the
+  Observatory spec; /legacy stays reference for interactions only.
+- Suite: 239 unit + 32 e2e green; typecheck clean. Next: Phase B collapse
+  states (schema field, ⌥click, zoom borrows-never-writes), then Phase C
+  wire chamfers/hops/lanes.
+
 
 ### 2026-08-05 — Chunk 18: hardening (completed)
 

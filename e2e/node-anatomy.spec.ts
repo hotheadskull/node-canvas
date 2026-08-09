@@ -55,11 +55,19 @@ test('the user bug: a note grows downward as you type (no lag, no manual resize)
   const after = (await note.boundingBox())!;
   expect(Math.abs(after.y - before.y)).toBeLessThan(2);
 
-  // survives reload byte-for-byte: same content, same auto height
+  // survives reload byte-for-byte: same content, same auto height.
+  // Compare UNSCALED CSS heights (offsetHeight ignores the viewport
+  // transform) -- boundingBox is screen px, and the second fitAll can land
+  // on a different zoom now that plates are taller (meta rail).
+  const cssBefore = await note.evaluate(
+    (el) => el.querySelector<HTMLElement>('.canvas-node')!.offsetHeight,
+  );
   await page.reload();
   await fitAll(page);
-  const reloaded = (await nodeOfKind(page, 'Note').first().boundingBox())!;
-  expect(Math.abs(reloaded.height - after.height)).toBeLessThan(8);
+  const cssAfter = await nodeOfKind(page, 'Note')
+    .first()
+    .evaluate((el) => el.querySelector<HTMLElement>('.canvas-node')!.offsetHeight);
+  expect(Math.abs(cssAfter - cssBefore)).toBeLessThan(8);
 });
 
 test('the user bug: body text owns the full card width -- no rails over text', async ({
@@ -108,8 +116,8 @@ test('manual resize takes ownership; Fit hands the height back to the text', asy
   await addNode(page, 'note');
   await fitAll(page);
   const note = nodeOfKind(page, 'Note').first();
-  // select via the tab (clicking the body focuses the editor instead)
-  await note.locator('.canvas-node-tab').click();
+  // select via the header rail (clicking the body focuses the editor instead)
+  await note.locator('.plate-header').click();
 
   // drag the bottom-right resizer corner down to own the height
   const box = (await note.boundingBox())!;

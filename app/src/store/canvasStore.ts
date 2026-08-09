@@ -50,6 +50,11 @@ import {
 import { projectIO, PROJECT_EXTENSION } from '../persistence/projectFile';
 import { renderCanvasImage, type CanvasImageFormat } from '../persistence/canvasImage';
 
+/** Stable sentinel for CLOSED overlays: subscribing to the real document
+ * re-renders on every keystroke; a closed room/editor/tour subscribes to
+ * this constant instead and costs nothing until it opens. */
+export const CLOSED_DOCUMENT = createEmptyDocument('__closed__');
+
 export const STORAGE_KEY = 'nodecanvas.v2.document';
 export const CORRUPT_BACKUP_KEY = 'nodecanvas.v2.document.corrupt-backup';
 export const VIEWPORT_KEY = 'nodecanvas.v2.viewport';

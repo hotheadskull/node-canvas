@@ -8,7 +8,7 @@ Read PROGRESS.md next. Work only on the current chunk.
 5. core/ is pure TypeScript: no React, React Flow, Tauri, or DB imports.
 6. New node types = registry entry + renderer ONLY. Never edit core graph logic to add a type.
 7. Zod-validate every load and save. Never swallow persistence errors.
-8. UI stays canvas-dominant: Add-node top-left, toolbar bottom-left, dark starfield. No legend until a better design is approved (user, 2026-07-14). Match /legacy for look and feel.
+8. UI stays canvas-dominant: Add-node top-left, toolbar bottom-left, dark starfield. No legend until a better design is approved (user, 2026-07-14). Look and feel = the OBSERVATORY spec (docs/design/observatory/README.md, user-adopted 2026-08-09, values literal/final): plate anatomy, dataKind color law, readiness rings. /legacy remains reference for interactions only.
 ## Test discipline:
 - Run the FULL suite before ending any session. All green or explain why to the user.
 - NEVER edit a golden snapshot to make a test pass. Failing golden = behavior changed. Ask the user.
