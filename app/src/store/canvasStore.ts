@@ -113,6 +113,14 @@ type CanvasState = {
   setNodeTitle: (nodeId: string, title: string) => void;
   setNodeContent: (nodeId: string, content: string) => void;
   setNodeAccent: (nodeId: string, accent: string | undefined) => void;
+  /** Observatory collapse (spec §2): sticky, user-controlled, persisted in
+   * node.data. 'rolled-up' is the assembly state and stays derived. */
+  toggleNodeCollapsed: (nodeId: string) => void;
+  setAllCollapsed: (collapsed: boolean) => void;
+  /** Zoom below 45% RENDERS everything collapsed but must never overwrite
+   * the stored per-node value -- this session flag is the borrow. */
+  zoomBorrow: boolean;
+  setZoomBorrow: (on: boolean) => void;
   /**
    * Record the card's REAL rendered height (Chunk 17 anatomy: auto height is
    * the resting state -- CSS grows the card; this only keeps the document's
@@ -677,6 +685,43 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
           return { ...node, data: { ...node.data, accent } };
         }),
       });
+    },
+
+    toggleNodeCollapsed: (nodeId) => {
+      const doc = get().document;
+      commit({
+        ...doc,
+        nodes: doc.nodes.map((node) => {
+          if (node.id !== nodeId) return node;
+          if (node.data['collapsed'] === 'collapsed') {
+            const { collapsed: _dropped, ...data } = node.data;
+            return { ...node, data };
+          }
+          return { ...node, data: { ...node.data, collapsed: 'collapsed' } };
+        }),
+      });
+    },
+
+    setAllCollapsed: (collapsed) => {
+      const doc = get().document;
+      commit({
+        ...doc,
+        nodes: doc.nodes.map((node) => {
+          if (collapsed) {
+            return node.data['collapsed'] === 'collapsed'
+              ? node
+              : { ...node, data: { ...node.data, collapsed: 'collapsed' } };
+          }
+          if (node.data['collapsed'] === undefined) return node;
+          const { collapsed: _dropped, ...data } = node.data;
+          return { ...node, data };
+        }),
+      });
+    },
+
+    zoomBorrow: false,
+    setZoomBorrow: (on) => {
+      if (get().zoomBorrow !== on) set({ zoomBorrow: on });
     },
 
     recordMeasuredHeight: (nodeId, height) => {

@@ -46,7 +46,7 @@ Build in the README's suggested order, full suite green between phases:
 | Phase | Scope | Status |
 |---|---|---|
 | A | Data-kind color law (core/src/colors.ts) + closed DataKind union + readiness ring component | **completed 2026-08-09** (fonts bundled via fontsource; ReadinessRing per spec) |
-| B | Plate anatomy (spine/gutters/rails) + three collapse states (schema field; zoom borrows, never writes) | **anatomy + wire color law DONE 2026-08-09**; collapse states remain (next session) |
+| B | Plate anatomy (spine/gutters/rails) + three collapse states (data field; zoom borrows, never writes) | **completed 2026-08-09** |
 | C | Wire rendering: chamfers, hops, lanes; junction dots; the 11 signal animations (budget ~8, reduced-motion) | not started |
 | D | Corridor derivation from free space; ghost-and-settle on drag (new core/src/routing.ts) | not started |
 | E | Assembly face (stacked edges) + block/embed states + fork notice | not started |
@@ -123,6 +123,28 @@ suite, academic-pack polish, merge-progress faces, citation formatting,
 presentation-walk mode. All registry entries + isolated reducers (invariant I8).
 
 ## Session log
+
+### 2026-08-09 (later still) — Observatory Phase B complete: collapse states
+
+- data.collapsed rides in node.data (passthrough -- no schema change, no
+  golden risk; same precedent as ownedHeight/accent). toggleNodeCollapsed /
+  setAllCollapsed in the store; rolled-up stays derived from assemblies.
+- Collapsed plate: header rail (label + readiness ring) + title + one
+  subtitle line (stripped prose); no face, no meta rail. Ports MERGE to
+  one dot per side -- every handle stays mounted at the same spot, so no
+  wire can ever drop (v1 lesson: an edge without its handle cannot render).
+  handleSignature includes the collapse state so RF re-measures.
+- Interactions: ⌥click toggles a plate, ⌥⇧click sweeps the selection,
+  ⌥⇧A collapses/expands ALL (skips when typing in an editor).
+- Zoom borrow: below 45% every plate RENDERS collapsed via a session-only
+  store flag; the stored value is never written (unit test pins document
+  identity; e2e pins localStorage bytes).
+- e2e/collapse.spec.ts (4 specs): toggle + subtitle + reload persistence;
+  wire survives collapsing its source; zoom borrows-never-writes; ⌥⇧A.
+- Suite: 244 unit + 36 e2e green; typecheck clean.
+
+**Next: Phase C — the wire harness** (chamfered orthogonal routing,
+corridor derivation, hops, junction dots, ghost-and-settle on drag).
 
 ### 2026-08-09 (later) — Observatory Phases A + B-anatomy (completed)
 

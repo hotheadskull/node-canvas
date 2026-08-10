@@ -129,6 +129,25 @@ export function Canvas() {
   // mounts EVERY node -- on a 500-node canvas that meant ~500 TipTap editors
   // built and immediately unmounted (a 27s boot, found by the stress spec).
   const [flowReady, setFlowReady] = useState(false);
+
+  // ⌥⇧A: collapse everything / expand everything (Observatory §2). If any
+  // plate is still full, the sweep collapses; otherwise it expands.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (!event.altKey || !event.shiftKey || event.code !== 'KeyA') return;
+      const target = event.target as HTMLElement | null;
+      if (target && /^(input|textarea)$/i.test(target.tagName)) return;
+      if (target?.isContentEditable) return;
+      event.preventDefault();
+      const store = useCanvasStore.getState();
+      const anyFull = store.document.nodes.some(
+        (node) => node.data['collapsed'] !== 'collapsed',
+      );
+      store.setAllCollapsed(anyFull);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
   // Semantic zoom: past the far threshold, collapsed assemblies render as
   // glowing star points (the theme made mechanical + the perf lever).
   const [zoomBucket, setZoomBucket] = useState<'near' | 'far'>('near');
@@ -221,6 +240,9 @@ export function Canvas() {
                 : {}),
               ...(typeof docNode.data['accent'] === 'string'
                 ? { accent: docNode.data['accent'] }
+                : {}),
+              ...(docNode.data['collapsed'] === 'collapsed'
+                ? { collapsed: 'collapsed' as const }
                 : {}),
             },
           });
@@ -495,6 +517,24 @@ export function Canvas() {
         onMove={(_event, viewport) => {
           const bucket = viewport.zoom < 0.25 ? 'far' : 'near';
           setZoomBucket((current) => (current === bucket ? current : bucket));
+          // <45%: plates RENDER collapsed; the stored per-node value is
+          // never written (Observatory §2: zoom borrows, never overwrites)
+          useCanvasStore.getState().setZoomBorrow(viewport.zoom < 0.45);
+        }}
+        onNodeClick={(event, node) => {
+          // ⌥click: collapse/expand one plate. ⌥⇧click: the whole selection
+          // rides along (Observatory §2 -- sticky, user-controlled).
+          if (!event.altKey || node.type !== 'canvas') return;
+          const store = useCanvasStore.getState();
+          if (event.shiftKey) {
+            const selected = rfNodes.filter((candidate) => candidate.selected && candidate.type === 'canvas');
+            const targets = selected.some((candidate) => candidate.id === node.id)
+              ? selected.map((candidate) => candidate.id)
+              : [node.id];
+            for (const id of targets) store.toggleNodeCollapsed(id);
+            return;
+          }
+          store.toggleNodeCollapsed(node.id);
         }}
         onMoveEnd={(_event, viewport) => saveViewport(viewport)}
         /* Culling pauses during canvas image export so off-screen nodes
