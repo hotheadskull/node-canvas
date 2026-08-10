@@ -22,17 +22,17 @@ export type DataKindStyle = {
 };
 
 export const DATA_KIND_STYLES: Record<DataKind, DataKindStyle> = {
-  text: { hue: '#a595f2', stroke: 1.9 },
-  person: { hue: '#e89b8f', stroke: 1.6, dash: '3 3' },
-  place: { hue: '#c9a26b', stroke: 1.6, dash: '2 5' },
-  thing: { hue: '#7fd4c1', stroke: 1.6, dash: '7 4' },
-  cite: { hue: '#7fa3e8', stroke: 1.5, dash: '1 4' },
-  claim: { hue: '#6fd39a', stroke: 1.8 },
-  prop: { hue: '#52b8a8', stroke: 1.6, dash: '12 5' },
-  plant: { hue: '#9fd18a', stroke: 1.6, dash: '9 3 2 3' },
-  event: { hue: '#8f9ff0', stroke: 1.6, dash: '10 4 3 4' },
-  thread: { hue: '#d08fd0', stroke: 2.2 },
-  any: { hue: '#8085ad', stroke: 1.4, dash: '1 6' },
+  text: { hue: '#b19bff', stroke: 1.9 },
+  person: { hue: '#f5977f', stroke: 1.6, dash: '3 3' },
+  place: { hue: '#e0a85c', stroke: 1.6, dash: '2 5' },
+  thing: { hue: '#63e0c6', stroke: 1.6, dash: '7 4' },
+  cite: { hue: '#6ea9ff', stroke: 1.5, dash: '1 4' },
+  claim: { hue: '#52dd93', stroke: 1.8 },
+  prop: { hue: '#3fc7b2', stroke: 1.6, dash: '12 5' },
+  plant: { hue: '#a0e074', stroke: 1.6, dash: '9 3 2 3' },
+  event: { hue: '#8c9eff', stroke: 1.6, dash: '10 4 3 4' },
+  thread: { hue: '#e287df', stroke: 2.2 },
+  any: { hue: '#8e94c2', stroke: 1.4, dash: '1 6' },
 };
 
 /** Base wire opacity; thread and heavier structural wires ride higher. */
@@ -41,10 +41,10 @@ export const WIRE_OPACITY_HEAVY = 0.74;
 
 /** State colours (attention/conflict/healthy/ink annotations). */
 export const STATE_COLORS = {
-  flag: '#f0c96a',
-  conflict: '#f0685e',
-  healthy: '#6fd39a',
-  ink: '#84dcf2',
+  flag: '#ffc94d',
+  conflict: '#ff6a58',
+  healthy: '#52dd93',
+  ink: '#6fe0ff',
 } as const;
 
 /**

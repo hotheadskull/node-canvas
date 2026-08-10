@@ -28,9 +28,11 @@ describe('data-kind color law', () => {
   });
 
   it('handoff literals hold for the load-bearing kinds', () => {
-    expect(DATA_KIND_STYLES.text).toEqual({ hue: '#a595f2', stroke: 1.9 });
-    expect(DATA_KIND_STYLES.thread).toEqual({ hue: '#d08fd0', stroke: 2.2 });
+    // pt2 handoff (2026-08-10) brightened all eleven hues; strokes and
+    // dashes are unchanged
+    expect(DATA_KIND_STYLES.text).toEqual({ hue: '#b19bff', stroke: 1.9 });
+    expect(DATA_KIND_STYLES.thread).toEqual({ hue: '#e287df', stroke: 2.2 });
     expect(DATA_KIND_STYLES.cite.dash).toBe('1 4');
-    expect(STATE_COLORS.conflict).toBe('#f0685e');
+    expect(STATE_COLORS.conflict).toBe('#ff6a58');
   });
 });

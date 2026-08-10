@@ -51,9 +51,9 @@ function chipHue(type: string): string {
 
 const STAGE_BAR_COLORS: Record<string, string> = {
   seed: '#4a4f76',
-  developing: '#f0c96a',
-  ready: '#6fd39a',
-  placed: 'rgba(111,211,154,.4)',
+  developing: '#ffc94d',
+  ready: '#52dd93',
+  placed: 'rgba(82,221,147,.4)',
 };
 
 export type AssemblyFaceData = {

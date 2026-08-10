@@ -1,366 +1,455 @@
-# Handoff: Observatory — plate & harness visual system
+# Handoff: Observatory — complete visual system
 
-## Overview
+## What this is
 
-A complete visual system for the node-canvas app: how nodes ("plates") are drawn, how wires are routed and animated, how readiness and ports read, how assemblies collapse, how document blocks and embeds show their state, how splitting works, and how the four rooms differ.
+A complete visual system for the node-canvas app. Every colour, pixel count, dash pattern and duration below is literal and final. Where something replaces already-shipped code, it says so.
 
-The design was built **against the existing core**, not invented alongside it. Type names, port ids, data kinds, capacities, readiness stages and split behaviour are all read from `core/src/registry.ts`, `core/src/derive.ts`, `core/src/blocks.ts` and `core/src/assemblies.ts`. Where the design proposes something the core does not have yet, it is called out explicitly in the "Not yet in core" section at the end.
+**Read `Observatory Spec.dc.html` first** — it is the authoritative reference and renders every rule live. This README is the written form of the same thing plus the code-mapping.
 
 ## About the design files
 
-The `.dc.html` files in this bundle are **design references**. They are static HTML prototypes that show intended appearance and behaviour — they are not production code and should not be copied into the app.
+The `.dc.html` files are **design references**, not production code. Do not copy them into the app. Recreate them in the existing environment: **React 18 + TypeScript + Vite + @xyflow/react + Zustand + Tauri**, following the existing `CanvasNode.tsx` / `WireEdge.tsx` / `AssemblyFace.tsx` / `faces/*` / `styles.css` patterns.
 
-The task is to recreate them inside the existing environment: **React 18 + TypeScript + Vite + `@xyflow/react` + Zustand + Tauri**, using the existing `CanvasNode.tsx`, `WireEdge.tsx`, `PlainEdge.tsx`, `AssemblyFace.tsx`, `faces/*` and `styles.css` patterns. All values below are literal and final.
+Open a file directly in a browser to view it. `support.js` must sit beside them.
 
-To view a design file, open it directly in a browser. `support.js` must sit next to the `.dc.html` files.
-
-## Fidelity
-
-**High fidelity.** Colours, type, spacing, radii, stroke widths, dash patterns and animation timings are final and should be matched exactly.
+**Fidelity: high.** Match the values exactly.
 
 ---
 
-## Design tokens
+## 1. The ground — a real night sky
 
-### Ground and surfaces
+Replaces the current single-gradient background **and `Starfield.tsx` entirely.** The shooting stars there (`shoot-1/2/3`) are cut: a real sky does not fire one every thirty seconds, and they pull the eye off the wires.
 
-| Token | Value | Use |
-| --- | --- | --- |
-| `--ground` | `#05060d` | canvas backdrop |
-| `--surface` | `linear-gradient(180deg, rgba(20,23,49,.94), rgba(11,13,32,.94))` | plate fill |
-| `--surface-selected` | `linear-gradient(180deg, rgba(26,29,60,.96), rgba(15,17,40,.96))` | selected plate fill |
-| `--surface-panel` | `#0a0c18` | side panels, legends |
-| `--surface-inset` | `#0d1020` | rows inside panels |
-| `--gutter-fill` | `rgba(0,0,0,.24)` | the port gutters down each plate edge |
-| `--border` | `#282d51` | plate border |
-| `--border-quiet` | `#1b1f3c` | inner hairlines, gutter dividers |
-| `--border-panel` | `#1c2038` | panel border |
-| `--border-selected` | `#7a6ec4` | selected plate border |
-| `--ring-selected` | `0 0 0 3px rgba(165,149,242,.15)` | selection ring |
-| `--shadow-plate` | `0 14px 30px -14px rgba(0,0,0,.94)` | plate elevation |
-| `--shadow-open` | `0 40px 90px -30px rgba(0,0,0,.98)` | open/expanded plate |
+Fourteen layers, bottom to top:
 
-### Text
+| # | Layer | Spec | Cycle |
+|---|---|---|---|
+| 0 | sky | `linear-gradient(158deg,#03060f,#061024 34%,#0a1836 66%,#122448)` — navy, not black | static |
+| 1 | band glow | 1800×420 at −9°, `rgba(108,138,208,.40)`, blur 72 | static |
+| 2 | core | 950×340 `rgba(186,190,228,.44)` at 46% along the band, blur 48 | static |
+| 3 | warm core | 560×240 `rgba(214,178,180,.42)` at 44%, blur 34 — the rose-tan cast | static |
+| 4 | second cloud | 620×250 `rgba(130,158,222,.34)` at 64%, blur 40 | static |
+| 5 | band stars | **190 stars packed on the band**, gaussian across its width | static |
+| 6 | great rift | 1400×100 `rgba(20,14,22,.94)`, blur 26 — splits the band | static |
+| 7 | dust knots ×2 | organic `rgba(18,12,20,.90)` masses over the core, blur 24–28 | static |
+| 8 | stars 6th mag | 86 per 613×431 tile · .55–1.15px · α .24–.48 | 1100s |
+| 9 | stars 5th mag | 74 per 719×509 · .60–1.30px · α .34–.64 | 820s |
+| 10 | stars 4th mag | 58 per 827×587 · .70–1.60px · α .48–.84 | 600s |
+| 11 | stars 3rd mag | 34 per 953×673 · .85–1.95px · α .64–.96 | 460s |
+| 12 | stars 2nd mag | 18 per 1097×761 · 1.1–2.3px · α .78–1 | 380s |
+| 13 | grid | 1px dots `rgba(255,255,255,.045)`, 24px pitch | static |
 
-| Token | Value | Use |
-| --- | --- | --- |
-| `--text` | `#e8e9f5` | primary |
-| `--text-strong` | `#f2f3fa` | card titles in reference sheets |
-| `--text-body` | `#cdd1e6` | prose in the open state |
-| `--text-muted` | `#b8bdd6` | secondary prose |
-| `--text-dim` | `#9095bd` | meta, counts — **minimum for 8px text** |
-| `--text-dimmer` | `#8085ad` | labels, list numerals — **minimum for 8.5–9px text** |
-| `--text-faint` | `#575c86` | placeholder only, never below 10px |
+**Rules the ground obeys**
 
-Do **not** use `#4a4f76` for text below 10px; it measures 2.57:1 and fails.
-
-### Data-kind hues — the core of the system
-
-Colour comes from the **port's `dataKind`**, never from the node's `type`. A wire is the colour of what travels down it; a plate's spine is the colour of its primary give port.
-
-| dataKind | Hue | Wire stroke | Dash |
-| --- | --- | --- | --- |
-| `text` | `#a595f2` | 1.9 | solid |
-| `person` | `#e89b8f` | 1.6 | `3 3` |
-| `place` | `#c9a26b` | 1.6 | `2 5` |
-| `thing` | `#7fd4c1` | 1.6 | `7 4` |
-| `cite` | `#7fa3e8` | 1.5 | `1 4` |
-| `claim` | `#6fd39a` | 1.8 | solid |
-| `prop` | `#52b8a8` | 1.6 | `12 5` |
-| `plant` | `#9fd18a` | 1.6 | `9 3 2 3` |
-| `event` | `#8f9ff0` | 1.6 | `10 4 3 4` |
-| `thread` | `#d08fd0` | 2.2 | solid |
-| `any` | `#8085ad` | 1.4 | `1 6` |
-
-`any` ports adopt the colour of whatever connects to them. Relation words (`supports`, `rebuts`, `serves`) render as **text labels on the wire**, not as additional hues.
-
-Base wire opacity `.68`; `thread` and heavier structural wires `.74`. Every live wire also gets a halo: same path, `stroke-width: 7`, `stroke-opacity: .085–.1`.
-
-### State colours
-
-| State | Value |
-| --- | --- |
-| flag / attention | `#f0c96a` |
-| conflict / contested | `#f0685e` |
-| healthy | `#6fd39a` |
-| ink annotations | `#84dcf2` |
-
-### Type
-
-| Role | Font | Size / weight |
-| --- | --- | --- |
-| UI / headings | `Space Grotesk` | 500–600 |
-| Prose | `Spectral` | 400, `line-height: 1.72` in the open state |
-| Meta / numeric | `Space Mono` | 400 |
-
-Registry label: `8–9px`, `letter-spacing: .15em`, `text-transform: uppercase`, coloured by data kind.
-Plate title: `11.5–13px` Space Grotesk 500.
-Open-state title: `23px` Space Grotesk 500, `letter-spacing: -.01em`.
-Open-state prose: `16.5px` Spectral, `max-width: 60ch`.
-
-### Geometry
-
-- Plate radius `10px`; collapsed and small plates `8–9px`; panels `12px`.
-- Border `1px`. Selected plate keeps `1px` plus the selection ring.
-- Port gutter width `13px` (`16px` on large plates), with a `1px` divider and `rgba(0,0,0,.24)` fill.
-- Type spine: `3px` wide, full height, `linear-gradient(180deg, <hue>, transparent)`, radius matching the plate's left corners.
-- Port slot: `12×4px`, radius `2px`, `box-shadow: 0 0 7px <hue at .8>` when live; `1px solid #3a3f65` outline when open.
-- Hairline rules fade at both ends: `linear-gradient(90deg, transparent, <colour> 13%, <colour> 86%, transparent)`.
+- **Nothing under 60 seconds.** Faster reads as motion and competes with the wires.
+- **Density is the whole thing.** ~460 stars. Radii use `rnd()*rnd()`, not `rnd()` — biases hard toward small, which is what a real sky looks like.
+- **The sky is navy.** `#03060f` → `#122448`. The blue is what makes dust lanes read as brown rather than as holes.
+- **Stars draw from eight colours** weighted toward white and blue-white, with a few warm. Pure `#fff` reads as pixels.
+- **Band geometry must fit a letterbox.** At −9° the spine rises 141px across 1442px. A steeper angle pushes the band out of frame.
+- **Never let the tile show.** 613/719/827/953/1097 are coprime; each layer drifts one whole tile per cycle.
+- **The band lives in canvas space, stars in screen space.** Star layers pan at 20/35/50/65/80% for parallax. Zoom scales the band only.
+- **Only `transform` animates.** No filter or background-position animation.
+- **Contrast budget 12%.** Nothing on an empty canvas exceeds 12% luminance above `#03060f`; the Milky Way core sits at ~9%.
+- `prefers-reduced-motion` freezes everything mid-cycle.
 
 ---
 
-## Component specs
+## 2. The plate
 
-### 1. The plate
+Horizontal flex: `[spine 3px][take gutter 13px][body flex:1][give gutter 13px]`.
 
-Horizontal flex: `[type spine 3px][take gutter 13px][body flex:1][give gutter 13px]`.
+Body: **header rail 28px** → tinted hairline → **title 26px** → **content (the only part that grows)** → hairline → **meta rail 22px**.
 
-Body is a vertical stack:
-1. **Header rail** — registry label (data-kind coloured), optional badge, spacer, owner chip, node id in Space Mono `#8085ad`, readiness ring. Padding `7px 9px 6px`. Background `linear-gradient(96deg, <hue> 15%, <hue> 4% 46%, transparent 72%)`.
-2. Fading hairline, tinted with the type hue at the left: `linear-gradient(90deg, transparent, <hue at .5> 13%, #282d51 52%, #282d51 86%, transparent)`.
-3. **Content** — title `11.5–13px`, excerpt in Spectral `12–12.5px`.
-4. Fading hairline (untinted, `#1b1f3c`).
-5. **Meta rail** — Space Mono `8.5–9.5px` `#9095bd`: word count, `n in · n out`, state.
+| Token | Value |
+|---|---|
+| width | 240 / 268 / 300 / 340 — per type, never per instance |
+| radius | 10px · collapsed 9px · panels 12px |
+| surface | `linear-gradient(100deg, hue .10, hue .035 42%, hue 0 80%)` over `linear-gradient(180deg,rgba(22,24,53,.95),rgba(12,14,35,.95))` |
+| border | `1px rgba(hue,.32)` · selected `1px #8a7ce0` + ring `0 0 0 3px rgba(hue,.22)` |
+| shadow | `0 14px 30px -14px rgba(0,0,0,.94)` + `0 0 22px -8px rgba(hue,.22)` · open `0 40px 90px -30px rgba(0,0,0,.98)` |
+| spine | 3px, `linear-gradient(180deg, hue, rgba(hue,.30))` |
+| gutter | 13px, `rgba(0,0,0,.24)`, 1px `rgba(hue,.14)` divider (16px on 340 plates) |
+| header tint | `linear-gradient(96deg, hue .22, hue .05 46%, transparent 74%)` |
+| rules | 1px `rgba(hue,.16)`; header rule `rgba(hue,.60)` at its left; fade both ends over 13% |
+| tint source | always the **primary give's** dataKind — one hue per plate, never two |
 
-Port slots are absolutely positioned on the gutters: takes at `left: 2px`, gives at `right: 2px`. Selection adds four corner registration ticks (`10×10px`, `1.5px` borders, `#a595f2`).
+**Type scale**
 
-**A filled, glowing slot must correspond to a real wire.** Outline style means the port is open. The meta rail's counts must match the wires actually attached.
+| Role | Spec |
+|---|---|
+| registry label | 8px / 500 / .15em / uppercase / hue |
+| plate title | 12.5px Space Grotesk / `#e8e9f5` |
+| map excerpt | 11.5px Spectral / 1.6 / `#b8bdd6` |
+| field label | 8.5px Space Mono / `#8085ad` |
+| meta rail | 9px Space Mono / `#9095bd` |
+| open title | 23px / 500 / −.01em / `#f2f3fa` |
+| open prose | 14px Spectral / 1.72 / max 60ch / `#cdd1e6` |
 
-### 2. Collapse states — three, user-controlled, sticky
+**Contrast floor:** at 8px use `#9095bd` or lighter (6:1); at 8.5–9px use `#8085ad` or lighter (4.5:1). **Never `#4a4f76` below 10px** — 2.57:1, already shipped as a bug.
 
-| State | Shows | Trigger |
-| --- | --- | --- |
-| **Full** (default) | everything above | — |
-| **Collapsed** | title + one subtitle line + readiness ring; ports merge to one dot per side | `⌥click`, `⌥⇧click` for a selection, `⌥⇧A` for all |
-| **Rolled up** | assembly face only; children hidden | assembly collapse |
+---
 
-Persist per node in the document. **Zoom below 45% renders everything collapsed but must not overwrite the stored value** — restore exact user state above the threshold. Collapsing must never drop a wire; hidden ports merge and the harness re-routes to the merged dot.
+## 3. The port — one slot that changes shape
 
-### 3. Readiness — `derive.ts`
+A port is **one DOM node with a variant class.** It never multiplies into a stack.
 
-Rendered as a **ring**, never a coloured dot, so it never competes with data-kind hues and stays legible without colour vision. `26×26` viewBox, `r=8`.
+| State | Shape |
+|---|---|
+| open | outline bar, hue preserved |
+| wanted (`flagWhenEmpty`) | outline bar + 5px `#ffc94d` pip at −4,−5 |
+| 1 wire | filled bar |
+| 2–4 wires | flare: outer edge 8px, inner 4px, length 12 |
+| 5+ wires | flare: outer edge 12px, inner 4px, length 12 |
+| merged (collapsed plate) | dot, r5 |
 
-| Stage | Ring |
-| --- | --- |
-| `seed` | `#4a4f76` `1.6` stroke, `stroke-dasharray: 2 3` |
-| `developing` | `#4a4f76` full ring + `#f0c96a` right half arc (`M13,5 A8,8 0 0 1 13,21`) |
-| `ready` | `#6fd39a` `1.8` full ring |
-| `placed` | `#6fd39a` ring, `rgba(111,211,154,.18)` fill, `1.8` tick |
+| Geometry | Value |
+|---|---|
+| bar | 12×4px, radius 2 |
+| glow | `0 0 7px rgba(hue,.85)` when wired; none when open |
+| inset | 2px from the plate edge, centred in the gutter |
+| hit area | 24×24px invisible |
+| pitch | 12px between slots on the same edge |
 
-Assemblies show `rollupReadiness` (lowest stage present) plus a distribution bar: flex segments in stage order, colours `#4a4f76 / #f0c96a / #6fd39a / rgba(111,211,154,.4)`.
+**Fill means wired, outline means open. The hue never changes** — an unused port must not go grey, or you lose what it accepts.
 
-### 4. Wire routing — the harness
+**Condensed fan-in:** incoming strands stay **1.2px, 6px apart** for their last 56px — no thick cable. The tie is two 1px verticals 5px apart with a count above. They fan into the flare mouth over 14px. Nothing is ever drawn thicker than a single wire.
 
-Wires are orthogonal with 45° chamfers, never curves and never hard right angles.
+Side ports (top/bottom edges) rotate the same six shapes 90°.
 
-1. **Stub** — leave the port flat for 6–20px.
-2. **Chamfer** — turn at 45° over exactly 10px (`L{x+10},{y+10}`).
-3. **Lane** — vertical travel happens only in a shared lane. Lanes are spaced **14px** apart.
-4. **Chamfer** in, **stub** into the target port.
+---
 
-**Corridors are derived, not authored.** Inflate every node rect by a margin; decompose the remaining free space into vertical and horizontal channels. Lanes live inside those channels, assigned in target order. Recompute on drop — during a drag, wires drop to a straight ghost line and settle on release.
+## 4. The wire
 
-**Hops.** Where a wire crosses another, the crossing wire draws a semicircular hop: `V{y-6} A6,6 0 0 1 {x},{y+6} V…` (sweep `1` for downward travel, `0` for upward). Verticals hop horizontals, never the reverse.
+Orthogonal with 45° chamfers. Never a curve, never a hard right angle.
 
-**Junctions.** One give feeding two takes shares a stub and splits at a solid dot (`r=3.4` filled, plus `r=6.5` ring at `.3` opacity). No dot means no relationship — an unmarked crossing must never be readable as a connection.
+1. **Stub** 6–20px flat off the port
+2. **Chamfer** exactly 10px at 45°
+3. **Lane** — vertical travel only inside a corridor, 14px pitch
+4. Chamfer, stub into the target
 
-**Bundles.** Parallel wires get a cable tie (`M{x1},{y} H{x2}` plus end caps) with a `×n` count in Space Mono `8.5px` `#6b709a`.
+**Corridors are derived, not authored.** Inflate every node rect by 24px, decompose the free space into channels, assign lanes in target order. Recompute on drop; ghost to straight lines during drag.
 
-**Four-sided ports.** Left = take, right = give by default. When a partner sits above or below, the port moves to that edge (`4×11px` instead of `12×4px`) so a wire never loops around a plate.
+**Hop:** verticals hop horizontals, never the reverse. `V{y-6} A6,6 0 0 1 {x},{y+6} V…` (sweep 1 down, 0 up).
 
-### 5. Wire animation
+**Junction:** one give feeding many takes shares a stub and splits at a filled dot `r3.4` inside an `r6.5` ring at .3 opacity. **No dot means no relationship** — an unmarked crossing must never read as a connection.
 
-Each wire carries a travelling highlight over its base stroke: same path, `stroke-width: 2.6`, `stroke-linecap: round`, a light tint of the data-kind hue, and a dash pattern summing to `1200` animated `stroke-dashoffset: 1200 → 0`.
+**Four-sided ports:** left = take, right = give by default. When a partner sits above or below, the port moves to that edge (4×11px) so a wire never loops around a plate.
 
-```css
-@keyframes flow { from { stroke-dashoffset: 1200 } to { stroke-dashoffset: 0 } }
-```
+---
 
-Distinct signal characters (duration + dasharray + timing function):
+## 5. Data kinds and signals
 
-| Character | dasharray | timing | duration |
-| --- | --- | --- | --- |
-| comet | `14 1186` | `linear` | 3.4s |
-| stutter | `12 1188` | `steps(11,end)` | 2.2s |
-| surge | `26 1174` | `cubic-bezier(.85,0,.15,1)` | 2.8s |
-| triple bead | `4 6 4 6 4 1176` | `linear` | 4.6s |
-| freight (`stroke-width: 3`) | `44 1156` | `linear` | 5.2s |
-| single bead | `5 1195` | `linear` | 6s |
-| twin | `9 7 9 1175` | `linear` | 3s |
-| crawl | `6 14`, offset `20 → 0` | `linear` | 1.1s |
-| glow sweep (`stroke-width: 4.4`, opacity `.75`) | `34 1166` | `cubic-bezier(.4,0,.6,1)` | 5.6s |
-| drift | `5 1195` | `cubic-bezier(.45,0,.55,1)` | 7.5s |
-| double flash | `10 5 10 1175` | `linear` | 4s |
+**Colour comes from the port's `dataKind`, never the node's type.** A wire is the colour of what travels down it; a plate's spine is the colour of its primary give.
 
-**Budget: about 8 animated wires on screen.** Animate only wires that are in view, and only those matching the active filter or touching the selection. `@media (prefers-reduced-motion: reduce) { * { animation: none !important } }` — hue and dash still carry all the meaning.
+| kind | hex | stroke | dash | signal | timing | dur |
+|---|---|---|---|---|---|---|
+| text | `#b19bff` | 1.9 | solid | freight · 44 1156 | linear | 5.2s |
+| person | `#f5977f` | 1.6 | 3 3 | comet · 12 1188 | linear | 3.4s |
+| place | `#e0a85c` | 1.6 | 2 5 | drift · 5 1195 | ease-in-out | 7.5s |
+| thing | `#63e0c6` | 1.6 | 7 4 | single bead · 5 1195 | linear | 6s |
+| cite | `#6ea9ff` | 1.5 | 1 4 | crawl · 6 14, offset 20 | linear | 1.1s |
+| claim | `#52dd93` | 1.8 | solid | surge · 26 1174 | .85,0,.15,1 | 2.8s |
+| prop | `#3fc7b2` | 1.6 | 12 5 | triple bead · 4 6 4 6 4 1176 | linear | 4.6s |
+| plant | `#a0e074` | 1.6 | 9 3 2 3 | twin · 9 7 9 1175 | linear | 3s |
+| event | `#8c9eff` | 1.6 | 10 4 3 4 | double flash · 10 5 10 1175 | linear | 4s |
+| thread | `#e287df` | 2.2 | solid | glow sweep · 34 1166 | .4,0,.6,1 | 5.6s |
+| any | `#8e94c2` | 1.4 | 1 6 | inherits its source's | — | — |
 
-### 6. Density — trunks and highways
+State colours: flag `#ffc94d` · conflict `#ff6a58` · healthy `#52dd93` · ink `#6fe0ff`.
+
+**Every wire is three paths:** a halo (same `d`, stroke-width 7, opacity .09), the base stroke (kind hue at .68–.74 with the kind's dash), and the signal (stroke-width 2.6, light tint, dasharray summing to 1200, animating `stroke-dashoffset: 1200 → 0`).
+
+**Budget: 8 animated wires.** Animate only what is in view AND matches the filter or touches the selection. Reduced motion drops the signal path — hue and dash carry the meaning alone.
+
+Relation words (*supports*, *rebuts*, *serves*) render as **text labels on the wire**, not as extra hues. This retires the eleven invented relation colours from earlier passes.
+
+---
+
+## 6. Density — trunks and highways
 
 Individual lane routing does not survive ~34 nodes. Above that:
 
-- **Gutter trunks.** Adjacent-column wires collapse into one band: `stroke-width: 22–30`, `#6b74a8` at `.16`, with 3–5 hairline strands at `.3` inside it, a tie, and a count chip. Expanding past 80% zoom in that gutter separates the band back into lanes with **no re-layout** — same wires, different rendering.
-- **Highways.** A wire skipping a column leaves the node field entirely and rides a horizontal band above or below it. **Nothing crosses a node, ever.**
-- **Resolution is earned.** Only four things draw as real wires: matching the active relation filter, touching the selection, in view, or nothing at all under reduced motion.
+- **Gutter trunks.** Adjacent-column wires collapse into one band: stroke-width 22–30, `#6b74a8` at .16, 3–5 hairline strands at .3 inside, a tie, a count chip. Past 80% zoom in that gutter it separates back into lanes with **no re-layout**.
+- **Highways.** A wire skipping a column leaves the node field and rides a horizontal band above or below it. **Nothing crosses a node, ever.**
+- **Resolution is earned.** Only four things draw as real wires: matching the active filter, touching the selection, in view, or nothing at all under reduced motion.
 
-Also at density: a filter bar of relation chips with an `n of m shown` readout, and a minimap with a viewport rect.
+Plus a relation filter bar with an `n of m shown` readout, and a minimap with a viewport rect.
 
-### 7. Assembly face — `assemblies.ts`
+---
 
-The face **is** the interface: external wires attach to the face, never to members.
+## 7. The eighteen types
 
-**Collapsed:** a plate with stacked edges — the only new shape in the system, meaning "there is more inside".
+`● give · ○ take · ◉ spine (ordered intake) · ⚑ flagWhenEmpty · ∞ many`
 
-```css
-box-shadow:
-  5px 5px 0 -1px rgba(20,23,49,.95), 5px 5px 0 0 #262b52,
-  10px 10px 0 -1px rgba(20,23,49,.95), 10px 10px 0 0 #1f2445;
+### Structure
+
+| Type | px | Ports |
+|---|---|---|
+| **Title** | 240 | ● Thread `thread` · ○ Subject `text·1` · ○ Complement `text·1` |
+| **Manuscript** | 340 | ◉ Documents `text·∞` · ● Compiled `text` · ○ Thread ⚑ `thread·1` |
+| **Document** | 300 | ◉ Sections `text·∞` · ● Compiled `text` · ○ Thread ⚑ `thread·1` · ○ Footnotes `cite·∞` |
+| **Section** | 268 | ● Text `text` · ○ People `person·∞` · ○ Setting `place·1` · ○ POV `person·1` · ○ Serves `thread·1` |
+
+Manuscript carries the cast presence matrix. Section carries the cast band.
+
+### People and world — hubs, never group these
+
+| Type | px | Ports |
+|---|---|---|
+| **Person** | 268 | ● Identity `person` · ○ Bond `person·∞` · ○ Possession `thing·∞` · ○ Notes `text·∞` **(new)** |
+| **Place** | 240 | ● Identity `place` · ○ Contains `place·∞` · ○ Notes **(new)** |
+| **Thing** | 240 | ● Identity `thing` · ○ Notes **(new)** |
+| **Event** | 240 | ● Event `event` · ○ Involves `person·∞` · ○ Notes **(new)** |
+
+Person fields: role, wants, fears, voice, wound. Presence strip in the map plate.
+
+### Argument
+
+| Type | px | Ports |
+|---|---|---|
+| **Claim** | 268 | ● Claim `claim` · ◉ Supports ⚑ `any·∞` · ○ Rebuts `any·∞` · ○ Warrant `text·1` |
+| **Question** | 268 | ○ Answer `text·1` · ○ Notes **(new)** — takes only; dashed spine |
+| **Passage** | 268 | ● Text `text` · ◉ Propositions `prop·∞` · ○ Cite `cite·1` **(new)** |
+| **Proposition** | 268 | ● Proposition `prop` · ○ Arcs `prop·∞` · ● Text `text` |
+
+Passage prose is set with a 2px left rule, italic.
+
+### Material and craft
+
+| Type | px | Ports |
+|---|---|---|
+| **Source** | 268 | ● Citation `cite` · ● Clip `text·∞` **(new)** |
+| **Note** | 240 | ● Text `text` |
+| **Plant** | 240 | ● Plant ⚑ `plant` |
+| **Payoff** | 240 | ○ Resolves ⚑ `plant·∞` |
+
+Drag a PDF onto the canvas to make a Source; select text in it to clip a new node, already wired.
+
+### Containers — two verbs
+
+| Type | px | Ports | Verb |
+|---|---|---|---|
+| **Group** | 300 | ◉ Members `any·∞` · ● Face (derived) | **contains** — members leave the canvas |
+| **Hub** | 300 | ◉ Holds `any·∞` · ● Brief `text` · ○ Subject `any·1` | **collects** — members stay on canvas, the hub only lists them |
+
+A **Document composes** — members' text flows in and comes out as prose. Three different jobs; pick by what should happen to the members.
+
+Group: stacked edges at 5px and 10px offsets. ⌘G gather / ⌘⇧G dissolve / double-click to enter. Dissolve is the exact inverse of gather.
+
+Hub: roster grouped by dataKind. Wire a Place into its Subject and it takes that identity and hue.
+
+### Changes to `registry.ts`
+
+```
++ notes-in    · text · ∞ · defaultVisible false   — on all 16 existing types
++ type 'hub'  · holds / brief / subject
++ source.clip · text · ∞                          — so clips wire back to their page
++ passage.cite· cite · 1                          — a passage should name its source
 ```
 
-Contents: `boxes` icon + `ASSEMBLY` label (`#d08fd0`), rollup readiness ring, name, derived count chips from `deriveFace` (`Section 3`, `Person 2`, `Place 1` — pill, `<hue> at .1` fill, `<hue> at .24` border), readiness distribution bar, then a footer with `n members`, age, and three icon buttons: **drill in** (`door-open`), **collapse** (`minimize-2`), **unpack** (`package-open`).
+Everything else stays as written. **`DATA_KIND_STYLES` needs one edit** — the eleven hues above are brighter than what currently ships (`#a595f2`→`#b19bff` etc.); strokes and dashes are unchanged.
 
-Ports on the face are the union of the members' unsatisfied ports, coloured by data kind.
+---
 
-**Expanded:** members render normally inside a `1px dashed #3a4070` boundary with `rgba(165,149,242,.03)` fill; the face becomes a pill straddling the top-left edge carrying name, member count and the same actions.
+## 8. States
 
-**Drill in** opens the assembly as its own canvas, outside world reduced to edge stubs. **Unpack** dissolves the group, leaving members loose with wires intact.
+### Four sizes
 
-### 8. Blocks and embeds — `blocks.ts`
+| State | Shows | Trigger |
+|---|---|---|
+| star | a dot | <25% zoom |
+| collapsed | title + one subtitle + ring; ports merge to one dot per side | ⌥click / ⌥⇧click selection / ⌥⇧A all |
+| full | the anatomy above | default |
+| open | 736px, in place, canvas dims | double-click |
 
-A Document is a stack of blocks. Each block is a row: a `78px` label column, then content, with a `2px` left border carrying the state colour.
+Collapse is **persisted per node.** Below 45% zoom everything *renders* collapsed but the stored value is **never written**. Collapsing must never drop a wire.
 
-| Block state | Left border | Fill | Label |
-| --- | --- | --- | --- |
-| own text | `#2a2f57` | `#0d1020` | `own text` |
-| embed, live | `#a595f2` | `rgba(165,149,242,.045)` | `link` icon + `embed`, source name beneath, `live` on the right |
-| embed, forked | `#f0c96a` | `rgba(240,201,106,.05)` | `git-branch` icon + `forked` |
-| new / empty | `1px dashed #2a2f57`, no left accent | none | `new` |
+### Readiness — a ring, never a dot
 
-A forked block exposes two actions inline: **Revert to source** (`undo-2`) and **Apply to source** (`upload`, `rgba(240,201,106,.4)` border). Write-back is always deliberate — never a side effect of typing.
+26×26 viewBox, r=8. Values from `derive.ts` `READINESS_STAGES`.
 
-**Fork notice on the source.** Any node whose text is forked in a document shows a pill in its header: `git-branch` icon + `n fork`, `rgba(240,201,106,.12)` fill, `rgba(240,201,106,.32)` border, plus `diverged in <doc> · <age>` in the meta rail. Without this, forking is a trap.
+| Stage | Ring |
+|---|---|
+| seed | `#4a4f76` 1.6, `stroke-dasharray: 2 3` |
+| developing | `#4a4f76` full ring + `#ffc94d` right arc `M13,5 A8,8 0 0 1 13,21` |
+| ready | `#52dd93` 1.8 full ring |
+| placed | `#52dd93` ring, `rgba(82,221,147,.18)` fill, 1.8 tick |
 
-### 9. Split panel
+Assemblies show `rollupReadiness` (lowest stage present) plus a distribution bar.
 
-Replaces the fixed preset list. Fields:
+**Delete `.readiness-dot` from `styles.css`** — the Tailwind-coloured dot (`#eab308`/`#22c55e`/`#a855f7`) still ships alongside the ring, and `TipsPanel.tsx` line 86 still documents it.
 
-- **Into** — a `− n +` stepper (`26px` cells, `1px solid #2a2f57`, radius `7px`) and a type picker showing the type's spine colour swatch.
-- **Titles** — segmented: `Numbered` / `Blank` / `Paste a list`.
-- **Wire back** — toggle, default **on**: each child feeds the parent's spine port.
-- **Keep text** — toggle, default **off**: move the parent's prose into child 1.
-- **Preview** — a dashed box listing the resulting stubs with `01`, `02`… numbering.
-- Actions: **Split** (accent outline) and **Save as preset** (`bookmark`).
+### Membership marks — the density rule
 
-The five built-in presets (`3 blank sections`, `Beat sheet`, `Toulmin scaffold`, `Passage → Propositions`, `3 chapter stubs`) are the same panel with fields pre-filled.
+**Membership is a mark; content flow is a wire.** Twelve characters across twenty-four chapters is 180 relationships — as wires it is a hairball, as marks it is three strips.
 
-**Splitting is recursive and unlimited.** Splitting a child is the same command as splitting its parent, and nothing marks a node as already split. A worked example: Manuscript → 3 chapter stubs → Ch. 4 → 4 sections → each section fed from the side by Source, Note and Person nodes.
+| Mark | Where | What |
+|---|---|---|
+| cast band | Section | chips with the person's hue + name, `+n` overflow |
+| presence strip | Person | one tick per chapter, lit where they appear |
+| presence matrix | Manuscript | cast down, chapters across |
 
-### 10. The open state — where writing happens
+**Select to promote:** click a hub and its memberships become real wires until you deselect; unconnected nodes drop to 42%. One hub at a time; all twelve at once is never drawn.
 
-Double-click a plate: it grows **in place**, keeps its canvas position, and the canvas dims behind it. Width `736px`.
+A node earns a plate by having connections worth seeing. The canvas may offer to sweep anything with 0–1 wires into a Group.
 
-The chrome/content ratio inverts. On the map plate, header and meta rails take 51 of 136px and the prose window holds ~24 words. In the open state:
+### Block states — `blocks.ts`
 
-- Header collapses to one quiet line: type label, badge, saved state, word count, expand/collapse icons.
-- A `154px` **linked rail** on the left holds Takes and Gives as chips (data-kind coloured, `<hue> at .08` fill), plus a continuity note — so relationships stay visible while writing.
-- The writing column gets `22px 30px 8px 26px` padding, `23px` title, `10px` Space Mono sub-line (POV, tense, citation count), and Spectral `16.5px / 1.72` at `max-width: 60ch`.
-- A footer rail carries a word-count progress bar, **Link selection**, and **Focus**.
-- `Esc` collapses back to the map. The plate never moves.
+Row: 78px label column, content, 2px left border carrying the state.
 
-Per-form bodies inside the same shell:
-- **Novel scene** — POV and tense sub-line, continuity note in the rail, cast/place chips.
-- **Sermon point** — passage blocks set apart (`2px solid rgba(232,192,122,.5)` left border, Spectral italic, reference beneath in Space Mono `#a08f6a`), delivery clock beside the word count.
-- **Paper section** — inline citation chips (`rgba(127,212,193,.12)` fill, Space Mono `9px`) that are live wires to Source nodes; clicking flies the canvas to the source. A `contested` chip in `#f0685e` wherever a rebutting node is wired in.
+| State | Border | Fill | Label |
+|---|---|---|---|
+| own text | `#2a2f57` | `#0d1020` | own |
+| embed, live | `#b19bff` | `rgba(177,155,255,.045)` | live |
+| embed, forked | `#ffc94d` | `rgba(255,201,77,.05)` | forked |
+| new | 1px dashed `#2a2f57` | none | type, or drop a node… |
 
-**Focus** (`⇧F`) is the third step: one column, no canvas, no rail.
+A forked block shows **Revert** and **Apply to source** inline. The source plate gains a `1 fork` pill plus `diverged in <doc> · <age>` in its meta rail. **Write-back is never a side effect of typing.**
 
-### 11. Rooms
+---
 
-Four views of one document. Same data; each shows a different ordering. The canvas is the only view that shows *relationships*; each room shows one *ordering*.
+## 9. Splitting
 
-| Room | Shows | Existing file |
-| --- | --- | --- |
+A panel, not a fixed menu:
+
+- **Into** — a `− n +` stepper (26px cells) and a type picker showing the type's spine colour
+- **Titles** — segmented: Numbered / Blank / Paste a list
+- **Wire back** — toggle, default **on**: each child feeds the parent's spine port
+- **Keep text** — toggle, default **off**: move the parent's prose into child 1
+- **Preview** — dashed box listing the resulting stubs, numbered
+- **Split** (accent outline) and **Save as preset**
+
+The five built-in presets are the same panel pre-filled. **Splitting is recursive and unlimited** — splitting a child is the same command, and nothing marks a node as already split. Worked example: Manuscript → 3 chapters → Ch. 4 → 4 sections → each fed from the side by Source, Note and Person.
+
+---
+
+## 10. The menu
+
+### Dock — 56px
+
+**Add node sits alone at the top** — the only button that makes something, so it gets its own zone, a 38px tile and the strongest fill. Below it the four rooms; below those the three tools that act on what already exists.
+
+```
+[ + Add node ]        N     ← 38px, accent fill
+────────────
+  Canvas              1     ← 34px, active = accent fill + border
+  Document            2
+  Arc                 3
+  Focus               4
+────────────
+  Find                ⌘K
+  Filter              F
+  Ink                 P
+────────────  (flex spacer above)
+  Import
+  Settings
+```
+
+Icons only at rest; a label slides out on hover after 400ms. No text ever wraps.
+
+### Add sheet — N, or double-click empty canvas
+
+Five families of four in a 4-column grid. **An icon carries the hue instead of a stripe** — eighteen identical colour bars is a legend, not a menu. No borders at rest; only the highlighted tile gets `rgba(hue,.14)` fill + `inset 0 0 0 1px rgba(hue,.40)` ring. Footer previews the highlighted type's ports. Arrow keys move, Enter places at the cursor.
+
+Icons: Title `type` · Manuscript `library` · Document `book-open-text` · Section `file-text` · Person `user-round` · Place `map-pin` · Thing `package` · Event `calendar-days` · Claim `circle-check` · Question `help-circle` · Passage `book-marked` · Proposition `milestone` · Source `paperclip` · Note `sticky-note` · Plant `sprout` · Payoff `sparkles` · Group `layers` · Hub `circle-dot`.
+
+### Every gesture
+
+| Gesture | Result |
+|---|---|
+| double-click | open a plate · enter a group · new Note on empty canvas |
+| esc | close, deselect, dismiss |
+| ⌥click / ⌥⇧click / ⌥⇧A | collapse one / selection / all |
+| ⌘G / ⌘⇧G | gather into a Group / dissolve it |
+| ⌘⌥S | split panel on the selection |
+| ⇧F | isolate — hide everything unconnected |
+| drag port | draw a wire; valid targets flare, invalid dim |
+| drag plate | wires ghost straight, re-route on drop |
+| drop file | Source node at the cursor, title and pages read from it |
+| select text in a Source | pick a type, get a wired node beside it |
+| ⌘V | text → Note, URL → Source, image → Source |
+| 1–4 | jump to a room |
+
+**No right-hand inspector and no modal.** Every field is edited in place on the plate — click a dashed baseline and type.
+
+---
+
+## 11. Rooms
+
+The canvas is the only view that shows **relationships**; each room shows one **ordering**.
+
+| Room | Shows | File |
+|---|---|---|
 | **Canvas** | the map — spatial, all types, wires visible | `Canvas.tsx` |
-| **Document room** | block stack on the left (the spine port's ordered intake), compiled prose on the right; dragging a block reorders the intake wires | `DocumentRoom.tsx` |
-| **Arc room** | Propositions as a sequence on a curve — for work where order *is* the argument | `ArcRoom.tsx` |
-| **Focus editor** | one node, one column, no chrome | `FocusEditor.tsx` |
+| **Document** | block stack left (the spine port's ordered intake), compiled prose right; dragging a block reorders the intake wires | `DocumentRoom.tsx` |
+| **Arc** | Propositions as a sequence on a curve; opens on any group holding 2+ | `ArcRoom.tsx` |
+| **Focus** | one node, one column, no chrome | `FocusEditor.tsx` |
+
+### The open state
+
+Double-click grows the plate **in place** to 736px; it keeps its canvas position and the canvas dims behind it.
+
+- Header collapses to one quiet line
+- A **154px linked rail** on the left lists Takes and Gives as hue-coloured chips — the same wires you'd see on the map, listed instead of drawn, so twelve notes are readable without twelve strands
+- Writing column: 22px 30px 8px 26px padding, 23px title, 10px Space Mono sub-line, Spectral 14px/1.72 at max 60ch
+- Footer: word-count bar, **Link selection**, **Focus**
+- `esc` collapses back. **The plate never moves.**
+
+Per-form bodies in the same shell: **novel scene** (POV/tense sub-line, continuity note, cast chips) · **sermon point** (passage blocks with a 2px `rgba(232,192,122,.5)` left rule, italic Spectral, reference in Space Mono `#a08f6a`; delivery clock) · **paper section** (inline citation chips `rgba(99,224,198,.12)`, Space Mono 9px, live wires to Source nodes; `contested` chip in `#ff6a58` where a rebutting node is wired in).
 
 ---
 
-## Interactions
+## Mapping to the codebase
 
-| Action | Trigger | Result |
-| --- | --- | --- |
-| Open a node | double-click | grows in place to the open state |
-| Focus | `⇧F` | full-screen single column |
-| Close | `Esc` | back to map state |
-| Collapse | `⌥click` / `⌥⇧click` / `⌥⇧A` | collapsed state, persisted |
-| Drag a node | pointer drag | wires ghost to straight lines; corridors and lanes recompute on drop |
-| Filter relations | chips in the filter bar | matching wires resolve; the rest stay counted bands |
-| Isolate | `⇧F` on a selection | non-connected nodes drop to a whisper |
-| Drop a file | drag onto canvas | creates a Media node at the cursor; title and page count read from the file |
-| Clip to node | select text in a Media node → pick a type | new node beside the source, already wired, page number retained |
-| Link from a field | drop a node chip into a field row value | creates the wire |
-
-Field rows inside nodes: fixed mono label column, Spectral value. Empty rows show a `1px dashed #2a2f57` baseline (not a box); focused rows go `1px solid #a595f2` and grow. No modal, no side panel.
-
----
-
-## State
-
-Per node: `collapsed: 'full' | 'collapsed' | 'rolled-up'` (persisted), `openState: 'map' | 'open' | 'focus'` (session), measured height (existing `recordMeasuredHeight`).
-
-Per canvas: active relation filter set, viewport, derived corridor list (recomputed on node move/resize — cache, invalidate on drop), ink layer strokes (canvas-space, rendered between ground and plates at `z-index: 3`).
-
-Per document: block list with fork state (existing `blocks.ts`), intake order (existing `reorderIntakeWire`).
-
----
-
-## Mapping to the existing codebase
-
-| Design area | Where it goes |
-| --- | --- |
-| Plate anatomy, header/meta rails, spine, gutters | `components/CanvasNode.tsx` + `styles.css` |
+| Design area | Where |
+|---|---|
+| Night sky | replaces `Starfield.tsx` + the background in `styles.css` |
+| Plate anatomy, rails, spine, gutters, surface tint | `components/CanvasNode.tsx` + `styles.css` |
 | Per-type bodies | `components/faces/*` |
-| Data-kind colour table | new `core/src/colors.ts`, keyed off `dataKind` in `registry.ts` |
-| Readiness ring | new shared component; values from `derive.ts` `READINESS_STAGES` |
-| Wire routing, chamfers, hops, lanes | `components/WireEdge.tsx` + new `core/src/routing.ts` (corridor derivation) |
-| Trunks, highways, filter-driven resolution | `components/WireEdge.tsx` + `Canvas.tsx` |
-| Assembly face, stacked edges, actions | `components/AssemblyFace.tsx` (already has `deriveFace`, `rollupReadiness`, `drillIn`, `unpack`) |
-| Block/embed rows, fork notice | `components/DocumentRoom.tsx`, `components/faces/DocumentFace.tsx`, `components/BlocksFace.tsx` |
-| Split panel | `components/AddNodeMenu.tsx` neighbour; `splitNode` + `SPLIT_PRESETS` already exist — presets become saved configurations |
-| Open state | `components/FocusEditor.tsx` extended to an in-place variant |
-| Collapse state | `canvasStore.ts` — new per-node field, persisted through `projectFile.ts` |
+| Data-kind colours | `core/src/colors.ts` — **exists and is correct except the eleven hues need brightening** |
+| Readiness ring | `components/ReadinessRing.tsx` — exists and is correct |
+| Port shapes (flare variants) | `components/CanvasNode.tsx` + `styles.css` — **new** |
+| Wire routing, chamfers, hops, ties | `components/WireEdge.tsx` + `app/src/harnessRouting.ts` |
+| Corridor derivation | `harnessRouting.ts` — exists |
+| Trunks, highways, filter resolution | `WireEdge.tsx` + `Canvas.tsx` |
+| Group face | `components/AssemblyFace.tsx` — exists |
+| **Hub face** | **new `components/HubFace.tsx`** |
+| **Membership marks** | **new — cast band in `faces/SectionFace`, presence strip in `faces/PersonFace`, matrix in `faces/ManuscriptFace`** |
+| Block/embed rows, fork notice | `DocumentRoom.tsx`, `faces/DocumentFace.tsx`, `BlocksFace.tsx` |
+| Split panel | `components/SplitPanel.tsx` — exists |
+| Dock + add sheet | `components/Toolbar.tsx`, `components/AddNodeMenu.tsx` |
+| Collapse state | `store/canvasStore.ts` — exists, correct |
 
 ## Suggested order
 
-1. Data-kind colour table + readiness ring — everything else depends on them.
-2. Plate anatomy and the three collapse states.
-3. Wire rendering: chamfers, hops, lane assignment inside authored corridors.
-4. Corridor derivation from free space, with ghost-and-settle on drag.
-5. Assembly face.
-6. Block and embed states + fork notice.
-7. Open state and the writing column.
-8. Split panel.
-9. Density: trunks, highways, filter bar, minimap.
+1. **Delete `.readiness-dot`** from `styles.css` and fix the `TipsPanel` copy — 5 minutes, removes a live contradiction.
+2. Brighten the eleven hues in `core/src/colors.ts`.
+3. Plate surface tint, tinted border, coloured shadow.
+4. Port flare variants.
+5. The night sky.
+6. Membership marks (cast band, presence strip, matrix) + select-to-promote.
+7. Hub type + face.
+8. `notes-in` on all types.
+9. Dock reorder + add sheet as icon tiles.
+10. Density: trunks, highways, minimap.
 
-## Not yet in core
+## Not yet designed
 
-Called out so they are not mistaken for existing behaviour:
+Called out so nothing is assumed:
 
-- **Corridor derivation and lane assignment** — no routing module exists; `layout.ts` does not do this.
-- **Collapse state per node** — not in the schema.
-- **Relation filtering** — no filter state.
-- **Merge** — the inverse of `splitNode`, folding several nodes back into one. Does not exist.
-- **Time** — no history, no "what changed since yesterday", no way back.
-- **Ink layer** — freehand annotation strokes stored in canvas space.
+- **Merge** — the inverse of `splitNode`, folding several nodes back into one. Does not exist in code or design.
+- **Time** — history, "what changed since yesterday", who changed it, a way back. Does not exist in code or design.
 
 ## Files in this bundle
 
 | File | Covers |
-| --- | --- |
-| `Observatory System.dc.html` | the reference sheet — data kinds, readiness, collapse, assembly, blocks/embeds, split panel, all 16 node types, port grammar, rooms |
-| `Observatory Canvas.dc.html` | the detail canvas at 100% — plate anatomy, 11 wire signals, ink layer, media node, field rows |
-| `Observatory Freeform.dc.html` | free placement with derived corridors, four-sided ports, drag behaviour |
-| `Observatory Dense.dc.html` | 34 nodes — trunks, highways, filter bar, minimap, zoom tiers |
-| `Observatory Writing.dc.html` | the open state, the chrome/content ratio, per-form bodies, three states |
+|---|---|
+| `Observatory Spec.dc.html` | **the authoritative reference** — ground, plate, port, wire, signal, 18 types, states, menu, rooms |
+| `Observatory Shell.dc.html` | the whole app in one frame — dock, canvas, groups at scale |
+| `Observatory Presence.dc.html` | membership marks, hubs vs groups, select-to-promote |
+| `Observatory Hub.dc.html` | fan-in shapes, the open Person plate, the Hub type, Section anatomy |
+| `Observatory Canvas.dc.html` | the detail canvas at 100% — plate anatomy, 11 wire signals, ink layer |
+| `Observatory Freeform.dc.html` | free placement, derived corridors, four-sided ports |
+| `Observatory Dense.dc.html` | 34 nodes — trunks, highways, filter bar, minimap |
+| `Observatory Writing.dc.html` | the open state, chrome/content ratio, per-form bodies |
 | `support.js` | required runtime for the `.dc.html` files; not part of the design |

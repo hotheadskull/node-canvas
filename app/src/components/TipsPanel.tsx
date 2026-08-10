@@ -81,9 +81,10 @@ export function TipsPanel() {
           <section>
             <h3>Nudges, never blocks</h3>
             <ul>
-              <li>An amber dot means something is wired but unfinished — a plant with no payoff,
-                a claim with empty supports, a document serving no thread. Nothing is ever locked.</li>
-              <li>The readiness dot (left of a node's header) cycles seed → developing → ready →
+              <li>An amber pip on a port slot means the node wants something there — a plant with
+                no payoff, a claim with empty supports, a document serving no thread. Nothing is
+                ever locked.</li>
+              <li>The readiness ring (left of a node's header) cycles seed → developing → ready →
                 placed. Groups roll it up.</li>
             </ul>
           </section>

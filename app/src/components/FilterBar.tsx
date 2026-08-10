@@ -47,7 +47,7 @@ export function FilterBar() {
   return (
     <div className="filter-bar" data-filter-bar>
       {kinds.map(([kind, count]) => {
-        const hue = DATA_KIND_STYLES[kind as keyof typeof DATA_KIND_STYLES]?.hue ?? '#8085ad';
+        const hue = DATA_KIND_STYLES[kind as keyof typeof DATA_KIND_STYLES]?.hue ?? '#8e94c2';
         const active = wireFilter === null || wireFilter.has(kind);
         return (
           <button

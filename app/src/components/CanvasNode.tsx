@@ -119,11 +119,21 @@ export const PORT_TOP = 34;
 export const PORT_GAP = 26;
 export const PORT_INSET_X = 8;
 
+/** The six port shapes (pt2 handoff §3) from a port's wire count: outline
+ * bar open, amber pip when wanted-but-empty, filled bar at 1 wire, a flare
+ * mouth at 2-4, a wider flare at 5+. Merged (collapsed) renders as a dot. */
+function portStateClass(port: PortDef, count: number): string {
+  if (count === 0) return port.flagWhenEmpty ? 'is-open is-wanted' : 'is-open';
+  if (count === 1) return 'is-wired';
+  if (count <= 4) return 'is-wired is-flare';
+  return 'is-wired is-flare-heavy';
+}
+
 function PortStars({
   nodeId,
   ports,
   side,
-  wired,
+  counts,
   merged,
   candidates,
   broadcasting,
@@ -131,7 +141,8 @@ function PortStars({
   nodeId: string;
   ports: PortDef[];
   side: 'left' | 'right';
-  wired: ReadonlySet<string>;
+  /** Live wires per port id -- drives the shape variant AND the meta rail. */
+  counts: ReadonlyMap<string, number>;
   /** Collapsed plate: every handle stays MOUNTED (wires must never drop --
    * v1 lesson: an edge without its handle cannot render) but they stack at
    * one spot and read as a single dot per side. */
@@ -155,14 +166,12 @@ function PortStars({
           id={port.id}
           type="source"
           position={position}
-          // Observatory port grammar: a filled, glowing slot means a real
-          // wire; an outline slot is open. The meta rail counts must agree.
-          className={`port-star kind-${port.dataKind} ${wired.has(port.id) ? 'is-wired' : 'is-open'} ${merged ? 'is-merged' : ''} ${port.defaultVisible || merged ? '' : 'is-hidden-port'} ${broadcastClass(port.id)}`}
+          className={`port-star kind-${port.dataKind} ${portStateClass(port, counts.get(port.id) ?? 0)} ${merged ? 'is-merged' : ''} ${port.defaultVisible || merged ? '' : 'is-hidden-port'} ${broadcastClass(port.id)}`}
           style={{
             top: merged ? '50%' : `${PORT_TOP + index * PORT_GAP}px`,
             // slots live INSIDE their gutter, kissing the outer edge
             ...(side === 'left' ? { left: 2 } : { right: 2 }),
-            ['--port-color' as string]: PORT_KIND_COLORS[port.dataKind] ?? '#8085ad',
+            ['--port-color' as string]: PORT_KIND_COLORS[port.dataKind] ?? '#8e94c2',
           }}
           data-port-label={port.label}
           data-port-direction={port.direction}
@@ -175,7 +184,7 @@ function PortStars({
             className={`port-label side-${side} ${port.defaultVisible ? '' : 'is-hidden-port'} ${broadcastClass(port.id)}`}
             style={{
               top: `${PORT_TOP + index * PORT_GAP}px`,
-              ['--port-color' as string]: PORT_KIND_COLORS[port.dataKind] ?? '#8085ad',
+              ['--port-color' as string]: PORT_KIND_COLORS[port.dataKind] ?? '#8e94c2',
             }}
             data-for-node={nodeId}
           >
@@ -269,6 +278,17 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
     () => new Set(wiredList === '' ? [] : wiredList.split(' ')),
     [wiredList],
   );
+  // Wires PER port (the signature keeps duplicates) -- a port with one
+  // wire is a filled bar, 2-4 a flare, 5+ a wide flare (pt2 handoff §3).
+  const wireCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    if (wiredList !== '') {
+      for (const portId of wiredList.split(' ')) {
+        counts.set(portId, (counts.get(portId) ?? 0) + 1);
+      }
+    }
+    return counts;
+  }, [wiredList]);
   // Relate anchors fill gold once the node carries any relationship --
   // same filled-means-real grammar as the port slots.
   const hasPlainEdges = useCanvasStore((state) =>
@@ -394,7 +414,7 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
       <span
         key={port.id}
         className={`open-chip ${wiredPorts.has(port.id) ? 'is-wired' : ''}`}
-        style={{ ['--port-color' as string]: PORT_KIND_COLORS[port.dataKind] ?? '#8085ad' }}
+        style={{ ['--port-color' as string]: PORT_KIND_COLORS[port.dataKind] ?? '#8e94c2' }}
         title={`${port.label} · ${port.dataKind}${wiredPorts.has(port.id) ? ' · wired' : ''}`}
       >
         {port.label}
@@ -471,8 +491,8 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
           className={`canvas-node-gutter gutter-right ${(flipped ? takes : gives).length > 0 ? '' : 'is-empty'} ${rightUsed ? 'is-used' : ''}`}
           aria-hidden
         />
-        <PortStars nodeId={id} ports={takes} side={takeSide} wired={wiredPorts} candidates={candidatePorts} broadcasting={broadcasting} />
-        <PortStars nodeId={id} ports={gives} side={giveSide} wired={wiredPorts} candidates={candidatePorts} broadcasting={broadcasting} />
+        <PortStars nodeId={id} ports={takes} side={takeSide} counts={wireCounts} candidates={candidatePorts} broadcasting={broadcasting} />
+        <PortStars nodeId={id} ports={gives} side={giveSide} counts={wireCounts} candidates={candidatePorts} broadcasting={broadcasting} />
         <RelateAnchors related={hasPlainEdges} />
       </div>
     );
@@ -525,8 +545,8 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
           className={`canvas-node-gutter gutter-right ${(flipped ? takes : gives).length > 0 ? '' : 'is-empty'} ${rightUsed ? 'is-used' : ''}`}
           aria-hidden
         />
-        <PortStars nodeId={id} ports={takes} side={takeSide} wired={wiredPorts} merged candidates={candidatePorts} broadcasting={broadcasting} />
-        <PortStars nodeId={id} ports={gives} side={giveSide} wired={wiredPorts} merged candidates={candidatePorts} broadcasting={broadcasting} />
+        <PortStars nodeId={id} ports={takes} side={takeSide} counts={wireCounts} merged candidates={candidatePorts} broadcasting={broadcasting} />
+        <PortStars nodeId={id} ports={gives} side={giveSide} counts={wireCounts} merged candidates={candidatePorts} broadcasting={broadcasting} />
         <RelateAnchors related={hasPlainEdges} />
       </div>
     );
@@ -721,8 +741,8 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
         className={`canvas-node-gutter gutter-right ${(flipped ? takes : gives).length > 0 ? '' : 'is-empty'} ${rightUsed ? 'is-used' : ''}`}
         aria-hidden
       />
-      <PortStars nodeId={id} ports={takes} side={takeSide} wired={wiredPorts} candidates={candidatePorts} broadcasting={broadcasting} />
-      <PortStars nodeId={id} ports={gives} side={giveSide} wired={wiredPorts} candidates={candidatePorts} broadcasting={broadcasting} />
+      <PortStars nodeId={id} ports={takes} side={takeSide} counts={wireCounts} candidates={candidatePorts} broadcasting={broadcasting} />
+      <PortStars nodeId={id} ports={gives} side={giveSide} counts={wireCounts} candidates={candidatePorts} broadcasting={broadcasting} />
       <RelateAnchors related={hasPlainEdges} />
     </div>
   );

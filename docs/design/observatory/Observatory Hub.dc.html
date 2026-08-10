@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Spectral:ital,wght@0,400;0,500;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<style>
+body{margin:0;background:#05060d}
+a{color:#a595f2}a:hover{color:#c9c0ff}
+@keyframes hb-flow{from{stroke-dashoffset:400}to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</helmet>
+
+<div style="width:1440px;margin:0 auto;padding:26px 0 64px;font-family:'Space Grotesk',system-ui,sans-serif;color:#e8e9f5">
+
+<div style="display:flex;align-items:baseline;gap:12px;padding:0 4px 6px">
+<span style="font-size:19px;font-weight:500;letter-spacing:-.01em">Observatory — fan-in, depth and the Hub</span>
+<span style="font:400 11px 'Space Mono',monospace;color:#8085ad">three answers</span>
+</div>
+<p style="margin:0 0 22px;padding:0 4px;max-width:1040px;font-size:12.5px;line-height:1.65;color:#9095bd;text-wrap:pretty">Short versions: <b style="color:#c9cdea;font-weight:500">yes</b>, a port takes as many wires as it gives — <span style="font-family:'Space Mono',monospace;font-size:11.5px;color:#c9cdea">capacity: 'many'</span> is already in your registry and it works in both directions. <b style="color:#c9cdea;font-weight:500">The map plate isn't where lore lives</b> — it's a label; the open state is the room. And <b style="color:#c9cdea;font-weight:500">yes, you're missing a type</b> — what you're describing isn't a Group, and it isn't a Document. It's a third thing.</p>
+
+<!-- ================= 1 · FAN-IN ================= -->
+<div style="display:flex;align-items:baseline;gap:12px;padding:8px 4px 14px">
+<span style="font-size:16px;font-weight:500">1 · One port, many wires</span>
+<span style="font:400 11px 'Space Mono',monospace;color:#8085ad">capacity is symmetric — a many-port fans in exactly as it fans out</span>
+</div>
+<div data-screen-label="Fan-in" style="width:1440px;box-sizing:border-box;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:6px">
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:16px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad;margin-bottom:12px">Up to four — separate lanes</div>
+<svg viewBox="0 0 300 160" style="width:100%;display:block" fill="none" stroke-linecap="round" stroke-linejoin="round">
+<g fill="#141731" stroke="#2a2f57"><rect x="8" y="20" width="82" height="28" rx="5"></rect><rect x="8" y="66" width="82" height="28" rx="5"></rect><rect x="8" y="112" width="82" height="28" rx="5"></rect></g>
+<g fill="#a595f2"><rect x="8" y="20" width="2.5" height="28" rx="1.2"></rect><rect x="8" y="66" width="2.5" height="28" rx="1.2"></rect><rect x="8" y="112" width="2.5" height="28" rx="1.2"></rect></g>
+<g fill="#a595f2"><rect x="86" y="32" width="8" height="3" rx="1.5"></rect><rect x="86" y="78" width="8" height="3" rx="1.5"></rect><rect x="86" y="124" width="8" height="3" rx="1.5"></rect></g>
+<path d="M94,34 H126 L136,44 V56 L146,66 H196" stroke="#a595f2" stroke-width="1.6" stroke-opacity=".75"></path>
+<path d="M94,80 H196" stroke="#a595f2" stroke-width="1.6" stroke-opacity=".75"></path>
+<path d="M94,126 H126 L136,116 V104 L146,94 H196" stroke="#a595f2" stroke-width="1.6" stroke-opacity=".75"></path>
+<rect x="200" y="40" width="92" height="80" rx="6" fill="#141731" stroke="#3a3f65"></rect>
+<rect x="200" y="40" width="3" height="80" rx="1.5" fill="#e89b8f"></rect>
+<g fill="#a595f2"><rect x="196" y="63" width="9" height="4" rx="2"></rect><rect x="196" y="77" width="9" height="4" rx="2"></rect><rect x="196" y="91" width="9" height="4" rx="2"></rect></g>
+<rect x="196" y="105" width="9" height="4" rx="2" fill="none" stroke="#a595f2"></rect>
+<text x="246" y="86" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="10" fill="#c9cdea">Yusuf</text>
+<text x="45" y="14" text-anchor="middle" font-family="Space Mono,monospace" font-size="8" fill="#8085ad">3 notes</text>
+</svg>
+<div style="margin-top:11px;font-size:11.5px;line-height:1.55;color:#9095bd;text-wrap:pretty">A <span style="font-family:'Space Mono',monospace;font-size:11px;color:#c9cdea">many</span> port is a <b style="color:#c9cdea;font-weight:500">stack of slots</b>, one per wire, with one open slot always waiting at the bottom. Each note keeps its own strand and its own landing, so you can trace any of them back.</div>
+</div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:16px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad;margin-bottom:12px">More than four — one tied bundle</div>
+<svg viewBox="0 0 300 160" style="width:100%;display:block" fill="none" stroke-linecap="round" stroke-linejoin="round">
+<g fill="#141731" stroke="#2a2f57"><rect x="8" y="16" width="60" height="16" rx="4"></rect><rect x="8" y="44" width="60" height="16" rx="4"></rect><rect x="8" y="72" width="60" height="16" rx="4"></rect><rect x="8" y="100" width="60" height="16" rx="4"></rect><rect x="8" y="128" width="60" height="16" rx="4"></rect></g>
+<g fill="#a595f2"><rect x="8" y="16" width="2" height="16" rx="1"></rect><rect x="8" y="44" width="2" height="16" rx="1"></rect><rect x="8" y="72" width="2" height="16" rx="1"></rect><rect x="8" y="100" width="2" height="16" rx="1"></rect><rect x="8" y="128" width="2" height="16" rx="1"></rect></g>
+<g stroke="#a595f2" stroke-width="1.2" stroke-opacity=".55">
+<path d="M68,24 H86 L96,34 V70 L106,80"></path>
+<path d="M68,52 H90 L100,62 V70 L106,80"></path>
+<path d="M68,80 H106"></path>
+<path d="M68,108 H90 L100,98 V90 L106,80"></path>
+<path d="M68,136 H86 L96,126 V90 L106,80"></path>
+</g>
+<path d="M106,80 H196" stroke="#a595f2" stroke-width="13" stroke-opacity=".14"></path>
+<g stroke="#a595f2" stroke-width="1" stroke-opacity=".5"><path d="M106,75 H196"></path><path d="M106,80 H196"></path><path d="M106,85 H196"></path></g>
+<g stroke="#8286ad" stroke-width="1"><path d="M148,70 V90 M154,70 V90 M148,70 H154 M148,90 H154"></path></g>
+<text x="151" y="62" text-anchor="middle" font-family="Space Mono,monospace" font-size="8.5" fill="#9095bd">×12</text>
+<rect x="200" y="40" width="92" height="80" rx="6" fill="#141731" stroke="#3a3f65"></rect>
+<rect x="200" y="40" width="3" height="80" rx="1.5" fill="#e89b8f"></rect>
+<g fill="#a595f2"><rect x="195" y="71" width="10" height="3" rx="1.5"></rect><rect x="195" y="76" width="10" height="3" rx="1.5"></rect><rect x="195" y="81" width="10" height="3" rx="1.5"></rect><rect x="195" y="86" width="10" height="3" rx="1.5"></rect></g>
+<text x="246" y="86" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="10" fill="#c9cdea">Yusuf</text>
+<text x="8" y="10" text-anchor="start" font-family="Space Mono,monospace" font-size="8" fill="#8085ad">12 notes · 5 shown</text>
+</svg>
+<div style="margin-top:11px;font-size:11.5px;line-height:1.55;color:#9095bd;text-wrap:pretty">Past four, the strands tie into one band with a count — the same trunk language the dense canvas uses. Hover the tie and they separate; the slot itself thickens so you can see it's carrying a lot.</div>
+</div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:16px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad;margin-bottom:12px">Capacity, read off the slot</div>
+<div style="display:flex;flex-direction:column;gap:13px">
+<div style="display:flex;align-items:center;gap:12px"><span style="width:14px;height:5px;border-radius:2px;background:#a595f2;box-shadow:0 0 7px rgba(165,149,242,.85);flex:none"></span><div><div style="font-family:'Space Mono',monospace;font-size:10.5px;color:#e8e9f5">one</div><div style="font-size:11px;color:#9095bd;margin-top:2px">a single bar — a second drop is refused</div></div></div>
+<div style="display:flex;align-items:center;gap:12px"><span style="display:flex;flex-direction:column;gap:2px;flex:none"><span style="width:14px;height:3px;border-radius:2px;background:#a595f2"></span><span style="width:14px;height:3px;border-radius:2px;background:#a595f2"></span><span style="width:14px;height:3px;border-radius:2px;background:transparent;border:1px solid #a595f2;box-sizing:border-box"></span></span><div><div style="font-family:'Space Mono',monospace;font-size:10.5px;color:#e8e9f5">many · 2 wired</div><div style="font-size:11px;color:#9095bd;margin-top:2px">filled bars plus one open — always room</div></div></div>
+<div style="display:flex;align-items:center;gap:12px"><span style="display:flex;flex-direction:column;gap:1.5px;flex:none"><span style="width:14px;height:2.5px;border-radius:2px;background:#a595f2"></span><span style="width:14px;height:2.5px;border-radius:2px;background:#a595f2"></span><span style="width:14px;height:2.5px;border-radius:2px;background:#a595f2"></span><span style="width:14px;height:2.5px;border-radius:2px;background:#a595f2"></span></span><div><div style="font-family:'Space Mono',monospace;font-size:10.5px;color:#e8e9f5">many · 12 wired</div><div style="font-size:11px;color:#9095bd;margin-top:2px">the stack saturates and the tie carries the count</div></div></div>
+</div>
+<div style="margin-top:14px;padding-top:12px;border-top:1px solid #171b30;font-size:11.5px;line-height:1.55;color:#9095bd;text-wrap:pretty">Same drawing on the give side. Your registry already marks these — Person's <span style="font-family:'Space Mono',monospace;font-size:11px;color:#c9cdea">bond</span> and <span style="font-family:'Space Mono',monospace;font-size:11px;color:#c9cdea">possession</span> are both <span style="font-family:'Space Mono',monospace;font-size:11px;color:#c9cdea">∞</span> takes today.</div>
+</div>
+
+</div>
+<p style="margin:0 0 4px;padding:0 4px;font-size:11.5px;line-height:1.55;color:#8085ad;max-width:1040px;text-wrap:pretty">So a Person can hold twelve notes and five things right now, with no schema change — the only thing missing is <span style="font-family:'Space Mono',monospace;font-size:11px;color:#c9cdea">notes-in</span> itself, which Person doesn't declare yet.</p>
+
+<!-- ================= 2 · DEPTH ================= -->
+<div style="display:flex;align-items:baseline;gap:12px;padding:32px 4px 14px">
+<span style="font-size:16px;font-weight:500">2 · Where the lore lives</span>
+<span style="font-size:11px;font-family:'Space Mono',monospace;color:#8085ad">the map plate is a label · the open plate is the room</span>
+</div>
+<div data-screen-label="Person depth" style="width:1440px;box-sizing:border-box;display:grid;grid-template-columns:290px 1fr;gap:20px;align-items:start">
+
+<div>
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad;margin-bottom:12px">On the canvas</div>
+<div style="position:relative;display:flex;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:0 14px 30px -14px rgba(0,0,0,.94)">
+<span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,#e89b8f,transparent)"></span>
+<div style="width:13px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:10px 0 0 10px"></div>
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:6px;padding:7px 9px 6px;background:linear-gradient(96deg,rgba(232,155,143,.13),rgba(232,155,143,.03) 46%,transparent 72%)"><span style="font:500 8px 'Space Grotesk',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#e89b8f">Person</span><span style="flex:1"></span><svg width="13" height="13" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="8" stroke="#6fd39a" stroke-width="2"></circle></svg></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,rgba(232,155,143,.45) 13%,#282d51 52%,#282d51 86%,transparent)"></div>
+<div style="padding:8px 10px 4px"><div style="font-family:'Space Grotesk',sans-serif;font-size:12.5px;color:#e8e9f5">Yusuf al-Tabrizi</div><div style="font-family:Spectral,Georgia,serif;font-size:11px;color:#9095bd;margin-top:3px">caravan master, third generation</div></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1b1f3c 13%,#1b1f3c 86%,transparent)"></div>
+<div style="display:flex;align-items:center;gap:7px;padding:5px 10px 6px;font:400 9px 'Space Mono',monospace;color:#9095bd"><span>12 notes</span><span style="opacity:.5">|</span><span>5 things</span><span style="opacity:.5">|</span><span>4 scenes</span></div>
+</div>
+<div style="width:13px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:0 10px 10px 0"></div>
+<span style="position:absolute;left:2px;top:44px;display:flex;flex-direction:column;gap:1.5px"><span style="width:12px;height:2.5px;border-radius:2px;background:#a595f2"></span><span style="width:12px;height:2.5px;border-radius:2px;background:#a595f2"></span><span style="width:12px;height:2.5px;border-radius:2px;background:#a595f2"></span><span style="width:12px;height:2.5px;border-radius:2px;background:#a595f2"></span></span>
+<span style="position:absolute;left:2px;top:64px;display:flex;flex-direction:column;gap:2px"><span style="width:12px;height:3px;border-radius:2px;background:#7fd4c1"></span><span style="width:12px;height:3px;border-radius:2px;background:#7fd4c1"></span><span style="width:12px;height:3px;border-radius:2px;background:transparent;border:1px solid #7fd4c1;box-sizing:border-box"></span></span>
+<span style="position:absolute;right:2px;top:48px;width:12px;height:4px;border-radius:2px;background:#e89b8f;box-shadow:0 0 7px rgba(232,155,143,.85)"></span>
+</div>
+<div style="margin-top:12px;font-size:11.5px;line-height:1.6;color:#9095bd;text-wrap:pretty">Name, one line, three counts. It is deliberately thin — you are looking at ninety plates at once and none of them should shout. The saturated note stack on the left edge is the tell that there's depth behind it.</div>
+</div>
+
+<div>
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad;margin-bottom:12px">Double-click — opens in place, 736px</div>
+<div style="position:relative;display:flex;background:linear-gradient(180deg,rgba(24,27,57,.97),rgba(13,15,37,.97));border:1px solid #3a4070;border-radius:12px;box-shadow:0 40px 90px -30px rgba(0,0,0,.98)">
+<span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:12px 0 0 12px;background:linear-gradient(180deg,#e89b8f,rgba(232,155,143,.16))"></span>
+<div style="width:16px;flex:none;border-right:1px solid #262b52;background:rgba(0,0,0,.26);border-radius:12px 0 0 12px"></div>
+<div style="flex:1;min-width:0;display:flex">
+
+<div style="width:168px;flex:none;border-right:1px solid #1b1f3c;padding:12px 12px 14px">
+<div style="font:400 8px 'Space Mono',monospace;letter-spacing:.15em;text-transform:uppercase;color:#8085ad;margin-bottom:8px">Notes · 12</div>
+<div style="display:flex;flex-direction:column;gap:4px">
+<div style="padding:5px 7px;border-radius:5px;background:rgba(165,149,242,.06);border-left:2px solid #a595f2;font-family:Spectral,Georgia,serif;font-size:10.5px;line-height:1.4;color:#b8bdd6">Never says the word plague</div>
+<div style="padding:5px 7px;border-radius:5px;background:rgba(165,149,242,.06);border-left:2px solid #a595f2;font-family:Spectral,Georgia,serif;font-size:10.5px;line-height:1.4;color:#b8bdd6">Counts in Persian, swears in Turkic</div>
+<div style="padding:5px 7px;border-radius:5px;background:rgba(165,149,242,.06);border-left:2px solid #a595f2;font-family:Spectral,Georgia,serif;font-size:10.5px;line-height:1.4;color:#b8bdd6">His father died at Sarai</div>
+<div style="padding:5px 7px;border-radius:5px;font-family:'Space Mono',monospace;font-size:9px;color:#8085ad">+9 more</div>
+</div>
+<div style="font:400 8px 'Space Mono',monospace;letter-spacing:.15em;text-transform:uppercase;color:#8085ad;margin:14px 0 8px">Carries · 5</div>
+<div style="display:flex;flex-wrap:wrap;gap:4px">
+<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:9999px;background:rgba(127,212,193,.1);border:1px solid rgba(127,212,193,.26);font-size:10px;color:#9fdccc"><span style="width:4px;height:4px;border-radius:9px;background:#7fd4c1"></span>Ghazan's seal</span>
+<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:9999px;background:rgba(127,212,193,.1);border:1px solid rgba(127,212,193,.26);font-size:10px;color:#9fdccc"><span style="width:4px;height:4px;border-radius:9px;background:#7fd4c1"></span>His father's scale</span>
+<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:9999px;border:1px solid #2a2f57;font-size:10px;color:#8085ad">+3</span>
+</div>
+<div style="font:400 8px 'Space Mono',monospace;letter-spacing:.15em;text-transform:uppercase;color:#8085ad;margin:14px 0 8px">Bonds · 3</div>
+<div style="display:flex;flex-direction:column;gap:4px">
+<div style="display:flex;align-items:baseline;gap:7px"><span style="width:4px;height:4px;border-radius:9px;background:#e89b8f;flex:none"></span><span style="font-size:10.5px;color:#c9cdea">Bekhi</span><span style="font-family:Spectral,Georgia,serif;font-size:10px;color:#8085ad">— brother-in-law</span></div>
+<div style="display:flex;align-items:baseline;gap:7px"><span style="width:4px;height:4px;border-radius:9px;background:#e89b8f;flex:none"></span><span style="font-size:10.5px;color:#c9cdea">Toqta</span><span style="font-family:Spectral,Georgia,serif;font-size:10px;color:#8085ad">— owes him</span></div>
+<div style="display:flex;align-items:baseline;gap:7px"><span style="width:4px;height:4px;border-radius:9px;background:#e89b8f;flex:none"></span><span style="font-size:10.5px;color:#c9cdea">Maryam</span><span style="font-family:Spectral,Georgia,serif;font-size:10px;color:#8085ad">— daughter</span></div>
+</div>
+</div>
+
+<div style="flex:1;min-width:0;padding:12px 22px 14px 20px">
+<div style="display:flex;align-items:center;gap:7px;margin-bottom:12px"><span style="font:500 8px 'Space Grotesk',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#e89b8f">Person</span><span style="padding:0 5px;border-radius:9999px;background:rgba(232,155,143,.14);font:400 8px 'Space Mono',monospace;color:#e0a99e">POV</span><span style="flex:1"></span><span style="font:400 9px 'Space Mono',monospace;color:#8085ad">saved</span><i data-lucide="minimize-2" style="width:12px;height:12px;color:#8085ad"></i></div>
+<div style="font-family:'Space Grotesk',sans-serif;font-size:23px;font-weight:500;letter-spacing:-.01em;color:#f2f3fa;margin-bottom:3px">Yusuf al-Tabrizi</div>
+<div style="font:400 10px 'Space Mono',monospace;color:#8085ad;margin-bottom:14px">b. 1298 Tabriz · POV in 4 of 24 · last edited 2h ago</div>
+<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+<div style="display:flex;gap:12px;align-items:baseline"><span style="width:58px;flex:none;font:400 8.5px 'Space Mono',monospace;color:#8085ad">wants</span><span style="font-family:Spectral,Georgia,serif;font-size:13px;color:#cdd1e6;line-height:1.55">One more season on the road before his knees give out.</span></div>
+<div style="display:flex;gap:12px;align-items:baseline"><span style="width:58px;flex:none;font:400 8.5px 'Space Mono',monospace;color:#8085ad">fears</span><span style="font-family:Spectral,Georgia,serif;font-size:13px;color:#cdd1e6;line-height:1.55">That the road was never real — only a peace, and peace ends.</span></div>
+<div style="display:flex;gap:12px;align-items:baseline"><span style="width:58px;flex:none;font:400 8.5px 'Space Mono',monospace;color:#8085ad">voice</span><span style="font-family:Spectral,Georgia,serif;font-size:13px;color:#cdd1e6;line-height:1.55">Short sentences. Never explains a decision twice.</span></div>
+<div style="display:flex;gap:12px;align-items:baseline"><span style="width:58px;flex:none;font:400 8.5px 'Space Mono',monospace;color:#8085ad">wound</span><span style="font-family:Spectral,Georgia,serif;font-size:13px;color:#575c86;line-height:1.55;border-bottom:1px dashed #2a2f57;flex:1">&nbsp;</span></div>
+</div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1b1f3c 4%,#1b1f3c 92%,transparent);margin-bottom:13px"></div>
+<div style="font:400 8.5px 'Space Mono',monospace;letter-spacing:.15em;text-transform:uppercase;color:#8085ad;margin-bottom:8px">Backstory</div>
+<div style="font-family:Spectral,Georgia,serif;font-size:14px;line-height:1.72;color:#cdd1e6;max-width:60ch;text-wrap:pretty">His grandfather ran salt from Tabriz to Sultaniyya under a Mongol seal, and his father ran the same road under three different ones. Yusuf learned the routes as a list of debts owed — a name at every caravanserai, a favour at every ford. <span style="background:rgba(232,155,143,.13);box-shadow:0 1px 0 rgba(232,155,143,.4);color:#f0d0c8">He has never once paid a toll he did not expect</span>, and he tells people this the way other men mention their sons.</div>
+<div style="display:flex;align-items:center;gap:10px;margin-top:16px;padding-top:12px;border-top:1px solid #1b1f3c">
+<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:7px;border:1px solid rgba(165,149,242,.4);background:rgba(165,149,242,.09);font-size:11px;color:#cbc2ff"><i data-lucide="link-2" style="width:11px;height:11px"></i>Link selection</span>
+<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:7px;border:1px solid #2a2f57;font-size:11px;color:#9095bd"><i data-lucide="expand" style="width:11px;height:11px"></i>Focus</span>
+<span style="flex:1"></span><span style="font:400 9px 'Space Mono',monospace;color:#8085ad">esc to collapse</span>
+</div>
+</div>
+
+</div>
+<div style="width:16px;flex:none;border-left:1px solid #262b52;background:rgba(0,0,0,.26);border-radius:0 12px 12px 0"></div>
+</div>
+<div style="margin-top:12px;font-size:11.5px;line-height:1.6;color:#9095bd;text-wrap:pretty">The plate never moves — it grows where it sits and the canvas dims behind it. The left rail is the same wires you'd see on the map, listed instead of drawn, so the twelve notes are readable without twelve strands crossing the canvas.</div>
+</div>
+
+</div>
+
+<!-- ================= 3 · THE HUB ================= -->
+<div style="display:flex;align-items:baseline;gap:12px;padding:34px 4px 14px">
+<span style="font-size:16px;font-weight:500">3 · The Hub — a type you're missing</span>
+<span style="font:400 11px 'Space Mono',monospace;color:#8085ad">not a Group, not a Document</span>
+</div>
+<p style="margin:0 0 16px;padding:0 4px;max-width:1040px;font-size:12.5px;line-height:1.65;color:#9095bd;text-wrap:pretty">A Group <b style="color:#c9cdea;font-weight:500">contains</b> — members go inside and off the canvas. A Document <b style="color:#c9cdea;font-weight:500">composes</b> — members' text flows in and comes out as prose. What you're describing does neither: the characters and items of a city stay right where they are, fully visible, still wired to everything else. They just also belong to Kaffa. That's a third verb — <b style="color:#c9cdea;font-weight:500">a Hub collects</b>.</p>
+
+<div data-screen-label="Hub" style="width:1440px;box-sizing:border-box;display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px">
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:18px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad;margin-bottom:13px">A place hub</div>
+<div style="position:relative;display:flex;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:0 14px 30px -14px rgba(0,0,0,.94)">
+<span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,#c9a26b,transparent)"></span>
+<div style="width:13px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:10px 0 0 10px"></div>
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:6px;padding:7px 9px 6px;background:linear-gradient(96deg,rgba(201,162,107,.14),rgba(201,162,107,.03) 46%,transparent 72%)"><i data-lucide="circle-dot" style="width:11px;height:11px;color:#c9a26b"></i><span style="font:500 8px 'Space Grotesk',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#c9a26b">Hub · Place</span><span style="flex:1"></span><svg width="13" height="13" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="8" stroke="#4a4f76" stroke-width="2"></circle><path d="M13,5 A8,8 0 0 1 13,21" stroke="#f0c96a" stroke-width="2"></path></svg></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,rgba(201,162,107,.45) 13%,#282d51 52%,#282d51 86%,transparent)"></div>
+<div style="padding:9px 11px 4px"><div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:500;color:#e8e9f5">Kaffa</div><div style="font-family:Spectral,Georgia,serif;font-size:11px;color:#9095bd;margin-top:3px">Genoese port, Crimea, 1346</div></div>
+<div style="padding:6px 11px 9px;display:flex;flex-direction:column;gap:5px">
+<div style="display:flex;align-items:center;gap:7px"><span style="width:44px;flex:none;font:400 8.5px 'Space Mono',monospace;color:#e0a99e">Person</span><span style="flex:1;display:flex;flex-wrap:wrap;gap:3px"><span style="padding:1px 6px;border-radius:9999px;background:rgba(232,155,143,.1);border:1px solid rgba(232,155,143,.24);font-size:9.5px;color:#e0a99e">Yusuf</span><span style="padding:1px 6px;border-radius:9999px;background:rgba(232,155,143,.1);border:1px solid rgba(232,155,143,.24);font-size:9.5px;color:#e0a99e">Andrea</span><span style="padding:1px 6px;border-radius:9999px;border:1px solid #2a2f57;font-size:9.5px;color:#8085ad">+6</span></span></div>
+<div style="display:flex;align-items:center;gap:7px"><span style="width:44px;flex:none;font:400 8.5px 'Space Mono',monospace;color:#9fdccc">Thing</span><span style="flex:1;display:flex;flex-wrap:wrap;gap:3px"><span style="padding:1px 6px;border-radius:9999px;background:rgba(127,212,193,.1);border:1px solid rgba(127,212,193,.24);font-size:9.5px;color:#9fdccc">Quarantine order</span><span style="padding:1px 6px;border-radius:9999px;border:1px solid #2a2f57;font-size:9.5px;color:#8085ad">+4</span></span></div>
+<div style="display:flex;align-items:center;gap:7px"><span style="width:44px;flex:none;font:400 8.5px 'Space Mono',monospace;color:#a3b8f0">Event</span><span style="flex:1;display:flex;flex-wrap:wrap;gap:3px"><span style="padding:1px 6px;border-radius:9999px;background:rgba(143,159,240,.1);border:1px solid rgba(143,159,240,.24);font-size:9.5px;color:#a3b8f0">Siege, 1346</span></span></div>
+<div style="display:flex;align-items:center;gap:7px"><span style="width:44px;flex:none;font:400 8.5px 'Space Mono',monospace;color:#b8ade8">Section</span><span style="flex:1;display:flex;flex-wrap:wrap;gap:3px"><span style="padding:1px 6px;border-radius:9999px;background:rgba(165,149,242,.1);border:1px solid rgba(165,149,242,.24);font-size:9.5px;color:#b8ade8">ch12</span><span style="padding:1px 6px;border-radius:9999px;background:rgba(165,149,242,.1);border:1px solid rgba(165,149,242,.24);font-size:9.5px;color:#b8ade8">ch13</span></span></div>
+</div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1b1f3c 13%,#1b1f3c 86%,transparent)"></div>
+<div style="display:flex;align-items:center;gap:7px;padding:5px 10px 6px;font:400 9px 'Space Mono',monospace;color:#9095bd"><span>16 held</span><span style="opacity:.5">|</span><span>all still on canvas</span></div>
+</div>
+<div style="width:13px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:0 10px 10px 0"></div>
+<span style="position:absolute;left:2px;top:44px;display:flex;flex-direction:column;gap:1.5px"><span style="width:12px;height:2.5px;border-radius:2px;background:#8085ad"></span><span style="width:12px;height:2.5px;border-radius:2px;background:#8085ad"></span><span style="width:12px;height:2.5px;border-radius:2px;background:#8085ad"></span><span style="width:12px;height:2.5px;border-radius:2px;background:#8085ad"></span></span>
+<span style="position:absolute;right:2px;top:46px;width:12px;height:4px;border-radius:2px;background:#a595f2;box-shadow:0 0 7px rgba(165,149,242,.85)"></span>
+</div>
+<div style="margin-top:12px;font-size:11.5px;line-height:1.55;color:#9095bd;text-wrap:pretty">Everything Kaffa touches, in one roster grouped by type. Yusuf is still his own plate wired to four chapters — he's just also listed here. Nothing was swallowed.</div>
+</div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:18px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad;margin-bottom:13px">An idea hub</div>
+<div style="position:relative;display:flex;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px;box-shadow:0 14px 30px -14px rgba(0,0,0,.94)">
+<span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,#6fd39a,transparent)"></span>
+<div style="width:13px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:10px 0 0 10px"></div>
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:6px;padding:7px 9px 6px;background:linear-gradient(96deg,rgba(111,211,154,.14),rgba(111,211,154,.03) 46%,transparent 72%)"><i data-lucide="circle-dot" style="width:11px;height:11px;color:#6fd39a"></i><span style="font:500 8px 'Space Grotesk',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#6fd39a">Hub · Topic</span><span style="flex:1"></span><svg width="13" height="13" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="8" stroke="#4a4f76" stroke-width="2"></circle><path d="M13,5 A8,8 0 0 1 13,21" stroke="#f0c96a" stroke-width="2"></path></svg></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,rgba(111,211,154,.45) 13%,#282d51 52%,#282d51 86%,transparent)"></div>
+<div style="padding:9px 11px 4px"><div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:500;color:#e8e9f5">Trust vs freight</div><div style="font-family:Spectral,Georgia,serif;font-size:11px;color:#9095bd;margin-top:3px">the paper's central move</div></div>
+<div style="padding:6px 11px 9px;display:flex;flex-direction:column;gap:5px">
+<div style="display:flex;align-items:center;gap:7px"><span style="width:44px;flex:none;font:400 8.5px 'Space Mono',monospace;color:#8fe3b6">Claim</span><span style="flex:1;display:flex;flex-wrap:wrap;gap:3px"><span style="padding:1px 6px;border-radius:9999px;background:rgba(111,211,154,.1);border:1px solid rgba(111,211,154,.24);font-size:9.5px;color:#8fe3b6">Guarantor dissolved</span><span style="padding:1px 6px;border-radius:9999px;border:1px solid #2a2f57;font-size:9.5px;color:#8085ad">+2</span></span></div>
+<div style="display:flex;align-items:center;gap:7px"><span style="width:44px;flex:none;font:400 8.5px 'Space Mono',monospace;color:#93b6f0">Source</span><span style="flex:1;display:flex;flex-wrap:wrap;gap:3px"><span style="padding:1px 6px;border-radius:9999px;background:rgba(127,163,232,.1);border:1px solid rgba(127,163,232,.24);font-size:9.5px;color:#93b6f0">Findlay</span><span style="padding:1px 6px;border-radius:9999px;background:rgba(127,163,232,.1);border:1px solid rgba(127,163,232,.24);font-size:9.5px;color:#93b6f0">Abu-Lughod</span><span style="padding:1px 6px;border-radius:9999px;border:1px solid #2a2f57;font-size:9.5px;color:#8085ad">+9</span></span></div>
+<div style="display:flex;align-items:center;gap:7px"><span style="width:44px;flex:none;font:400 8.5px 'Space Mono',monospace;color:#f0c96a">Question</span><span style="flex:1;display:flex;flex-wrap:wrap;gap:3px"><span style="padding:1px 6px;border-radius:9999px;background:rgba(240,201,106,.1);border:1px solid rgba(240,201,106,.26);font-size:9.5px;color:#f0c96a">Volume or institution?</span></span></div>
+<div style="display:flex;align-items:center;gap:7px"><span style="width:44px;flex:none;font:400 8.5px 'Space Mono',monospace;color:#b8ade8">Note</span><span style="flex:1;display:flex;flex-wrap:wrap;gap:3px"><span style="padding:1px 6px;border-radius:9999px;border:1px solid #2a2f57;font-size:9.5px;color:#8085ad">14 notes</span></span></div>
+</div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,#1b1f3c 13%,#1b1f3c 86%,transparent)"></div>
+<div style="display:flex;align-items:center;gap:7px;padding:5px 10px 6px;font:400 9px 'Space Mono',monospace;color:#9095bd"><span>29 held</span><span style="opacity:.5">|</span><span>1 out</span><span style="flex:1"></span><i data-lucide="download" style="width:11px;height:11px;color:#9095bd"></i></div>
+</div>
+<div style="width:13px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:0 10px 10px 0"></div>
+<span style="position:absolute;left:2px;top:44px;display:flex;flex-direction:column;gap:1.5px"><span style="width:12px;height:2.5px;border-radius:2px;background:#8085ad"></span><span style="width:12px;height:2.5px;border-radius:2px;background:#8085ad"></span><span style="width:12px;height:2.5px;border-radius:2px;background:#8085ad"></span><span style="width:12px;height:2.5px;border-radius:2px;background:#8085ad"></span></span>
+<span style="position:absolute;right:2px;top:46px;width:12px;height:4px;border-radius:2px;background:#a595f2;box-shadow:0 0 7px rgba(165,149,242,.85)"></span>
+</div>
+<div style="margin-top:12px;font-size:11.5px;line-height:1.55;color:#9095bd;text-wrap:pretty">The same node doing the paper's job: a working question with its claims, sources and notes gathered under it. Its one give is <span style="font-family:'Space Mono',monospace;font-size:11px;color:#c9cdea">text</span>, so the hub can feed a Document directly once the thinking settles.</div>
+</div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:18px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad;margin-bottom:13px">Ports</div>
+<div style="display:flex;flex-direction:column;gap:4px;font-family:'Space Mono',monospace;font-size:10.5px;margin-bottom:14px">
+<div style="display:flex;align-items:center;gap:8px"><span style="color:#8085ad">◉</span><span style="color:#c9cdea">Holds</span><span style="flex:1"></span><span style="color:#8085ad">any · ∞</span></div>
+<div style="display:flex;align-items:center;gap:8px"><span style="color:#a595f2">●</span><span style="color:#c9cdea">Brief</span><span style="flex:1"></span><span style="color:#8085ad">text</span></div>
+<div style="display:flex;align-items:center;gap:8px;opacity:.55"><span style="color:#8085ad">○</span><span style="color:#c9cdea">Subject</span><span style="flex:1"></span><span style="color:#8085ad">any · 1</span></div>
+</div>
+<div style="font-size:11.5px;line-height:1.6;color:#9095bd;text-wrap:pretty">Two ports do the work. <b style="color:#c9cdea;font-weight:500">Holds</b> takes anything, unlimited, and the roster is simply that port's contents grouped by type. <b style="color:#c9cdea;font-weight:500">Brief</b> gives text, so a hub can pour into a Document.</div>
+<div style="margin-top:14px;padding-top:13px;border-top:1px solid #171b30">
+<div style="font:400 8.5px 'Space Mono',monospace;letter-spacing:.15em;text-transform:uppercase;color:#8085ad;margin-bottom:9px">Optional subject</div>
+<div style="font-size:11.5px;line-height:1.6;color:#9095bd;text-wrap:pretty">Wire the Kaffa <i>Place</i> node into the hub's Subject and the hub takes its name, colour and identity — one hub per city, and the Place stays a normal node that scenes can still point at. Leave it empty and the hub is just a named collection.</div>
+</div>
+<div style="margin-top:14px;padding:11px 12px;border-radius:8px;background:rgba(240,201,106,.05);border:1px solid rgba(240,201,106,.22)">
+<div style="font:400 8.5px 'Space Mono',monospace;letter-spacing:.15em;text-transform:uppercase;color:#f0c96a;margin-bottom:7px">To build</div>
+<div style="font-family:'Space Mono',monospace;font-size:10px;line-height:1.6;color:#c9cdea">registry.ts<span style="color:#8085ad"> — new type 'hub'</span><br>colors.ts<span style="color:#8085ad"> — reuses subject's hue</span><br>HubFace.tsx<span style="color:#8085ad"> — roster grouped by type</span></div>
+</div>
+</div>
+
+</div>
+
+<!-- ================= THREE VERBS ================= -->
+<div style="display:flex;align-items:baseline;gap:12px;padding:32px 4px 14px">
+<span style="font-size:16px;font-weight:500">Three ways a node can hold others</span>
+<span style="font:400 11px 'Space Mono',monospace;color:#8085ad">pick by what you want to happen to the members</span>
+</div>
+<div data-screen-label="Three verbs" style="width:1440px;box-sizing:border-box;display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+
+<div style="border:1px solid rgba(232,155,143,.28);border-radius:12px;background:#0a0c18;padding:16px">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><i data-lucide="layers" style="width:14px;height:14px;color:#e89b8f"></i><span style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;letter-spacing:-.012em;color:#f2f3fa">Group contains</span></div>
+<svg viewBox="0 0 280 76" style="width:100%;display:block" fill="none">
+<rect x="8" y="14" width="104" height="48" rx="7" fill="#171a38" stroke="#3a4070"></rect><rect x="8" y="14" width="3" height="48" rx="1.5" fill="#e89b8f"></rect>
+<text x="64" y="42" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="10" fill="#c9cdea">Walk-ons · 92</text>
+<g fill="#0d1020" stroke="#1f2445" stroke-dasharray="3 3"><rect x="150" y="10" width="54" height="14" rx="3"></rect><rect x="164" y="31" width="54" height="14" rx="3"></rect><rect x="146" y="52" width="54" height="14" rx="3"></rect></g>
+<text x="243" y="42" font-family="Space Mono,monospace" font-size="8" fill="#6a6f96">hidden</text>
+</svg>
+<div style="margin-top:11px;font-size:11.5px;line-height:1.55;color:#9095bd;text-wrap:pretty">Members leave the canvas. Wires that crossed the boundary re-attach to the face. For inventory you don't want to look at.</div>
+</div>
+
+<div style="border:1px solid rgba(201,162,107,.28);border-radius:12px;background:#0a0c18;padding:16px">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><i data-lucide="circle-dot" style="width:14px;height:14px;color:#c9a26b"></i><span style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;letter-spacing:-.012em;color:#f2f3fa">Hub collects</span></div>
+<svg viewBox="0 0 280 76" style="width:100%;display:block" fill="none" stroke-linecap="round" stroke-linejoin="round">
+<rect x="8" y="14" width="104" height="48" rx="7" fill="#141731" stroke="#2a2f57"></rect><rect x="8" y="14" width="3" height="48" rx="1.5" fill="#c9a26b"></rect>
+<text x="64" y="42" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="10" fill="#c9cdea">Kaffa · 16</text>
+<g fill="#141731" stroke="#2a2f57"><rect x="164" y="6" width="60" height="16" rx="4"></rect><rect x="178" y="30" width="60" height="16" rx="4"></rect><rect x="160" y="54" width="60" height="16" rx="4"></rect></g>
+<g fill="#e89b8f"><rect x="164" y="6" width="2" height="16" rx="1"></rect><rect x="178" y="30" width="2" height="16" rx="1"></rect></g>
+<rect x="160" y="54" width="2" height="16" rx="1" fill="#7fd4c1"></rect>
+<g stroke="#8085ad" stroke-width="1.2" stroke-opacity=".6"><path d="M112,28 H130 L140,18 H164"></path><path d="M112,38 H164 L174,38 H178"></path><path d="M112,48 H130 L140,58 H160"></path></g>
+</svg>
+<div style="margin-top:11px;font-size:11.5px;line-height:1.55;color:#9095bd;text-wrap:pretty">Members stay exactly where they are, fully wired to everything else. The hub only lists them. For a subject with many facets.</div>
+</div>
+
+<div style="border:1px solid rgba(165,149,242,.28);border-radius:12px;background:#0a0c18;padding:16px">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><i data-lucide="book-open-text" style="width:14px;height:14px;color:#a595f2"></i><span style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;letter-spacing:-.012em;color:#f2f3fa">Document composes</span></div>
+<svg viewBox="0 0 280 76" style="width:100%;display:block" fill="none" stroke-linecap="round" stroke-linejoin="round">
+<g fill="#141731" stroke="#2a2f57"><rect x="8" y="6" width="60" height="16" rx="4"></rect><rect x="8" y="30" width="60" height="16" rx="4"></rect><rect x="8" y="54" width="60" height="16" rx="4"></rect></g>
+<g fill="#a595f2"><rect x="8" y="6" width="2" height="16" rx="1"></rect><rect x="8" y="30" width="2" height="16" rx="1"></rect><rect x="8" y="54" width="2" height="16" rx="1"></rect></g>
+<g stroke="#a595f2" stroke-width="1.3" stroke-opacity=".7"><path d="M68,14 H86 L96,24 V28 L106,38 H130"></path><path d="M68,38 H130"></path><path d="M68,62 H86 L96,52 V48 L106,38 H130"></path></g>
+<rect x="130" y="8" width="142" height="60" rx="7" fill="#141731" stroke="#2a2f57"></rect><rect x="130" y="8" width="3" height="60" rx="1.5" fill="#a595f2"></rect>
+<g fill="#2a2f57"><rect x="144" y="18" width="112" height="3" rx="1.5"></rect><rect x="144" y="27" width="112" height="3" rx="1.5"></rect><rect x="144" y="36" width="88" height="3" rx="1.5"></rect><rect x="144" y="49" width="112" height="3" rx="1.5"></rect><rect x="144" y="58" width="70" height="3" rx="1.5"></rect></g>
+</svg>
+<div style="margin-top:11px;font-size:11.5px;line-height:1.55;color:#9095bd;text-wrap:pretty">Members' text flows in, in order, and comes out as one manuscript. For the thing you actually publish.</div>
+</div>
+
+</div>
+
+<!-- ================= INSIDE A SECTION ================= -->
+<div style="display:flex;align-items:baseline;gap:12px;padding:32px 4px 14px">
+<span style="font-size:16px;font-weight:500">Inside a Section</span>
+<span style="font:400 11px 'Space Mono',monospace;color:#8085ad">what the parts are and how they meet</span>
+</div>
+<div data-screen-label="Section anatomy" style="width:1440px;box-sizing:border-box;display:grid;grid-template-columns:1.25fr 1fr;gap:20px;align-items:start">
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:18px">
+<div style="position:relative;margin-left:17px;display:flex;background:linear-gradient(180deg,rgba(20,23,49,.94),rgba(11,13,32,.94));border:1px solid #282d51;border-radius:10px">
+<span style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:10px 0 0 10px;background:linear-gradient(180deg,#a595f2,transparent)"></span>
+<div style="width:13px;flex:none;border-right:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:10px 0 0 10px"></div>
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:6px;padding:7px 9px 6px;background:linear-gradient(96deg,rgba(165,149,242,.14),rgba(165,149,242,.03) 46%,transparent 72%)"><span style="font:500 8px 'Space Grotesk',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#a595f2">Section</span><span style="padding:0 5px;border-radius:9999px;background:rgba(165,149,242,.13);font:400 8px 'Space Mono',monospace;color:#b8ade8">ch12</span><span style="flex:1"></span><svg width="13" height="13" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="8" stroke="#4a4f76" stroke-width="2"></circle><path d="M13,5 A8,8 0 0 1 13,21" stroke="#f0c96a" stroke-width="2"></path></svg></div>
+<div style="height:1px;background:linear-gradient(90deg,transparent,rgba(165,149,242,.45) 13%,#282d51 52%,#282d51 86%,transparent)"></div>
+<div style="padding:8px 10px 4px"><div style="font-family:'Space Grotesk',sans-serif;font-size:12.5px;color:#e8e9f5">Kaffa, spring</div></div>
+<div style="padding:0 10px 6px"><div style="font-family:Spectral,Georgia,serif;font-size:11.5px;color:#b8bdd6;line-height:1.6">The gates closed from the inside, which was the part nobody could explain afterwards.</div></div>
+<div style="padding:0 10px 7px;display:flex;align-items:center;gap:4px">
+<span style="display:inline-flex;align-items:center;gap:4px;padding:1px 7px 1px 5px;border-radius:9999px;background:rgba(232,155,143,.14);border:1px solid rgba(232,155,143,.34);font-size:9.5px;color:#e0a99e"><span style="width:4px;height:4px;border-radius:9px;background:#e89b8f"></span>Yusuf</span>
+<span style="display:inline-flex;align-items:center;gap:4px;padding:1px 7px 1px 5px;border-radius:9999px;background:rgba(201,162,107,.1);border:1px solid rgba(201,162,107,.26);font-size:9.5px;color:#c9a26b"><span style="width:4px;height:4px;border-radius:9px;background:#c9a26b"></span>Kaffa</span>
+<span style="flex:1"></span><span style="font:400 8.5px 'Space Mono',monospace;color:#9095bd">6,410 w</span></div>
+</div>
+<div style="width:13px;flex:none;border-left:1px solid #1b1f3c;background:rgba(0,0,0,.24);border-radius:0 10px 10px 0"></div>
+<span style="position:absolute;left:2px;top:44px;display:flex;flex-direction:column;gap:2px"><span style="width:12px;height:3px;border-radius:2px;background:#e89b8f"></span><span style="width:12px;height:3px;border-radius:2px;background:transparent;border:1px solid #e89b8f;box-sizing:border-box"></span></span>
+<span style="position:absolute;left:2px;top:62px;width:12px;height:4px;border-radius:2px;background:#c9a26b"></span>
+<span style="position:absolute;left:2px;top:74px;width:12px;height:4px;border-radius:2px;background:transparent;border:1px solid #d08fd0;box-sizing:border-box"></span>
+<span style="position:absolute;right:2px;top:50px;width:12px;height:4px;border-radius:2px;background:#a595f2;box-shadow:0 0 7px rgba(165,149,242,.85)"></span>
+<span style="position:absolute;left:-17px;top:7px;width:14px;height:14px;border-radius:9px;background:#0d1020;border:1px solid #2a2f57;display:grid;place-items:center;font:400 8px 'Space Mono',monospace;color:#a595f2">A</span>
+<span style="position:absolute;left:-17px;top:37px;width:14px;height:14px;border-radius:9px;background:#0d1020;border:1px solid #2a2f57;display:grid;place-items:center;font:400 8px 'Space Mono',monospace;color:#a595f2">B</span>
+<span style="position:absolute;left:-17px;top:59px;width:14px;height:14px;border-radius:9px;background:#0d1020;border:1px solid #2a2f57;display:grid;place-items:center;font:400 8px 'Space Mono',monospace;color:#a595f2">C</span>
+<span style="position:absolute;left:-17px;top:88px;width:14px;height:14px;border-radius:9px;background:#0d1020;border:1px solid #2a2f57;display:grid;place-items:center;font:400 8px 'Space Mono',monospace;color:#a595f2">D</span>
+</div>
+<div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div style="display:flex;gap:9px"><span style="width:16px;flex:none;font-family:'Space Mono',monospace;font-size:9.5px;color:#a595f2;padding-top:1px">A</span><div><div style="font-size:11.5px;color:#c9cdea">Header rail</div><div style="font-size:11px;line-height:1.5;color:#9095bd;margin-top:2px">type, chapter badge, readiness. Never content.</div></div></div>
+<div style="display:flex;gap:9px"><span style="width:16px;flex:none;font-family:'Space Mono',monospace;font-size:9.5px;color:#a595f2;padding-top:1px">B</span><div><div style="font-size:11.5px;color:#c9cdea">Title + first line</div><div style="font-size:11px;line-height:1.5;color:#9095bd;margin-top:2px">the opening of the prose, truncated. Not a summary.</div></div></div>
+<div style="display:flex;gap:9px"><span style="width:16px;flex:none;font-family:'Space Mono',monospace;font-size:9.5px;color:#a595f2;padding-top:1px">C</span><div><div style="font-size:11.5px;color:#c9cdea">Take gutter</div><div style="font-size:11px;line-height:1.5;color:#9095bd;margin-top:2px">people ∞, setting, POV, serves-thread. Outline = open.</div></div></div>
+<div style="display:flex;gap:9px"><span style="width:16px;flex:none;font-family:'Space Mono',monospace;font-size:9.5px;color:#a595f2;padding-top:1px">D</span><div><div style="font-size:11.5px;color:#c9cdea">Cast band</div><div style="font-size:11px;line-height:1.5;color:#9095bd;margin-top:2px">whatever is wired to <span style="font-family:'Space Mono',monospace;font-size:10px">people</span> and <span style="font-family:'Space Mono',monospace;font-size:10px">setting</span>, drawn as chips.</div></div></div>
+</div>
+</div>
+
+<div style="border:1px solid #1c2038;border-radius:12px;background:#0a0c18;padding:18px">
+<div style="font:400 9px 'Space Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#8085ad;margin-bottom:13px">The one loop that matters</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;gap:11px"><span style="width:16px;flex:none;font-family:'Space Mono',monospace;font-size:10px;color:#e89b8f;padding-top:1px">1</span><span style="font-size:11.5px;line-height:1.6;color:#9095bd"><b style="color:#c9cdea;font-weight:500">You wire Yusuf into the section.</b> One drag onto the <span style="font-family:'Space Mono',monospace;font-size:10.5px">people</span> slot.</span></div>
+<div style="display:flex;gap:11px"><span style="width:16px;flex:none;font-family:'Space Mono',monospace;font-size:10px;color:#e89b8f;padding-top:1px">2</span><span style="font-size:11.5px;line-height:1.6;color:#9095bd"><b style="color:#c9cdea;font-weight:500">A chip appears in the cast band</b> — the section now says who's in it.</span></div>
+<div style="display:flex;gap:11px"><span style="width:16px;flex:none;font-family:'Space Mono',monospace;font-size:10px;color:#e89b8f;padding-top:1px">3</span><span style="font-size:11.5px;line-height:1.6;color:#9095bd"><b style="color:#c9cdea;font-weight:500">Yusuf's presence strip lights chapter 12</b> — the same fact, read from his side.</span></div>
+<div style="display:flex;gap:11px"><span style="width:16px;flex:none;font-family:'Space Mono',monospace;font-size:10px;color:#e89b8f;padding-top:1px">4</span><span style="font-size:11.5px;line-height:1.6;color:#9095bd"><b style="color:#c9cdea;font-weight:500">The manuscript matrix fills one cell</b> — and the book knows its own staffing.</span></div>
+</div>
+<div style="margin-top:15px;padding-top:13px;border-top:1px solid #171b30;font-size:11.5px;line-height:1.6;color:#9095bd;text-wrap:pretty">One wire, four readings, no bookkeeping. That's the whole point of putting membership in a port instead of a tag: every view of it stays true because there's only ever one fact underneath.</div>
+<div style="margin-top:15px;padding:12px 13px;border-radius:8px;background:#0d1020;border:1px solid #171b30">
+<div style="font:400 8.5px 'Space Mono',monospace;letter-spacing:.15em;text-transform:uppercase;color:#8085ad;margin-bottom:8px">Writing in it</div>
+<div style="font-size:11.5px;line-height:1.6;color:#9095bd;text-wrap:pretty">The 6,410 words are blocks, same as a Document's — the map plate just shows the first one. Double-click and the block stack and the prose column open in place; the cast chips move to the left rail so you can see who's in the scene while you write it.</div>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1200}}">
+class Component extends DCLogic {
+  componentDidMount(){ this.icons(); }
+  componentDidUpdate(){ this.icons(); }
+  icons(){
+    const go = () => { try { window.lucide && window.lucide.createIcons(); } catch(e){} };
+    go(); setTimeout(go, 250); setTimeout(go, 900);
+  }
+}
+</script>
+</body>
+</html>
