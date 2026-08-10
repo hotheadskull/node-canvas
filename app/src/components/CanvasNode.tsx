@@ -31,6 +31,7 @@ import {
   Layers,
   Library,
   MapPin,
+  Minimize2,
   Package,
   Quote,
   Scale,
@@ -284,6 +285,11 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
   const [openForkKey, setOpenForkKey] = useState<string | null>(null);
 
   const [accentPickerOpen, setAccentPickerOpen] = useState(false);
+  // Open state (Observatory §10): session-only; wins over collapse.
+  const isOpen = useCanvasStore((state) => state.openNodeId === id);
+  const setOpenNode = useCanvasStore((state) => state.setOpenNode);
+  const openFocusEditor = useCanvasStore((state) => state.openEditor);
+  const openDocRoom = useCanvasStore((state) => state.openDocRoom);
   const Face = faceFor(data.coreType);
   // The title face IS the node's words -- no separate title line.
   const faceOwnsTitle = data.coreType === 'title';
@@ -299,18 +305,22 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
   useEffect(() => {
     const element = cardRef.current;
     if (!element || typeof ResizeObserver === 'undefined') return;
+    // The OPEN state borrows its size (Observatory §10) -- recording its
+    // measured height would turn opening into a document write. Observation
+    // pauses while open and resumes with the settled height on close.
+    if (isOpen) return;
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
       if (entry) recordMeasuredHeight(id, entry.contentRect.height);
     });
     observer.observe(element);
     return () => observer.disconnect();
-  }, [id, recordMeasuredHeight]);
+  }, [id, recordMeasuredHeight, isOpen]);
 
   // Collapse (Observatory §2): the stored value is data.collapsed; zoom
   // below 45% BORROWS collapsed rendering without ever writing it back.
   const zoomBorrow = useCanvasStore((state) => state.zoomBorrow);
-  const isCollapsed = data.collapsed === 'collapsed' || zoomBorrow;
+  const isCollapsed = !isOpen && (data.collapsed === 'collapsed' || zoomBorrow);
 
   // React Flow requirement: whenever the set of rendered handles CHANGES at
   // runtime (port visibility, size), re-register the node's internals. The
@@ -318,7 +328,7 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
   // render, and calling updateNodeInternals from every mounting node made
   // 500-node boots quadratic (each call notifies every RF subscriber -- the
   // Chunk 18 stress spec measured a 36s hang from this line alone).
-  const handleSignature = `${allPorts.map((port) => port.id).join(',')}:${data.ownedHeight ?? ''}:${isCollapsed ? 'c' : 'f'}`;
+  const handleSignature = `${allPorts.map((port) => port.id).join(',')}:${data.ownedHeight ?? ''}:${isCollapsed ? 'c' : isOpen ? 'o' : 'f'}`;
   const prevSignatureRef = useRef<string | null>(null);
   useEffect(() => {
     if (prevSignatureRef.current === handleSignature) return;
@@ -335,6 +345,101 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
     data.accent ?? (giveKind ? DATA_KIND_STYLES[giveKind].hue : DATA_KIND_STYLES.any.hue);
   const shortId = id.replace(/^node_/, '').slice(0, 4).toUpperCase();
   const words = wordCount(data.content);
+
+  // OPEN plate (Observatory §10): grown in place to 736px -- one quiet
+  // header line, a linked rail of port chips, the writing column, a footer
+  // rail with the word bar and the Focus step. The canvas dims behind via
+  // the plate's own spread shadow; Esc (Canvas-level) returns to the map.
+  // Every handle stays mounted at its usual spot so no wire can drop.
+  if (isOpen) {
+    const progress = Math.min(1, words / 1000);
+    const chip = (port: PortDef) => (
+      <span
+        key={port.id}
+        className={`open-chip ${wiredPorts.has(port.id) ? 'is-wired' : ''}`}
+        style={{ ['--port-color' as string]: PORT_KIND_COLORS[port.dataKind] ?? '#8085ad' }}
+        title={`${port.label} · ${port.dataKind}${wiredPorts.has(port.id) ? ' · wired' : ''}`}
+      >
+        {port.label}
+      </span>
+    );
+    return (
+      <div
+        ref={cardRef}
+        className={`canvas-node is-open ${selected ? 'is-selected' : ''}`}
+        style={{ ['--accent' as string]: accent, ['--kind' as string]: kindHue }}
+        data-open-plate
+      >
+        <span className="plate-spine" aria-hidden />
+        <span
+          className={`canvas-node-gutter gutter-left ${takes.length > 0 ? '' : 'is-empty'} ${leftUsed ? 'is-used' : ''}`}
+          aria-hidden
+        />
+        <div className="plate-column">
+          <header className="canvas-node-header plate-header">
+            <TabIcon size={10} aria-hidden className="canvas-node-glyph" />
+            <span className="canvas-node-kind">
+              {def ? nodeLabel(def.type, 'universal') : data.coreType}
+            </span>
+            <span className="plate-spacer" aria-hidden />
+            <span className="open-words">{words} w</span>
+            <ReadinessRing stage={readiness} onClick={() => cycleReadiness(id)} />
+            <button
+              className="open-close nodrag"
+              aria-label="Back to the map"
+              title="Back to the map (Esc)"
+              onClick={() => setOpenNode(null)}
+            >
+              <Minimize2 size={11} aria-hidden />
+            </button>
+          </header>
+          <span className="plate-rule is-tinted" aria-hidden />
+          <div className="open-body">
+            <aside className="open-rail nodrag" data-open-rail>
+              {takes.length > 0 && <p className="open-rail-title">Takes</p>}
+              {takes.map(chip)}
+              {gives.length > 0 && <p className="open-rail-title">Gives</p>}
+              {gives.map(chip)}
+            </aside>
+            <div className="open-column nowheel">
+              {!faceOwnsTitle && (
+                <input
+                  className="canvas-node-title open-title nodrag"
+                  value={data.title}
+                  placeholder="Untitled"
+                  onChange={(event) => setNodeTitle(id, event.target.value)}
+                />
+              )}
+              <Face nodeId={id} title={data.title} content={data.content} />
+            </div>
+          </div>
+          <span className="plate-rule" aria-hidden />
+          <footer className="open-footer nodrag">
+            <span className="open-progress" aria-hidden>
+              <i style={{ width: `${progress * 100}%` }} />
+            </span>
+            <span>{words} words</span>
+            <button
+              className="open-focus"
+              title="Focus: one column, no canvas (⇧F)"
+              onClick={() =>
+                data.coreType === 'document' ? openDocRoom(id) : openFocusEditor(id)
+              }
+            >
+              Focus
+            </button>
+          </footer>
+        </div>
+        <span
+          className={`canvas-node-gutter gutter-right ${gives.length > 0 ? '' : 'is-empty'} ${rightUsed ? 'is-used' : ''}`}
+          aria-hidden
+        />
+        <PortStars nodeId={id} ports={takes} side="left" wired={wiredPorts} />
+        <PortStars nodeId={id} ports={gives} side="right" wired={wiredPorts} />
+        <RelateAnchors related={hasPlainEdges} />
+      </div>
+    );
+  }
 
   // Collapsed plate: title + one subtitle line + readiness ring; ports
   // merge to one dot per side (handles stay mounted so no wire can drop).

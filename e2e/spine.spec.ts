@@ -136,7 +136,7 @@ test('cast derives through the spine and renames propagate live', async ({ page 
   await expect(page.locator('.document-cast')).toHaveText('Cast: Robert');
 });
 
-test('focus editor: double-click to write, walk the spine, Esc back (design B)', async ({ page }) => {
+test('open state -> focus editor: write, walk the spine, Esc back', async ({ page }) => {
   await page.goto('/');
   await page.evaluate(() => { localStorage.clear(); localStorage.setItem('nodecanvas.v2.menuView', 'all'); });
   await page.reload();
@@ -147,12 +147,15 @@ test('focus editor: double-click to write, walk the spine, Esc back (design B)',
   await page.getByRole('button', { name: 'Fit' }).click();
   await page.waitForTimeout(450);
 
-  // double-click Section 1 -> focus room opens
+  // double-click Section 1 -> the plate grows in place (Observatory §10);
+  // the footer's Focus button is the step into the full room
   const section = page
     .locator('.react-flow__node')
     .filter({ has: page.locator('.canvas-node-kind', { hasText: /^Section$/ }) })
     .first();
   await section.dblclick();
+  await expect(page.locator('.canvas-node.is-open')).toHaveCount(1);
+  await page.locator('.open-focus').click();
   const room = page.locator('[data-focus-editor]');
   await expect(room).toBeVisible();
   await expect(room.locator('.focus-title')).toHaveValue('Section 1');

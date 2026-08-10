@@ -26,6 +26,11 @@ import { PORT_GAP, PORT_TOP } from './components/CanvasNode';
  * take = nodeLeft - 3 with the current slot geometry). */
 const ANCHOR_OUT = 3;
 
+/** Observatory §10: the open state's rendered width. The DOCUMENT width is
+ * untouched -- anchors and obstacles borrow this only while a plate is open
+ * so wires stay settled on the grown plate. */
+export const OPEN_WIDTH = 736;
+
 export type FlatHarness = {
   harnessD: string;
   harnessLabelX: number;
@@ -46,12 +51,14 @@ export function anchorFor(
   portId: string,
   direction: 'give' | 'take',
   zoomBorrow: boolean,
+  openNodeId: string | null = null,
 ): HarnessEndpoint | null {
   const node = document.nodes.find((candidate) => candidate.id === nodeId);
   if (!node) return null;
   const def = getNodeDef(node.type);
   if (!def) return null;
-  const width = node.size?.width ?? def.size?.width ?? 300;
+  const width =
+    nodeId === openNodeId ? OPEN_WIDTH : (node.size?.width ?? def.size?.width ?? 300);
   const height = node.size?.height ?? def.size?.height ?? 150;
   const sidePorts = def.ports.filter((port) => port.direction === direction);
   const index = sidePorts.findIndex((port) => port.id === portId);
@@ -75,6 +82,7 @@ export function computeHarness(
   wireVisible: (wire: CanvasDocument['wires'][number]) => boolean,
   zoomBorrow: boolean,
   nodeVisible: (id: string) => boolean = () => true,
+  openNodeId: string | null = null,
 ): Map<string, FlatHarness> {
   const obstacles: RoutingRect[] = document.nodes
     .filter((node) => nodeVisible(node.id))
@@ -84,15 +92,16 @@ export function computeHarness(
         id: node.id,
         x: node.position.x,
         y: node.position.y,
-        width: node.size?.width ?? def?.size?.width ?? 300,
+        width:
+          node.id === openNodeId ? OPEN_WIDTH : (node.size?.width ?? def?.size?.width ?? 300),
         height: node.size?.height ?? def?.size?.height ?? 150,
       };
     });
   const inputs: HarnessWireInput[] = [];
   for (const wire of document.wires) {
     if (wire.status !== 'live' || !wireVisible(wire)) continue;
-    const source = anchorFor(document, wire.source, wire.sourcePort, 'give', zoomBorrow);
-    const target = anchorFor(document, wire.target, wire.targetPort, 'take', zoomBorrow);
+    const source = anchorFor(document, wire.source, wire.sourcePort, 'give', zoomBorrow, openNodeId);
+    const target = anchorFor(document, wire.target, wire.targetPort, 'take', zoomBorrow, openNodeId);
     if (!source || !target) continue;
     inputs.push({
       id: wire.id,

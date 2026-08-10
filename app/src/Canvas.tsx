@@ -119,7 +119,6 @@ export function Canvas() {
   const unpack = useCanvasStore((state) => state.unpack);
   const gatherSelection = useCanvasStore((state) => state.gatherSelection);
   const drillTo = useCanvasStore((state) => state.drillTo);
-  const openEditor = useCanvasStore((state) => state.openEditor);
   const exportingCanvas = useCanvasStore((state) => state.exportingCanvas);
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -200,6 +199,7 @@ export function Canvas() {
   // in flight: WireEdge sees its live handle coords diverge from the frozen
   // anchors and drops to a ghost line; the drop recomputes and settles.
   const zoomBorrow = useCanvasStore((state) => state.zoomBorrow);
+  const openNodeId = useCanvasStore((state) => state.openNodeId);
   const harnessRef = useRef<Map<string, FlatHarness>>(new Map());
   const harness = useMemo(() => {
     if (draggingCount > 0) return harnessRef.current;
@@ -213,10 +213,35 @@ export function Canvas() {
         displayEndpoint(view.viewDoc, wire.target) === wire.target,
       zoomBorrow,
       view.nodeVisible,
+      openNodeId,
     );
     harnessRef.current = next;
     return next;
-  }, [document, view, zoomBorrow, draggingCount]);
+  }, [document, view, zoomBorrow, draggingCount, openNodeId]);
+
+  // Esc closes the open plate (unless a fuller overlay is up -- those own
+  // Esc); ⇧F from the open plate steps into the focus room (spec §10).
+  useEffect(() => {
+    if (openNodeId === null) return;
+    const onKey = (event: KeyboardEvent) => {
+      const store = useCanvasStore.getState();
+      if (store.editorNodeId !== null || store.docRoomId !== null) return;
+      const target = event.target as HTMLElement | null;
+      const typing =
+        (target && /^(input|textarea)$/i.test(target.tagName)) || target?.isContentEditable;
+      if (event.key === 'Escape') {
+        store.setOpenNode(null);
+      } else if (event.shiftKey && event.code === 'KeyF' && !typing) {
+        event.preventDefault();
+        const openNode = store.document.nodes.find((node) => node.id === store.openNodeId);
+        if (!openNode) return;
+        if (openNode.type === 'document') store.openDocRoom(openNode.id);
+        else store.openEditor(openNode.id);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [openNodeId]);
 
   // Sync core document -> RF state. Existing RF node objects are merged so
   // RF-owned fields (measured dims, selection, dragging) survive the sync.
@@ -234,12 +259,19 @@ export function Canvas() {
           // the card after Fit hands ownership back to auto-growth.
           const { width: _staleW, height: _staleH, ...existingBase } = existing ?? ({} as Node);
           const owned = typeof docNode.data['ownedHeight'] === 'number';
+          const isOpen = docNode.id === openNodeId;
           return keepIdentity(existing, {
             ...existingBase,
             id: docNode.id,
             type: 'canvas' as const,
-            ...(docNode.size ? { width: docNode.size.width } : {}),
-            ...(owned && docNode.size ? { height: docNode.size.height } : {}),
+            // Observatory §10: the open plate BORROWS a 736px render width
+            // and rides above its neighbours; the stored size is untouched.
+            ...(isOpen
+              ? { width: 736, zIndex: 1200 }
+              : docNode.size
+                ? { width: docNode.size.width }
+                : {}),
+            ...(!isOpen && owned && docNode.size ? { height: docNode.size.height } : {}),
             // Size HINTS for the culling pass only (RF: measured ?? explicit
             // ?? initial). Without a height hint an unmeasured auto-height
             // node "has no dimensions", is exempt from culling, and mounts
@@ -291,7 +323,7 @@ export function Canvas() {
         );
       return keepArrayIdentity(current, [...canvasNodes, ...faceNodes]);
     });
-  }, [document.nodes, document.assemblies, view, flowReady]);
+  }, [document.nodes, document.assemblies, view, flowReady, openNodeId]);
 
   useEffect(() => {
     if (!flowReady) return;
@@ -591,14 +623,18 @@ export function Canvas() {
         deleteKeyCode={['Delete', 'Backspace']}
         zoomOnDoubleClick={false}
         onNodeDoubleClick={(_event, node) => {
-          // double-click opens the focus editor (design B) on writing nodes;
-          // documents open their fullscreen room (their content IS blocks);
-          // on an assembly star/face it dives toward it (explicit action)
+          // Observatory §10: double-click grows a plate IN PLACE to the open
+          // state; the Focus step (⇧F / footer button) is the full room.
+          // Documents keep their fullscreen room (their content IS blocks);
+          // on an assembly star/face it dives toward it (explicit action).
           if (node.type === 'canvas' && (node.data as { coreType?: string }).coreType === 'document') {
             useCanvasStore.getState().openDocRoom(node.id);
             return;
           }
-          if (node.type === 'canvas') openEditor(node.id);
+          if (node.type === 'canvas') {
+            useCanvasStore.getState().setOpenNode(node.id);
+            return;
+          }
           if (node.type === 'assembly') {
             void setCenter(node.position.x + 130, node.position.y + 70, {
               zoom: 1,

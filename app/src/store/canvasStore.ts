@@ -157,6 +157,12 @@ type CanvasState = {
   editorNodeId: string | null;
   openEditor: (nodeId: string | null) => void;
 
+  /** Observatory §10: the plate grown IN PLACE to the open state. SESSION
+   * only -- never persisted, never a document write (I5: the stored size
+   * and position are untouched; only the rendered width borrows 736px). */
+  openNodeId: string | null;
+  setOpenNode: (nodeId: string | null) => void;
+
   // ---- Document blocks (node pass: docs/design/node-passes/document.md) ----
   setBlockText: (docId: string, blockId: string, content: string) => void;
   /** First edit of an embed forks it; the source is never written by typing. */
@@ -918,6 +924,8 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
 
     editorNodeId: null,
     openEditor: (nodeId) => set({ editorNodeId: nodeId }),
+    openNodeId: null,
+    setOpenNode: (nodeId) => set({ openNodeId: nodeId }),
 
     setBlockText: (docId, blockId, content) =>
       tryOp(() => setTextBlockContent(get().document, docId, blockId, content)),

@@ -62,7 +62,8 @@ export function TipsPanel() {
             <h3>Shortcuts</h3>
             <ul>
               <li><strong>Ctrl+K</strong> — jump to any node, or capture a thought into the Workbench</li>
-              <li><strong>Double-click a node</strong> — the focus writing room (Esc returns)</li>
+              <li><strong>Double-click a node</strong> — it grows in place for writing; Esc returns (documents open their room)</li>
+              <li><strong>Shift+F</strong> (or the Focus button) — the full writing room, no canvas</li>
               <li><strong>Alt+← / Alt+→</strong> — walk sibling sections inside the focus room</li>
               <li><strong>Ctrl-click</strong> — multi-select; then Group N in the toolbar</li>
               <li><strong>Delete</strong> — remove the selected node, line, or wire</li>

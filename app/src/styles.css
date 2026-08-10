@@ -287,6 +287,83 @@ html, body, #root {
 .canvas-node-fit:hover { color: var(--gold); border-color: var(--gold-soft); }
 .canvas-node-body { flex: 1; display: flex; min-height: 0; position: relative; }
 
+/* ---------- Open state (Observatory §10) ----------
+   Double-click grows the plate IN PLACE to 736px (render only; the stored
+   size never changes). The spread shadow dims the canvas behind it; the
+   chrome/content ratio inverts: one quiet header line, a linked rail of
+   port chips, the writing column in Spectral, a footer rail. */
+.canvas-node.is-open {
+  min-height: 320px;
+  border-color: var(--border-selected);
+  box-shadow: 0 0 0 4000px rgba(5, 6, 13, 0.55), var(--shadow-open);
+}
+/* the linked rail replaces the floating port labels while open */
+.canvas-node.is-open .port-label { display: none; }
+.open-words { font-family: var(--font-mono); font-size: 9px; color: var(--obs-dim); white-space: nowrap; }
+.open-close {
+  display: grid; place-items: center;
+  width: 18px; height: 18px; border-radius: 4px; flex: none;
+  background: transparent; border: 1px solid var(--border-quiet);
+  color: var(--obs-dim); cursor: pointer;
+}
+.open-close:hover { border-color: var(--border-selected); color: var(--text); }
+.open-body { flex: 1; display: flex; min-height: 0; }
+.open-rail {
+  flex: none; width: 154px;
+  padding: 14px 10px 12px 12px;
+  border-right: 1px solid var(--border-quiet);
+  display: flex; flex-direction: column; gap: 5px; align-items: flex-start;
+  overflow-y: auto;
+}
+.open-rail-title {
+  margin: 6px 0 1px; font-size: 8.5px; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--text-faint);
+}
+.open-rail-title:first-child { margin-top: 0; }
+.open-chip {
+  display: inline-flex; align-items: center; max-width: 100%;
+  padding: 2px 9px; border-radius: 9999px;
+  background: color-mix(in srgb, var(--port-color) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--port-color) 24%, transparent);
+  color: var(--port-color); font-size: 10px; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.open-chip.is-wired {
+  background: color-mix(in srgb, var(--port-color) 18%, transparent);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--port-color) 30%, transparent);
+}
+.open-column {
+  flex: 1; min-width: 0; display: flex; flex-direction: column;
+  padding: 22px 30px 8px 26px; overflow-y: auto; scrollbar-width: thin;
+}
+.open-column .canvas-node-title.open-title {
+  font-size: 23px; letter-spacing: -0.01em; padding: 0 0 10px;
+}
+/* the writing column reads in Spectral at prose scale */
+.open-column .richtext-content,
+.open-column .doc-blocks {
+  font-family: var(--font-prose); font-size: 16.5px; line-height: 1.72;
+  max-width: 60ch;
+}
+.open-column .canvas-node-body { flex: none; }
+.open-footer {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 12px 8px;
+  font-family: var(--font-mono); font-size: 9px; color: var(--obs-dim);
+  white-space: nowrap;
+}
+.open-progress {
+  flex: 1; height: 3px; border-radius: 2px;
+  background: var(--surface-inset); overflow: hidden;
+}
+.open-progress i { display: block; height: 100%; background: #a595f2; opacity: 0.55; }
+.open-focus {
+  padding: 2px 10px; border-radius: 5px;
+  background: transparent; border: 1px solid var(--border-quiet);
+  color: var(--text-muted); font-size: 10px; cursor: pointer;
+}
+.open-focus:hover { border-color: var(--border-selected); color: var(--text); }
+
 /* RELATE anchors: the plain-edge connector wearing the plate language --
    a small diamond at the top of each gutter (user, 2026-08-09: "make a
    general relationship connector with the rest of the side gutters").

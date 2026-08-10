@@ -50,7 +50,7 @@ Build in the README's suggested order, full suite green between phases:
 | C | Wire rendering: chamfers, hops, lanes; junction dots; the 11 signal animations (budget ~8, reduced-motion) | **completed 2026-08-09** |
 | D | Corridor derivation from free space; ghost-and-settle on drag (new core/src/routing.ts) | **completed 2026-08-09** |
 | E | Assembly face (stacked edges) + block/embed states + fork notice | **completed 2026-08-10** (face union-ports deferred — needs a wiring-semantics decision; §8 colors + fork pill landed in the audit pass — the 78px label column was NOT adopted, the Document pass's margin-line pick holds) |
-| F | Open state: in-place grow, linked rail, writing column, per-form bodies | not started |
+| F | Open state: in-place grow, linked rail, writing column, per-form bodies | **completed 2026-08-10** (the shell; per-form bodies ride with their node passes — mockups-first rule) |
 | G | Split panel (replaces the preset list; presets become saved configs) | not started |
 | H | Density: gutter trunks, highways, filter bar, minimap | not started |
 | I | "Not yet in core" extras, EACH its own user decision: media/PDF node, ink layer, merge, relation filter, history | not started |
@@ -123,6 +123,33 @@ suite, academic-pack polish, merge-progress faces, citation formatting,
 presentation-walk mode. All registry entries + isolated reducers (invariant I8).
 
 ## Session log
+
+### 2026-08-10 (later) — Observatory Phase F: the open state (shell)
+
+- Double-click grows a plate IN PLACE to 736px (spec §10). SESSION ONLY:
+  the RF node borrows `width: 736, zIndex: 1200`; the stored document is
+  untouched (e2e pins byte-identical localStorage across an open/close;
+  the measured-height ResizeObserver PAUSES while open so opening can
+  never become a write). The plate's own 4000px spread shadow dims the
+  canvas behind it — no overlay fighting RF stacking contexts.
+- Anatomy: one quiet header line (label · word count · readiness ring ·
+  close), 154px linked rail (Takes/Gives as data-kind chips, hue 8% fill /
+  24% border, wired chips brighter + glow — replaces the floating port
+  labels while open), writing column (23px title, Spectral 16.5/1.72 at
+  60ch, padding 22/30/8/26), footer rail (word bar toward a 1k soft scale,
+  count, Focus). Esc returns; ⇧F (or Focus) steps into the FocusEditor —
+  documents step into their DocumentRoom instead. Every handle stays
+  mounted; anchorFor/computeHarness take an OPEN_WIDTH override so wires
+  SETTLE on the grown plate (caught by the new e2e: the override applied
+  to obstacles but not anchors → permanent ghost).
+- Entry rewiring: double-click on writing plates now opens the open state
+  (was: FocusEditor); documents keep their room on double-click. Tips
+  copy updated; spine.spec walks open → Focus → room.
+- e2e/open-state.spec.ts (3): grow/Esc/document-byte-identical; the
+  two-step Esc ladder (room, then plate); wire stays settled while open.
+- Per-form bodies (novel scene / sermon point / paper section) DEFERRED
+  to their per-node passes — the standing mockups-first rule.
+- Suite: 267 unit + 44 e2e green; typecheck + lint clean.
 
 ### 2026-08-10 — Mockup audit (user zip) + the §8 remainder of Phase E
 
