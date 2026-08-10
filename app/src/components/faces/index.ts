@@ -12,9 +12,10 @@
 
 import type { ComponentType } from 'react';
 import { BlocksFace } from './BlocksFace';
+import { ClaimFace } from './ClaimFace';
 import { DefaultFace } from './DefaultFace';
-import { DocumentFace } from './DocumentFace';
 import { HubFace } from './HubFace';
+import { PlaceFace, QuestionFace, ThingFace } from './KnowledgeFaces';
 import { EventFace, PayoffFace, PlantFace, PersonFace } from './NovelFaces';
 import { PropositionFace } from './PropositionFace';
 import { SourceFace } from './SourceFace';
@@ -32,13 +33,16 @@ export const NODE_FACES: Record<string, ComponentType<FaceProps>> = {
   document: BlocksFace,
   manuscript: ManuscriptFace,
   section: SectionFace,
-  claim: DocumentFace,
+  claim: ClaimFace,
   passage: PassageFace,
   proposition: PropositionFace,
   plant: PlantFace,
   payoff: PayoffFace,
   event: EventFace,
   person: PersonFace,
+  place: PlaceFace,
+  thing: ThingFace,
+  question: QuestionFace,
   hub: HubFace,
   source: SourceFace,
 };

@@ -127,3 +127,79 @@ describe('node faces (I8: per-type looks plug in without touching shared chrome)
     expect(document.querySelector('[data-face="title"]')).toBeNull();
   });
 });
+
+// pt2 §7 remainder: the knowledge + argument faces derive everything from
+// wires -- these tests wire the document up and read the derived rows.
+describe('knowledge + argument faces (pt2)', () => {
+  it('question: open until an answer wire lands, then names its answerer', async () => {
+    let doc = createEmptyDocument('qa');
+    const question = spawnNode('question', { x: 0, y: 0 });
+    const note = spawnNode('note', { x: 700, y: 0 });
+    note.data = { title: 'Field notes', content: '<p>Because the tide turned.</p>' };
+    doc = addNode(addNode(doc, question), note);
+    localStorage.setItem('nodecanvas.v2.document', serializeDocument(doc));
+    render(<App />);
+    await screen.findByTestId('app-shell');
+    await waitFor(() => expect(document.querySelector('[data-face="question"]')).not.toBeNull());
+    expect(document.querySelector('[data-unanswered]')).not.toBeNull();
+
+    useCanvasStore.setState((state) => ({
+      document: addWire(state.document, {
+        source: note.id,
+        sourcePort: 'text-out',
+        target: question.id,
+        targetPort: 'answer-in',
+      }),
+    }));
+    await waitFor(() => expect(document.querySelector('[data-answered]')).not.toBeNull());
+    expect(document.querySelector('[data-answered]')!.textContent).toContain('Field notes');
+    expect(document.querySelector('[data-answered]')!.textContent).toContain('tide turned');
+  });
+
+  it('claim: a live rebut marks the whole claim contested', async () => {
+    let doc = createEmptyDocument('argue');
+    const claim = spawnNode('claim', { x: 0, y: 0 });
+    const rebut = spawnNode('note', { x: 700, y: 0 });
+    rebut.data = { title: 'Counterexample' };
+    doc = addNode(addNode(doc, claim), rebut);
+    doc = addWire(doc, {
+      source: rebut.id,
+      sourcePort: 'text-out',
+      target: claim.id,
+      targetPort: 'rebuts-in',
+    });
+    localStorage.setItem('nodecanvas.v2.document', serializeDocument(doc));
+    render(<App />);
+    await screen.findByTestId('app-shell');
+    await waitFor(() => expect(document.querySelector('[data-face="claim"]')).not.toBeNull());
+    expect(document.querySelector('[data-contested]')).not.toBeNull();
+    expect(document.querySelector('.claim-chip.is-rebut')!.textContent).toBe('Counterexample');
+  });
+
+  it('place: contained places band up; the container names itself on the child', async () => {
+    let doc = createEmptyDocument('geo');
+    const harbor = spawnNode('place', { x: 0, y: 0 });
+    const tavern = spawnNode('place', { x: 700, y: 0 });
+    harbor.data = { title: 'Harbor' };
+    tavern.data = { title: 'Tavern' };
+    doc = addNode(addNode(doc, harbor), tavern);
+    doc = addWire(doc, {
+      source: tavern.id,
+      sourcePort: 'identity-out',
+      target: harbor.id,
+      targetPort: 'contains-in',
+    });
+    localStorage.setItem('nodecanvas.v2.document', serializeDocument(doc));
+    render(<App />);
+    await screen.findByTestId('app-shell');
+    await waitFor(() =>
+      expect(document.querySelectorAll('[data-face="place"]').length).toBe(2),
+    );
+    // the container lists Tavern; the child says where it sits
+    expect(document.querySelector('[data-contains-band]')!.textContent).toContain('Tavern');
+    const lines = [...document.querySelectorAll('.face-derived-line')].map(
+      (el) => el.textContent,
+    );
+    expect(lines.some((line) => line?.includes('within') && line.includes('Harbor'))).toBe(true);
+  });
+});

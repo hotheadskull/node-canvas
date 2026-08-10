@@ -32,20 +32,52 @@ export function SectionFace({ nodeId, content }: FaceProps) {
   const setNodeContent = useCanvasStore((state) => state.setNodeContent);
   const document = useCanvasStore((state) => state.document);
 
+  const titleOf = (id: string) => {
+    const node = document.nodes.find((candidate) => candidate.id === id);
+    const title = node && typeof node.data.title === 'string' ? node.data.title.trim() : '';
+    return title !== '' ? title : 'Unnamed';
+  };
+
   const cast = useMemo(() => {
     return document.wires
       .filter((wire) => wire.status === 'live' && wire.target === nodeId && wire.targetPort === 'people-in')
-      .map((wire) => {
-        const person = document.nodes.find(n => n.id === wire.source);
-        return {
-          id: wire.source,
-          name: typeof person?.data.title === 'string' && person.data.title.trim() !== '' ? person.data.title.trim() : 'Unnamed'
-        };
-      });
+      .map((wire) => ({ id: wire.source, name: titleOf(wire.source) }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [document.wires, document.nodes, nodeId]);
+
+  // the scene sub-line (§11 novel scene, v1): POV and setting read from
+  // the pov-in / place-in wires -- shown only once either is wired
+  const scene = useMemo(() => {
+    const wireInto = (portId: string) =>
+      document.wires.find(
+        (wire) => wire.status === 'live' && wire.target === nodeId && wire.targetPort === portId,
+      );
+    const pov = wireInto('pov-in');
+    const setting = wireInto('place-in');
+    return {
+      pov: pov ? titleOf(pov.source) : null,
+      setting: setting ? titleOf(setting.source) : null,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [document.wires, document.nodes, nodeId]);
 
   return (
     <div className="canvas-node-body section-face" data-face="section">
+      {(scene.pov !== null || scene.setting !== null) && (
+        <p className="face-derived-line" data-scene-line>
+          {scene.pov !== null && (
+            <>
+              POV <strong>{scene.pov}</strong>
+            </>
+          )}
+          {scene.pov !== null && scene.setting !== null && ' · '}
+          {scene.setting !== null && (
+            <>
+              @ <strong>{scene.setting}</strong>
+            </>
+          )}
+        </p>
+      )}
       {cast.length > 0 && (
         <div className="section-cast-band nodrag">
           {cast.map(person => (

@@ -42,6 +42,7 @@ export type FlatHarness = {
   harnessJunctionY?: number;
   harnessTieX?: number;
   harnessTieY?: number;
+  harnessTieCount?: number;
 };
 
 export function anchorFor(
@@ -149,7 +150,7 @@ export function computeHarness(
         ? { harnessJunctionX: wire.junction.x, harnessJunctionY: wire.junction.y }
         : {}),
       ...(wire.tie
-        ? { harnessTieX: wire.tie.x, harnessTieY: wire.tie.y }
+        ? { harnessTieX: wire.tie.x, harnessTieY: wire.tie.y, harnessTieCount: wire.tie.count }
         : {}),
     });
   });

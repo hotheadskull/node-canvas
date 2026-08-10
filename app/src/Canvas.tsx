@@ -229,8 +229,9 @@ export function Canvas() {
       }
     };
 
-    // ⌘V over the canvas: text becomes a Note at the viewport centre --
-    // spawning at a fixed origin would land off-view at any pan (§10).
+    // ⌘V over the canvas (§10): text -> Note, a URL -> Source, an image
+    // -> Source. Everything lands at the viewport centre -- a fixed
+    // origin would drop it off-view at any pan.
     const onPaste = (event: ClipboardEvent) => {
       const store = useCanvasStore.getState();
       const target = event.target as HTMLElement | null;
@@ -238,13 +239,45 @@ export function Canvas() {
         (target && /^(input|textarea)$/i.test(target.tagName)) || target?.isContentEditable;
       if (typing) return;
 
-      const text = event.clipboardData?.getData('text/plain');
-      if (!text) return;
-
       const center = screenToFlowPosition({
         x: window.innerWidth / 2,
         y: window.innerHeight / 2,
       });
+      const asSource = (title: string, url: string, mime: string) => {
+        const nodeId = store.spawnAt('source', center);
+        if (!nodeId) return;
+        store.setNodeTitle(nodeId, title);
+        store.setNodeField(nodeId, 'sourceUrl', url);
+        store.setNodeField(nodeId, 'sourceType', mime);
+      };
+
+      const imageItem = [...(event.clipboardData?.items ?? [])].find((item) =>
+        item.type.startsWith('image/'),
+      );
+      if (imageItem) {
+        const file = imageItem.getAsFile();
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = () => asSource('Pasted image', String(reader.result), file.type);
+          reader.readAsDataURL(file);
+          return;
+        }
+      }
+
+      const text = event.clipboardData?.getData('text/plain');
+      if (!text) return;
+      const trimmed = text.trim();
+      if (/^https?:\/\/\S+$/.test(trimmed)) {
+        let title = trimmed;
+        try {
+          title = new URL(trimmed).hostname;
+        } catch {
+          // keep the raw URL as the title
+        }
+        asSource(title, trimmed, 'text/html');
+        return;
+      }
+
       const nodeId = store.spawnAt('note', center);
       if (nodeId) {
         store.setNodeTitle(nodeId, 'Clipped Note');
@@ -577,6 +610,53 @@ export function Canvas() {
     [drillStack, document.assemblies],
   );
 
+  // Select-to-promote (spec §8): while exactly ONE hub is selected, its
+  // connections resolve to full strength and every plate outside them
+  // drops to 42%. Display-only -- nothing is written; deselect restores.
+  const promotedHubId = useMemo(() => {
+    const selected = rfNodes.filter((node) => node.selected && node.type === 'canvas');
+    return selected.length === 1 &&
+      (selected[0]!.data as { coreType?: string }).coreType === 'hub'
+      ? selected[0]!.id
+      : null;
+  }, [rfNodes]);
+  const promotedNeighbors = useMemo(() => {
+    if (promotedHubId === null) return null;
+    const set = new Set([promotedHubId]);
+    for (const wire of document.wires) {
+      if (wire.status !== 'live') continue;
+      if (wire.source === promotedHubId) set.add(wire.target);
+      if (wire.target === promotedHubId) set.add(wire.source);
+    }
+    for (const edge of document.edges) {
+      if (edge.source === promotedHubId) set.add(edge.target);
+      if (edge.target === promotedHubId) set.add(edge.source);
+    }
+    return set;
+  }, [promotedHubId, document.wires, document.edges]);
+  const displayNodes = useMemo(
+    () =>
+      promotedNeighbors === null
+        ? rfNodes
+        : rfNodes.map((node) =>
+            node.type !== 'canvas' || promotedNeighbors.has(node.id)
+              ? node
+              : { ...node, className: 'is-promote-dim' },
+          ),
+    [rfNodes, promotedNeighbors],
+  );
+  const displayEdges = useMemo(
+    () =>
+      promotedHubId === null
+        ? rfEdges
+        : rfEdges.map((edge) =>
+            edge.source === promotedHubId || edge.target === promotedHubId
+              ? { ...edge, className: 'is-promoted' }
+              : edge,
+          ),
+    [rfEdges, promotedHubId],
+  );
+
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     const storeState = useCanvasStore.getState();
     if (storeState.inkMode || e.pointerType === 'pen') {
@@ -611,6 +691,58 @@ export function Canvas() {
 
   const isInkModeActive = inkMode;
 
+  // §10: drop a file onto the canvas -> a Source node at the cursor.
+  // Small files embed as a data URL in node.data so they survive reload;
+  // browser storage is ~5MB total, so past the cap the Source keeps the
+  // name only (the toast says so -- never a silent downgrade).
+  const spawnSourceAt = useCallback(
+    (position: { x: number; y: number }, title: string, url?: string, mime?: string) => {
+      const store = useCanvasStore.getState();
+      const nodeId = store.spawnAt('source', position);
+      if (!nodeId) return;
+      store.setNodeTitle(nodeId, title);
+      if (url !== undefined) {
+        store.setNodeField(nodeId, 'sourceUrl', url);
+        store.setNodeField(nodeId, 'sourceType', mime ?? '');
+      }
+    },
+    [],
+  );
+  const MAX_EMBED_BYTES = 2_500_000;
+  const onCanvasDrop = useCallback(
+    (event: React.DragEvent) => {
+      const file = event.dataTransfer.files[0];
+      const uri = event.dataTransfer.getData('text/uri-list').split('\n')[0]?.trim() ?? '';
+      if (!file && uri === '') return;
+      event.preventDefault();
+      const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+      if (!file) {
+        let title = uri;
+        try {
+          title = new URL(uri).hostname;
+        } catch {
+          // not a parseable URL; the raw text is still an honest title
+        }
+        spawnSourceAt(position, title, uri, 'text/html');
+        return;
+      }
+      if (file.size > MAX_EMBED_BYTES) {
+        spawnSourceAt(position, file.name);
+        useCanvasStore.setState({
+          toast: {
+            message: `"${file.name}" is too large to embed (2.5MB cap) — the Source keeps its name only`,
+          },
+        });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () =>
+        spawnSourceAt(position, file.name, String(reader.result), file.type);
+      reader.readAsDataURL(file);
+    },
+    [screenToFlowPosition, spawnSourceAt],
+  );
+
   return (
     <div
       className={`canvas-root density-${settings.density} port-labels-${settings.portLabels} zoom-${zoomBucket}`}
@@ -618,10 +750,19 @@ export function Canvas() {
       onPointerMoveCapture={handlePointerMove}
       onPointerUpCapture={handlePointerUp}
       onPointerCancelCapture={handlePointerUp}
+      onDrop={onCanvasDrop}
+      onDragOver={(event) => {
+        if (
+          event.dataTransfer.types.includes('Files') ||
+          event.dataTransfer.types.includes('text/uri-list')
+        ) {
+          event.preventDefault();
+        }
+      }}
     >
       <ReactFlow
-        nodes={rfNodes}
-        edges={rfEdges}
+        nodes={displayNodes}
+        edges={displayEdges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}

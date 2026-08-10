@@ -136,8 +136,12 @@ four-sided AUTO port movement (shared decision in app/src/portGeometry.ts),
 §3 strand ties at the target stub, the ink layer (perfect-freehand,
 strokes persisted through Zod as document.ink), ⌘V paste-to-note, per-type
 faces for Section/Manuscript/Passage/Person/Source, panOnScroll (wheel
-pans, ctrl+wheel zooms). Still open: drop-file→Source (SourceFace reads
-data.sourceUrl but nothing writes it), block "new" row, trunks/highways.
+pans, ctrl+wheel zooms). Later the same night the ROSTER CLOSED: faces
+for Claim/Place/Thing/Question (every registry type now has a body),
+drop-file→Source + paste URL/image→Source, tie counts, select-to-promote,
+the scene sub-line. Still open: block "new" row, trunks/highways,
+select-text-to-clip (needs an in-app PDF/text viewer), open-state
+per-form EXTRAS (continuity note, delivery clock, citation chips).
 Commits: 94a86a5 (steps 1-5), cda23bb (7+8). Suite green after each:
 typecheck, 273 unit, 49 e2e. Verified in-browser via Playwright shots
 (sky + band, plate tints, port variants incl. live flare, hub roster).
@@ -205,6 +209,42 @@ suite, academic-pack polish, merge-progress faces, citation formatting,
 presentation-walk mode. All registry entries + isolated reducers (invariant I8).
 
 ## Session log
+
+### 2026-08-10 (night) — Every type has a body; drop/paste→Source; evaluation guide
+
+User: "you can start working on all of them? then come up with a summary
+of the entire program and i want to start evaluating everything."
+
+Faces: **every registered type now renders a real body.** New this
+session: CLAIM (supports chips green / rebuts red / warrant line /
+`contested` pill on any live rebut; Split stays in the footer so Toulmin
+survives), PLACE (contains band + "within <parent>" derived line — both
+nesting directions), THING ("held by" person chips off possession
+wires), QUESTION (dashed spine — the plate that OWES; open state in
+amber, answered state names the answerer and quotes an excerpt in
+green). SECTION gained the §11 scene sub-line (POV <person> · @ <place>
+from pov-in/place-in wires). PersonFace's five fields got their CSS
+(mono labels, dashed baselines — they were shipping browser-default
+white). All derived, nothing typed twice.
+
+Connections: **drop a file on the canvas → a Source at the cursor**
+(≤2.5MB embeds as a data URL inside the validated document so it
+SURVIVES RELOAD; bigger files keep the name + an honest toast). ⌘V now
+routes: image → Source, URL → Source (hostname title), text → Note.
+Strand ties carry their COUNT (two hairlines + Space Mono numeral,
+spec §3; harness.golden regenerated via new
+scripts/gen-harness-golden.mts — INVARIANT-CHANGE-APPROVED).
+**Select-to-promote** (§8): one hub selected → its neighbourhood
+resolves, everything else drops to 42%; display-only via mapped RF
+class names, deselect restores.
+
+Testing note for future seeding: writing nodecanvas.v2.document via
+page.evaluate AFTER goto RACES the app's debounced save (it clobbers
+the seed with the empty doc) — seed in addInitScript before boot.
+
+Suite at close: typecheck clean, 275 unit, 50/50 e2e (new: source-drop
+spec proving the data URL survives reload). docs/EVALUATION.md NEW —
+the whole-program walkthrough for the user's evaluation pass.
 
 ### 2026-08-10 (evening) — Dock + add sheet; the user's solo batch reviewed and repaired
 

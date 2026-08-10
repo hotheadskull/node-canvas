@@ -487,7 +487,7 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
         style={{ ['--accent' as string]: accent, ['--kind' as string]: kindHue }}
         data-open-plate
       >
-        <span className="plate-spine" aria-hidden />
+        <span className={`plate-spine ${data.coreType === 'question' ? 'is-dashed' : ''}`} aria-hidden />
         <span
           className={`canvas-node-gutter gutter-left ${(flipped ? gives : takes).length > 0 ? '' : 'is-empty'} ${leftUsed ? 'is-used' : ''}`}
           aria-hidden
@@ -581,7 +581,7 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
             <i className="plate-tick tick-br" aria-hidden />
           </>
         )}
-        <span className="plate-spine" aria-hidden />
+        <span className={`plate-spine ${data.coreType === 'question' ? 'is-dashed' : ''}`} aria-hidden />
         <span
           className={`canvas-node-gutter gutter-left ${(flipped ? gives : takes).length > 0 ? '' : 'is-empty'} ${leftUsed ? 'is-used' : ''}`}
           aria-hidden
@@ -641,7 +641,7 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
         </>
       )}
       {/* type spine: 3px, the colour of what this node gives, fading down */}
-      <span className="plate-spine" aria-hidden />
+      <span className={`plate-spine ${data.coreType === 'question' ? 'is-dashed' : ''}`} aria-hidden />
       {accentPickerOpen && (
         <div className="accent-picker nodrag" role="listbox" aria-label="Node color">
           {ACCENT_PRESETS.map((preset) => (

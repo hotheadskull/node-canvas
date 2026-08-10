@@ -42,8 +42,9 @@ export type HarnessWire = {
   labelY: number;
   /** Present on the FIRST wire of a shared-stub group: draw the split dot. */
   junction?: HarnessPoint;
-  /** Present on the FIRST wire of a shared-target-stub group: draw the merge tie. */
-  tie?: HarnessPoint;
+  /** Present on the FIRST wire of a shared-target-stub group: draw the
+   * merge tie -- two hairlines with the strand COUNT above (spec §3). */
+  tie?: HarnessPoint & { count: number };
 };
 
 export const STUB = 12;
@@ -298,7 +299,9 @@ export function routeHarness(
       labelX: labelPoint.x,
       labelY: labelPoint.y,
       ...(isJunctionOwner ? { junction: { x: stubEnd.x, y: stubEnd.y } } : {}),
-      ...(isTieOwner ? { tie: { x: targetStubEnd.x, y: targetStubEnd.y } } : {}),
+      ...(isTieOwner
+        ? { tie: { x: targetStubEnd.x, y: targetStubEnd.y, count: targetGroup.length } }
+        : {}),
     };
   });
 }

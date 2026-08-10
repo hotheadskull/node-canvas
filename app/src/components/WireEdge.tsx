@@ -47,6 +47,7 @@ export type WireEdgeData = {
   harnessJunctionY?: number;
   harnessTieX?: number;
   harnessTieY?: number;
+  harnessTieCount?: number;
 };
 
 /** Signal character per data kind (spec §5) -- dash/duration/timing live in
@@ -165,17 +166,38 @@ function WireEdgeComponent({
           />
         </g>
       )}
-      {/* strand tie: several gives merging into one take port */}
+      {/* strand tie (spec §3): several gives merging into one take port.
+          Two 1px verticals 5px apart with the strand count above -- the
+          tie marks the merge without ever drawing thicker than a wire. */}
       {settled && data?.harnessTieX !== undefined && (
         <g className="wire-tie" data-tie>
-          <rect
-            x={(data.harnessTieX as number) - 2.5}
-            y={(data.harnessTieY as number) - 6}
-            width={5}
-            height={12}
-            fill={color}
-            rx={2}
+          <line
+            x1={(data.harnessTieX as number) - 2.5}
+            y1={(data.harnessTieY as number) - 6}
+            x2={(data.harnessTieX as number) - 2.5}
+            y2={(data.harnessTieY as number) + 6}
+            stroke={color}
+            strokeWidth={1}
           />
+          <line
+            x1={(data.harnessTieX as number) + 2.5}
+            y1={(data.harnessTieY as number) - 6}
+            x2={(data.harnessTieX as number) + 2.5}
+            y2={(data.harnessTieY as number) + 6}
+            stroke={color}
+            strokeWidth={1}
+          />
+          {data.harnessTieCount !== undefined && (
+            <text
+              className="wire-tie-count"
+              x={data.harnessTieX}
+              y={(data.harnessTieY as number) - 9}
+              textAnchor="middle"
+              fill={color}
+            >
+              {data.harnessTieCount}
+            </text>
+          )}
         </g>
       )}
       <EdgeLabelRenderer>
