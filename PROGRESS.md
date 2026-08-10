@@ -47,7 +47,7 @@ Build in the README's suggested order, full suite green between phases:
 |---|---|---|
 | A | Data-kind color law (core/src/colors.ts) + closed DataKind union + readiness ring component | **completed 2026-08-09** (fonts bundled via fontsource; ReadinessRing per spec) |
 | B | Plate anatomy (spine/gutters/rails) + three collapse states (data field; zoom borrows, never writes) | **completed 2026-08-09** |
-| C | Wire rendering: chamfers, hops, lanes; junction dots; the 11 signal animations (budget ~8, reduced-motion) | not started |
+| C | Wire rendering: chamfers, hops, lanes; junction dots; the 11 signal animations (budget ~8, reduced-motion) | **completed 2026-08-09** |
 | D | Corridor derivation from free space; ghost-and-settle on drag (new core/src/routing.ts) | not started |
 | E | Assembly face (stacked edges) + block/embed states + fork notice | not started |
 | F | Open state: in-place grow, linked rail, writing column, per-form bodies | not started |
@@ -123,6 +123,37 @@ suite, academic-pack polish, merge-progress faces, citation formatting,
 presentation-walk mode. All registry entries + isolated reducers (invariant I8).
 
 ## Session log
+
+### 2026-08-09 (night) — Observatory Phase C: the wire harness (completed)
+
+- core/src/harness.ts (+ golden): routePoints (stub → lane → stub
+  orthogonal skeleton), harnessPathD (45° chamfers, cuts clamped on short
+  runs; hop arcs A6,6 with sweep 1 down / 0 up), findHops (verticals hop
+  horizontals, margin clears hop radius + chamfer), routeHarness (lanes
+  14px apart per target in intake order; junction dot at the shared stub
+  when one give feeds 2+ takes -- no dot, no relationship).
+- app/src/harnessRouting.ts: pixel anchors from the SAME constants the
+  plate renders with (PORT_TOP/PORT_GAP); collapsed plates anchor at the
+  merged dot. Measured empirically: RF anchors an edge at the handle
+  OUTER edge (give = nodeRight+3, take = nodeLeft-3) -- the formula-vs-DOM
+  drift was 11px and nothing ever settled until measured, not assumed.
+- Ghost-and-settle WITHOUT extra state: the harness routes from DOCUMENT
+  positions and FREEZES while any node drags (draggingCount); WireEdge
+  compares RF live handle coords to the routed anchors -- divergence => a
+  straight dashed ghost, release => recompute and settle. The freeze also
+  skips the O(n²) hop pass per drag frame.
+- Signals: the 11 characters as .sig-<dataKind> CSS (dash sums 1200,
+  offset 1200→0; crawl has its own keyframes); Canvas assigns an ~8-wire
+  budget; prefers-reduced-motion kills them all.
+- Overlay-gating bug FOUND by the suite: the tutorial invite read the
+  CLOSED_DOCUMENT sentinel, so it never left once nodes existed and ate a
+  hover. Invite now reads a narrow emptiness primitive.
+- e2e/harness.spec.ts (4): orthogonal settle, junction dot via real port
+  clicks, mid-drag ghost sampled during a real mouse drag, signal budget.
+- Suite: 255 unit + 40 e2e green; typecheck clean.
+
+**Known Phase-D debt (expected): lanes can still cross plates** -- corridor
+derivation from free space is exactly the next phase.
 
 ### 2026-08-09 (later still) — Observatory Phase B complete: collapse states
 

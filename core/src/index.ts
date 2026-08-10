@@ -8,6 +8,7 @@ export * from './migrate';
 export * from './graph';
 export * from './wires';
 export * from './layout';
+export * from './harness';
 export * from './derive';
 export * from './split';
 export * from './assemblies';

@@ -29,7 +29,7 @@ import {
   type NodeChange,
   type EdgeChange,
 } from '@xyflow/react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   arcOutline,
   displayEndpoint,
@@ -53,6 +53,7 @@ import { Toolbar } from './components/Toolbar';
 import { Tutorial } from './components/Tutorial';
 import { WireEdge } from './components/WireEdge';
 import { firstCompatibleTake, PLAIN_HANDLES, useCanvasStore } from './store/canvasStore';
+import { computeHarness, type FlatHarness } from './harnessRouting';
 
 const nodeTypes = { canvas: CanvasNode, assembly: AssemblyFace };
 const edgeTypes = { plain: PlainEdge, wire: WireEdge };
@@ -129,6 +130,10 @@ export function Canvas() {
   // mounts EVERY node -- on a 500-node canvas that meant ~500 TipTap editors
   // built and immediately unmounted (a 27s boot, found by the stress spec).
   const [flowReady, setFlowReady] = useState(false);
+  // Any node mid-drag? The harness freezes (spec §4: wires drop to a ghost
+  // line during a drag and settle on release) -- and skipping recompute per
+  // drag frame is also the perf answer for the O(n²) hop pass.
+  const [draggingCount, setDraggingCount] = useState(0);
 
   // ⌥⇧A: collapse everything / expand everything (Observatory §2). If any
   // plate is still full, the sweep collapses; otherwise it expands.
@@ -190,6 +195,27 @@ export function Canvas() {
     const phrasingOrigin = drilledAssembly?.position ?? { x: 0, y: 0 };
     return { viewDoc, hidden, nodeVisible, assemblyVisible, phrasing, phrasingOrigin };
   }, [document, drillStack, drilled]);
+
+  // The routed harness for every visible live wire. FROZEN while a drag is
+  // in flight: WireEdge sees its live handle coords diverge from the frozen
+  // anchors and drops to a ghost line; the drop recomputes and settles.
+  const zoomBorrow = useCanvasStore((state) => state.zoomBorrow);
+  const harnessRef = useRef<Map<string, FlatHarness>>(new Map());
+  const harness = useMemo(() => {
+    if (draggingCount > 0) return harnessRef.current;
+    const endpointShown = (id: string) => view.nodeVisible(id);
+    const next = computeHarness(
+      document,
+      (wire) =>
+        endpointShown(wire.source) &&
+        endpointShown(wire.target) &&
+        displayEndpoint(view.viewDoc, wire.source) === wire.source &&
+        displayEndpoint(view.viewDoc, wire.target) === wire.target,
+      zoomBorrow,
+    );
+    harnessRef.current = next;
+    return next;
+  }, [document, view, zoomBorrow, draggingCount]);
 
   // Sync core document -> RF state. Existing RF node objects are merged so
   // RF-owned fields (measured dims, selection, dragging) survive the sync.
@@ -299,6 +325,10 @@ export function Canvas() {
           }),
         ];
       });
+      // Animation budget (spec §5): ~8 animated wires. First N visible live
+      // wires carry the signal; the rest stay static. Reduced-motion kills
+      // every animation in CSS regardless.
+      let animationBudget = 8;
       const wireEdges = document.wires.flatMap((wire) => {
         const source = displayEndpoint(view.viewDoc, wire.source);
         const target = displayEndpoint(view.viewDoc, wire.target);
@@ -307,6 +337,8 @@ export function Canvas() {
         const sourceNode = document.nodes.find((node) => node.id === wire.source);
         const givePort = sourceNode ? getPort(sourceNode.type, wire.sourcePort) : undefined;
         const isArc = givePort?.dataKind === 'prop' && wire.targetPort === 'arc-in';
+        const routed = harness.get(wire.id);
+        const animate = wire.status === 'live' && animationBudget > 0 ? (animationBudget--, true) : false;
         return [
           keepIdentity(byId.get(wire.id), {
             ...byId.get(wire.id),
@@ -320,6 +352,8 @@ export function Canvas() {
               status: wire.status,
               dataKind: givePort?.dataKind ?? '',
               portLabel: givePort?.label ?? wire.sourcePort,
+              animate,
+              ...(routed ?? {}),
               ...(isArc ? { isArc } : {}),
               ...(wire.relation !== undefined ? { relation: wire.relation } : {}),
               ...(wire.label !== undefined ? { label: wire.label } : {}),
@@ -329,7 +363,7 @@ export function Canvas() {
       });
       return keepArrayIdentity(current, [...plainEdges, ...wireEdges]);
     });
-  }, [document.edges, document.wires, document.nodes, view, flowReady]);
+  }, [document.edges, document.wires, document.nodes, view, flowReady, harness]);
 
   const isAssemblyId = useCallback(
     (id: string) => document.assemblies.some((assembly) => assembly.id === id),
@@ -339,6 +373,14 @@ export function Canvas() {
   const onNodesChange = useCallback(
     (changes: NodeChange<Node>[]) => {
       setRfNodes((nodes) => applyNodeChanges(changes, nodes));
+      // drag bookkeeping for the harness freeze (ghost-and-settle)
+      for (const change of changes) {
+        if (change.type === 'position' && change.dragging === true) {
+          setDraggingCount((count) => (count === 0 ? 1 : count));
+        } else if (change.type === 'position' && change.dragging === false) {
+          setDraggingCount(0);
+        }
+      }
       for (const change of changes) {
         if (change.type === 'position' && change.position && !Number.isNaN(change.position.x)) {
           if (isAssemblyId(change.id)) moveAssemblyTo(change.id, change.position);

@@ -806,6 +806,33 @@ html, body, #root {
   stroke: var(--wire-color, #8085ad);
 }
 .wire-edge.is-selected { opacity: 1 !important; }
+.wire-edge.is-ghost { stroke-linecap: round; }
+
+/* ---------- Wire signals (Observatory §5): a travelling highlight over the
+   base stroke. Dash patterns sum to 1200; the offset animates 1200 -> 0.
+   Each data kind carries a distinct character. Budget lives in Canvas
+   (~8 wires); reduced motion kills every signal below. ---------- */
+@keyframes wire-flow { from { stroke-dashoffset: 1200; } to { stroke-dashoffset: 0; } }
+@keyframes wire-crawl { from { stroke-dashoffset: 20; } to { stroke-dashoffset: 0; } }
+.wire-signal {
+  stroke-width: 2.6; stroke-linecap: round; fill: none;
+  opacity: 0.9; pointer-events: none;
+  animation: wire-flow 4s linear infinite;
+}
+.wire-signal.sig-text   { stroke-dasharray: 14 1186; animation-duration: 3.4s; }                                   /* comet */
+.wire-signal.sig-plant  { stroke-dasharray: 12 1188; animation-duration: 2.2s; animation-timing-function: steps(11, end); } /* stutter */
+.wire-signal.sig-claim  { stroke-dasharray: 26 1174; animation-duration: 2.8s; animation-timing-function: cubic-bezier(0.85, 0, 0.15, 1); } /* surge */
+.wire-signal.sig-thing  { stroke-dasharray: 4 6 4 6 4 1176; animation-duration: 4.6s; }                            /* triple bead */
+.wire-signal.sig-thread { stroke-dasharray: 44 1156; animation-duration: 5.2s; stroke-width: 3; }                  /* freight */
+.wire-signal.sig-cite   { stroke-dasharray: 5 1195; animation-duration: 6s; }                                      /* single bead */
+.wire-signal.sig-person { stroke-dasharray: 9 7 9 1175; animation-duration: 3s; }                                  /* twin */
+.wire-signal.sig-any    { stroke-dasharray: 6 14; animation: wire-crawl 1.1s linear infinite; }                    /* crawl */
+.wire-signal.sig-event  { stroke-dasharray: 34 1166; animation-duration: 5.6s; stroke-width: 4.4; opacity: 0.75; animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1); } /* glow sweep */
+.wire-signal.sig-place  { stroke-dasharray: 5 1195; animation-duration: 7.5s; animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); } /* drift */
+.wire-signal.sig-prop   { stroke-dasharray: 10 5 10 1175; animation-duration: 4s; }                                /* double flash */
+@media (prefers-reduced-motion: reduce) {
+  .wire-signal { animation: none !important; display: none; }
+}
 .react-flow__edge:has(.wire-edge.is-tentative) .react-flow__edge-path,
 .wire-edge.is-tentative {
   stroke-dasharray: 7 5;

@@ -31,7 +31,25 @@ export type WireEdgeData = {
   relation?: string;
   /** User label -- e.g. the ROLE on an Event's Involves wire ("bride"). */
   label?: string;
+  /** Within the ~8-wire animation budget (Canvas assigns). */
+  animate?: boolean;
+  /** Routed harness (flat -- see harnessRouting.ts). Absent => bezier. */
+  harnessD?: string;
+  harnessLabelX?: number;
+  harnessLabelY?: number;
+  harnessSX?: number;
+  harnessSY?: number;
+  harnessTX?: number;
+  harnessTY?: number;
+  harnessJunctionX?: number;
+  harnessJunctionY?: number;
 };
+
+/** Signal character per data kind (spec §5) -- dash/duration/timing live in
+ * CSS as .sig-<kind>; this is just the mapping's existence. */
+const SIGNAL_KINDS = new Set([
+  'text', 'thread', 'person', 'place', 'thing', 'cite', 'claim', 'prop', 'plant', 'event', 'any',
+]);
 
 const ARC_FAMILIES = arcRelationsByFamily();
 
@@ -53,7 +71,21 @@ function WireEdgeComponent({
   const setWireRelationTo = useCanvasStore((state) => state.setWireRelationTo);
   const setWireLabel = useCanvasStore((state) => state.setWireLabel);
 
-  const [path, labelX, labelY] = getBezierPath({
+  // Ghost-and-settle (spec §4): the harness path is routed from the
+  // DOCUMENT's positions. While a drag is in flight the live handle coords
+  // diverge from the routed anchors -- the wire drops to a straight ghost
+  // and settles back onto the harness on release.
+  const TOLERANCE = 6;
+  const settled =
+    data?.harnessD !== undefined &&
+    data.harnessSX !== undefined &&
+    Math.abs(sourceX - data.harnessSX!) < TOLERANCE &&
+    Math.abs(sourceY - data.harnessSY!) < TOLERANCE &&
+    Math.abs(targetX - data.harnessTX!) < TOLERANCE &&
+    Math.abs(targetY - data.harnessTY!) < TOLERANCE;
+  const ghosting = data?.harnessD !== undefined && !settled;
+
+  const [bezierPath, bezierLabelX, bezierLabelY] = getBezierPath({
     sourceX,
     sourceY,
     targetX,
@@ -61,6 +93,13 @@ function WireEdgeComponent({
     sourcePosition,
     targetPosition,
   });
+  const path = settled
+    ? data!.harnessD!
+    : ghosting
+      ? `M${sourceX},${sourceY} L${targetX},${targetY}`
+      : bezierPath;
+  const labelX = settled ? data!.harnessLabelX! : bezierLabelX;
+  const labelY = settled ? data!.harnessLabelY! : bezierLabelY;
 
   const interactionWidth = Math.max(24, 24 / Math.max(zoom, 0.05));
   const tentative = data?.status === 'tentative';
@@ -73,8 +112,8 @@ function WireEdgeComponent({
 
   return (
     <>
-      {/* the halo: same path, wide and faint -- live wires only */}
-      {!tentative && (
+      {/* the halo: same path, wide and faint -- live settled wires only */}
+      {!tentative && !ghosting && (
         <path
           d={path}
           fill="none"
@@ -88,14 +127,40 @@ function WireEdgeComponent({
         id={id}
         path={path}
         interactionWidth={interactionWidth}
-        className={`wire-edge ${tentative ? 'is-tentative' : 'is-live'} ${selected ? 'is-selected' : ''}`}
+        className={`wire-edge ${tentative ? 'is-tentative' : 'is-live'} ${ghosting ? 'is-ghost' : ''} ${selected ? 'is-selected' : ''}`}
         style={{
           ['--wire-color' as string]: color,
           strokeWidth: kindStyle.stroke,
-          strokeDasharray: tentative ? '7 5' : kindStyle.dash,
-          opacity: tentative ? undefined : opacity,
+          strokeDasharray: tentative ? '7 5' : ghosting ? '4 4' : kindStyle.dash,
+          opacity: tentative ? undefined : ghosting ? 0.4 : opacity,
         }}
       />
+      {/* the travelling signal (spec §5): a dash window animating along the
+          same path; character per data kind, ~8-wire budget, killed by
+          prefers-reduced-motion in CSS */}
+      {!tentative && !ghosting && data?.animate === true && SIGNAL_KINDS.has(kind) && (
+        <path
+          d={path}
+          fill="none"
+          className={`wire-signal sig-${kind}`}
+          style={{ stroke: color }}
+        />
+      )}
+      {/* junction dot: one give splitting to several takes (spec §4) -- no
+          dot means no relationship, so an unmarked crossing never lies */}
+      {settled && data?.harnessJunctionX !== undefined && (
+        <g className="wire-junction" data-junction>
+          <circle cx={data.harnessJunctionX} cy={data.harnessJunctionY} r={3.4} fill={color} />
+          <circle
+            cx={data.harnessJunctionX}
+            cy={data.harnessJunctionY}
+            r={6.5}
+            fill="none"
+            stroke={color}
+            strokeOpacity={0.3}
+          />
+        </g>
+      )}
       <EdgeLabelRenderer>
         <div
           className="edge-chip nodrag nopan"

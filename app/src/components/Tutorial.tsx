@@ -21,6 +21,12 @@ export function Tutorial() {
   // Closed tour = zero cost: subscribe to the live document only while open
   const document_ = useCanvasStore((state) => (state.tutorialOpen ? state.document : CLOSED_DOCUMENT));
   const paletteOpen = useCanvasStore((state) => state.paletteOpen);
+  // The INVITE decides off the REAL canvas -- reading the closed-sentinel
+  // here kept it on screen forever once nodes existed (e2e-caught: it sat
+  // over a document block and ate a hover). Primitive selector = still cheap.
+  const canvasEmpty = useCanvasStore(
+    (state) => state.document.nodes.length === 0 && state.document.assemblies.length === 0,
+  );
 
   const [step, setStep] = useState(0);
   const [latches, setLatches] = useState<TutorialLatches>({ paletteSeen: false });
@@ -110,8 +116,7 @@ export function Tutorial() {
   const invite =
     !open &&
     !inviteDismissed &&
-    document_.nodes.length === 0 &&
-    document_.assemblies.length === 0 &&
+    canvasEmpty &&
     localStorage.getItem(TUTORIAL_DONE_KEY) === null;
 
   if (invite) {
