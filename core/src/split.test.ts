@@ -17,6 +17,35 @@ function makeIdFactory() {
   return (prefix: string) => (prefix === 'node' ? `stub_${++nodes}` : `stub_wire_${++wires}`);
 }
 
+const panelGolden = JSON.parse(
+  readFileSync(new URL('./split-panel.golden.json', import.meta.url), 'utf8'),
+);
+
+describe('split panel options (golden, Observatory §9)', () => {
+  const prosed: CanvasDocument = DocumentSchema.parse(panelGolden.before);
+
+  it('keepText MOVES the parent prose into child 1', () => {
+    const result = splitNode(prosed, 'node_chapter', panelGolden.stubs, {
+      idFactory: makeIdFactory(),
+      keepText: true,
+    });
+    expect(result.document).toEqual(DocumentSchema.parse(panelGolden.keepText.after));
+    const parent = result.document.nodes.find((node) => node.id === 'node_chapter')!;
+    const firstChild = result.document.nodes.find((node) => node.id === 'stub_1')!;
+    expect(parent.data.content).toBe('');
+    expect(firstChild.data.content).toBe('<p>The words travel.</p>');
+  });
+
+  it('wireBack: false spawns loose children -- no wires appear', () => {
+    const result = splitNode(prosed, 'node_chapter', panelGolden.stubs, {
+      idFactory: makeIdFactory(),
+      wireBack: false,
+    });
+    expect(result.document).toEqual(DocumentSchema.parse(panelGolden.noWireBack.after));
+    expect(result.document.wires.length).toBe(prosed.wires.length);
+  });
+});
+
 describe('splitNode (golden)', () => {
   it('creates stubs below the parent, wired into the spine intake in order', () => {
     const result = splitNode(fixture, 'node_chapter', golden.stubs, { idFactory: makeIdFactory() });

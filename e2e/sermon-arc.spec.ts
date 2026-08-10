@@ -27,9 +27,10 @@ test('passage splits into propositions; Arc room derives the outline', async ({ 
   await addNodeFromAll(page, 'passage');
   await fitAll(page);
 
-  // Passage carries the compile face -> Split -> Passage → Propositions
+  // Passage carries the compile face -> Split panel; the Propositions
+  // preset targets a custom intake, so its chip runs the split directly
   await page.getByRole('button', { name: /Split/ }).click();
-  await page.getByRole('menuitem', { name: /Propositions/ }).click();
+  await page.locator('.split-preset-chip', { hasText: /Propositions/ }).click();
   await page.waitForFunction(() => {
     const raw = localStorage.getItem('nodecanvas.v2.document');
     if (!raw) return false;

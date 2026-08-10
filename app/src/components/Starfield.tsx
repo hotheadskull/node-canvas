@@ -34,6 +34,33 @@ function generateStarSVG(density: number, maxSize: number, color: string, glow =
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
+// Nebula (user request 2026-08-10): soft gradient clouds in the plate
+// palette behind the stars. Gradients are BAKED into the SVG tile (same
+// lesson as star glow: no CSS filters on full-viewport layers). Blob
+// centers keep a margin so every gradient fades out inside the tile --
+// the repeat can never show a seam.
+function generateNebulaSVG(): string {
+  const size = 2048;
+  const HUES = ['#3a3f8c', '#5a4a9c', '#8c4a86', '#2a6a66', '#8c6a3a'];
+  let defs = '';
+  let shapes = '';
+  for (let index = 0; index < 10; index++) {
+    const hue = HUES[index % HUES.length]!;
+    const id = `neb${index}`;
+    const rx = 200 + Math.random() * 260;
+    const ry = rx * (0.4 + Math.random() * 0.5);
+    const margin = rx + 20;
+    const cx = margin + Math.random() * (size - margin * 2);
+    const cy = margin + Math.random() * (size - margin * 2);
+    const rotation = Math.floor(Math.random() * 180);
+    const opacity = (0.06 + Math.random() * 0.06).toFixed(3);
+    defs += `<radialGradient id="${id}"><stop offset="0%" stop-color="${hue}" stop-opacity=".9"/><stop offset="55%" stop-color="${hue}" stop-opacity=".35"/><stop offset="100%" stop-color="${hue}" stop-opacity="0"/></radialGradient>`;
+    shapes += `<ellipse cx="${cx.toFixed(0)}" cy="${cy.toFixed(0)}" rx="${rx.toFixed(0)}" ry="${ry.toFixed(0)}" fill="url(#${id})" opacity="${opacity}" transform="rotate(${rotation} ${cx.toFixed(0)} ${cy.toFixed(0)})"/>`;
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"><defs>${defs}</defs>${shapes}</svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
 function starLayer(image: string, x: number, y: number, zoom: number, speed: number) {
   return {
     position: 'absolute' as const,
@@ -51,10 +78,13 @@ export function Starfield() {
   const farStars = useMemo(() => generateStarSVG(400, 1.0, '#ffffff'), []);
   const midStars = useMemo(() => generateStarSVG(200, 1.5, '#ffd999', true), []);
   const nearStars = useMemo(() => generateStarSVG(75, 2.0, '#b8d4ff', true), []);
+  const nebula = useMemo(() => generateNebulaSVG(), []);
 
   return (
     <>
       <div className="starfield-void" />
+      {/* the nebula drifts slowest of all -- the deepest layer */}
+      <div style={{ ...starLayer(nebula, x, y, zoom, 0.12), zIndex: -3 }} />
       <div style={{ ...starLayer(farStars, x, y, zoom, 0.2), zIndex: -3 }} />
       <div style={{ ...starLayer(midStars, x, y, zoom, 0.5), zIndex: -2 }} />
       <div style={{ ...starLayer(nearStars, x, y, zoom, 1.0), zIndex: -1 }} />

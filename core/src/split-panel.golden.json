@@ -1,0 +1,235 @@
+{
+  "before": {
+    "schemaVersion": 1,
+    "id": "doc_split-fixture",
+    "name": "Split fixture",
+    "canvasMode": "novel",
+    "createdAt": "2026-07-14T12:00:00.000Z",
+    "nodes": [
+      {
+        "id": "node_chapter",
+        "type": "document",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
+        "size": {
+          "width": 500,
+          "height": 400
+        },
+        "data": {
+          "title": "Chapter One",
+          "content": "<p>The words travel.</p>"
+        }
+      }
+    ],
+    "edges": [],
+    "wires": [],
+    "assemblies": []
+  },
+  "stubs": [
+    {
+      "type": "section",
+      "title": "Section 01"
+    },
+    {
+      "type": "section",
+      "title": "Section 02"
+    },
+    {
+      "type": "section",
+      "title": "Section 03"
+    }
+  ],
+  "keepText": {
+    "after": {
+      "schemaVersion": 1,
+      "id": "doc_split-fixture",
+      "name": "Split fixture",
+      "canvasMode": "novel",
+      "createdAt": "2026-07-14T12:00:00.000Z",
+      "nodes": [
+        {
+          "id": "node_chapter",
+          "type": "document",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 500,
+            "height": 400
+          },
+          "data": {
+            "title": "Chapter One",
+            "content": ""
+          }
+        },
+        {
+          "id": "stub_1",
+          "type": "section",
+          "position": {
+            "x": 0,
+            "y": 520
+          },
+          "size": {
+            "width": 400,
+            "height": 320
+          },
+          "data": {
+            "title": "Section 01",
+            "content": "<p>The words travel.</p>"
+          }
+        },
+        {
+          "id": "stub_2",
+          "type": "section",
+          "position": {
+            "x": 460,
+            "y": 520
+          },
+          "size": {
+            "width": 400,
+            "height": 320
+          },
+          "data": {
+            "title": "Section 02",
+            "content": ""
+          }
+        },
+        {
+          "id": "stub_3",
+          "type": "section",
+          "position": {
+            "x": 920,
+            "y": 520
+          },
+          "size": {
+            "width": 400,
+            "height": 320
+          },
+          "data": {
+            "title": "Section 03",
+            "content": ""
+          }
+        }
+      ],
+      "edges": [],
+      "wires": [
+        {
+          "id": "stub_wire_1",
+          "source": "stub_1",
+          "sourcePort": "text-out",
+          "target": "node_chapter",
+          "targetPort": "sections-in",
+          "status": "live"
+        },
+        {
+          "id": "stub_wire_2",
+          "source": "stub_2",
+          "sourcePort": "text-out",
+          "target": "node_chapter",
+          "targetPort": "sections-in",
+          "status": "live"
+        },
+        {
+          "id": "stub_wire_3",
+          "source": "stub_3",
+          "sourcePort": "text-out",
+          "target": "node_chapter",
+          "targetPort": "sections-in",
+          "status": "live"
+        }
+      ],
+      "assemblies": []
+    },
+    "createdIds": [
+      "stub_1",
+      "stub_2",
+      "stub_3"
+    ]
+  },
+  "noWireBack": {
+    "after": {
+      "schemaVersion": 1,
+      "id": "doc_split-fixture",
+      "name": "Split fixture",
+      "canvasMode": "novel",
+      "createdAt": "2026-07-14T12:00:00.000Z",
+      "nodes": [
+        {
+          "id": "node_chapter",
+          "type": "document",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 500,
+            "height": 400
+          },
+          "data": {
+            "title": "Chapter One",
+            "content": "<p>The words travel.</p>"
+          }
+        },
+        {
+          "id": "stub_1",
+          "type": "section",
+          "position": {
+            "x": 0,
+            "y": 520
+          },
+          "size": {
+            "width": 400,
+            "height": 320
+          },
+          "data": {
+            "title": "Section 01",
+            "content": ""
+          }
+        },
+        {
+          "id": "stub_2",
+          "type": "section",
+          "position": {
+            "x": 460,
+            "y": 520
+          },
+          "size": {
+            "width": 400,
+            "height": 320
+          },
+          "data": {
+            "title": "Section 02",
+            "content": ""
+          }
+        },
+        {
+          "id": "stub_3",
+          "type": "section",
+          "position": {
+            "x": 920,
+            "y": 520
+          },
+          "size": {
+            "width": 400,
+            "height": 320
+          },
+          "data": {
+            "title": "Section 03",
+            "content": ""
+          }
+        }
+      ],
+      "edges": [],
+      "wires": [],
+      "assemblies": []
+    },
+    "createdIds": [
+      "stub_1",
+      "stub_2",
+      "stub_3"
+    ]
+  }
+}

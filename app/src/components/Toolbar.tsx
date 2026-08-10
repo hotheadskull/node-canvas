@@ -3,7 +3,7 @@
 // The gear opens canvas settings: density and port-label visibility.
 
 import { useReactFlow } from '@xyflow/react';
-import { Boxes, FolderOpen, Frame, HelpCircle, Plus, Settings2 } from 'lucide-react';
+import { Boxes, Combine, FolderOpen, Frame, HelpCircle, Plus, Settings2 } from 'lucide-react';
 import { useState } from 'react';
 import { isTauri } from '../persistence/projectFile';
 import { useCanvasStore, type PortLabelMode } from '../store/canvasStore';
@@ -13,9 +13,19 @@ type Props = {
   onToggleMenu: () => void;
   selectedCount: number;
   onGather: () => void;
+  /** 2+ same-type nodes selected: merge is on offer (0 = hidden). */
+  mergeableCount: number;
+  onMerge: () => void;
 };
 
-export function Toolbar({ menuOpen, onToggleMenu, selectedCount, onGather }: Props) {
+export function Toolbar({
+  menuOpen,
+  onToggleMenu,
+  selectedCount,
+  onGather,
+  mergeableCount,
+  onMerge,
+}: Props) {
   const { fitBounds } = useReactFlow();
   const settings = useCanvasStore((state) => state.settings);
   const setSettings = useCanvasStore((state) => state.setSettings);
@@ -85,6 +95,16 @@ export function Toolbar({ menuOpen, onToggleMenu, selectedCount, onGather }: Pro
         <button className="toolbar-button" title="Gather the selected nodes into a group" onClick={onGather}>
           <Boxes size={15} aria-hidden />
           <span>Group {selectedCount}</span>
+        </button>
+      )}
+      {mergeableCount >= 2 && (
+        <button
+          className="toolbar-button"
+          title="Fold these into the first-selected node — prose appends, wires re-point"
+          onClick={onMerge}
+        >
+          <Combine size={15} aria-hidden />
+          <span>Merge {mergeableCount}</span>
         </button>
       )}
       <button

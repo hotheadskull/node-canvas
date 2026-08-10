@@ -33,6 +33,8 @@ export type WireEdgeData = {
   label?: string;
   /** Within the ~8-wire animation budget (Canvas assigns). */
   animate?: boolean;
+  /** Density filter (§6): outside the filter -- render as a whisper. */
+  muted?: boolean;
   /** Routed harness (flat -- see harnessRouting.ts). Absent => bezier. */
   harnessD?: string;
   harnessLabelX?: number;
@@ -113,7 +115,7 @@ function WireEdgeComponent({
   return (
     <>
       {/* the halo: same path, wide and faint -- live settled wires only */}
-      {!tentative && !ghosting && (
+      {!tentative && !ghosting && data?.muted !== true && (
         <path
           d={path}
           fill="none"
@@ -127,7 +129,7 @@ function WireEdgeComponent({
         id={id}
         path={path}
         interactionWidth={interactionWidth}
-        className={`wire-edge ${tentative ? 'is-tentative' : 'is-live'} ${ghosting ? 'is-ghost' : ''} ${selected ? 'is-selected' : ''}`}
+        className={`wire-edge ${tentative ? 'is-tentative' : 'is-live'} ${ghosting ? 'is-ghost' : ''} ${selected ? 'is-selected' : ''} ${data?.muted === true && !selected ? 'is-muted' : ''}`}
         style={{
           ['--wire-color' as string]: color,
           strokeWidth: kindStyle.stroke,

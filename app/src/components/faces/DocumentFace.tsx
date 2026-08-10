@@ -10,20 +10,19 @@ import {
   hygieneFlags,
   spineIntakeOf,
   spineWiresInto,
-  splitPresetsFor,
   wordCount,
 } from '@node-canvas/core';
 import { ArrowDown, ArrowUp, BookOpenText, Eye, EyeOff, Scissors } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useCanvasStore } from '../../store/canvasStore';
 import { RichText } from '../RichText';
+import { SplitPanel } from '../SplitPanel';
 import type { FaceProps } from './index';
 
 export function DocumentFace({ nodeId, content }: FaceProps) {
   const document = useCanvasStore((state) => state.document);
   const setNodeContent = useCanvasStore((state) => state.setNodeContent);
   const reorderIntake = useCanvasStore((state) => state.reorderIntake);
-  const splitNode = useCanvasStore((state) => state.splitNode);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [splitOpen, setSplitOpen] = useState(false);
 
@@ -48,8 +47,6 @@ export function DocumentFace({ nodeId, content }: FaceProps) {
     () => hygieneFlags(document).filter((flag) => flag.nodeId === nodeId),
     [document, nodeId],
   );
-  const presets = node ? splitPresetsFor(node.type) : [];
-
   const titleOf = (id: string) => {
     const source = document.nodes.find((candidate) => candidate.id === id);
     const title = source && typeof source.data.title === 'string' ? source.data.title : '';
@@ -125,15 +122,13 @@ export function DocumentFace({ nodeId, content }: FaceProps) {
           </span>
         )}
         <span className="document-footer-actions">
-          {presets.length > 0 && (
-            <button
-              className="document-action"
-              aria-expanded={splitOpen}
-              onClick={() => setSplitOpen((open) => !open)}
-            >
-              <Scissors size={12} aria-hidden /> Split
-            </button>
-          )}
+          <button
+            className="document-action"
+            aria-expanded={splitOpen}
+            onClick={() => setSplitOpen((open) => !open)}
+          >
+            <Scissors size={12} aria-hidden /> Split
+          </button>
           <button
             className="document-action"
             aria-pressed={previewOpen}
@@ -145,24 +140,7 @@ export function DocumentFace({ nodeId, content }: FaceProps) {
         </span>
       </div>
 
-      {splitOpen && (
-        <div className="split-menu" role="menu" aria-label="Split presets">
-          {presets.map((preset) => (
-            <button
-              key={preset.id}
-              role="menuitem"
-              className="split-menu-item"
-              onClick={() => {
-                splitNode(nodeId, preset.id);
-                setSplitOpen(false);
-              }}
-            >
-              <span>{preset.label}</span>
-              <small>{preset.description}</small>
-            </button>
-          ))}
-        </div>
-      )}
+      {splitOpen && <SplitPanel nodeId={nodeId} onClose={() => setSplitOpen(false)} />}
 
       {previewOpen &&
         (compiled.text !== '' ? (

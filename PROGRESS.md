@@ -51,14 +51,46 @@ Build in the README's suggested order, full suite green between phases:
 | D | Corridor derivation from free space; ghost-and-settle on drag (new core/src/routing.ts) | **completed 2026-08-09** |
 | E | Assembly face (stacked edges) + block/embed states + fork notice | **completed 2026-08-10** (face union-ports deferred — needs a wiring-semantics decision; §8 colors + fork pill landed in the audit pass — the 78px label column was NOT adopted, the Document pass's margin-line pick holds) |
 | F | Open state: in-place grow, linked rail, writing column, per-form bodies | **completed 2026-08-10** (the shell; per-form bodies ride with their node passes — mockups-first rule) |
-| G | Split panel (replaces the preset list; presets become saved configs) | not started |
-| H | Density: gutter trunks, highways, filter bar, minimap | not started |
-| I | "Not yet in core" extras, EACH its own user decision: media/PDF node, ink layer, merge, relation filter, history | not started |
+| G | Split panel (replaces the preset list; presets become saved configs) | **completed 2026-08-10** |
+| H | Density: gutter trunks, highways, filter bar, minimap | **completed 2026-08-10** (filter bar + earned resolution + minimap; trunk BANDS/highways remain visual polish — lanes already share corridors) |
+| I | "Not yet in core" extras, EACH its own user decision: media/PDF node, ink layer, merge, relation filter, history | **merge + relation filter done 2026-08-10** (user approved G/H/I); media/PDF, ink layer, history each still need their own session + decision |
 
 Notes: bundle Space Grotesk / Spectral / Space Mono (SIL OFL — offline
 desktop). Per-node passes continue INSIDE this system (Writing mockup specs
 the per-form bodies). Amend I8's look language to name Observatory when
 Phase B lands (INVARIANT-CHANGE-APPROVED). Chunk 19 stays very last.
+
+### 2026-08-10 — Observatory G + H + I(part) + nebula (user: "Do phases G, H, and I, then… nebula")
+
+- **G, the split panel (§9):** core splitNode gains `wireBack` (children
+  spawn loose) and `keepText` (parent prose MOVES to child 1) — defaults
+  preserve every existing golden byte-identically; new split-panel.golden.
+  SplitPanel component: Into stepper + type picker (spine-hue swatch,
+  types filtered to what the intake takes), Numbered/Blank/Paste titles,
+  both toggles, dashed 01/02 preview, Save as preset (localStorage,
+  bookmark chips). Registry presets are chips that PRE-FILL the panel;
+  heterogeneous/custom-intake ones (Toulmin, Passage→Propositions) run
+  directly. Split button now on every DocumentFace type (document itself
+  still opts out — fork-not-split, user 2026-07-15).
+- **H, density (§6):** FilterBar (bottom-center, appears at 4+ live
+  wires): one chip per data kind + "n of m shown" + clear; non-matching
+  wires drop to a .12 whisper (selection always resolves; muted wires
+  leave the animation budget). Styled RF MiniMap bottom-right. Trunk
+  bands/highways deferred as pure rendering polish.
+- **I (user-approved):** core/src/merge.ts — SAME-TYPE fold into the
+  first-selected: prose appends, wires/edges re-point (self-loops, dupes,
+  capacity-one overflow dropped), memberships transfer, absorbed nodes
+  gone (merge.golden.json). Toolbar "Merge N" appears for same-type
+  selections. Relation filter = the H filter bar. Media/PDF node, ink
+  layer, history: each still its own decision + session.
+- **Nebula:** Starfield gains a deepest parallax layer of baked SVG
+  radial-gradient clouds in the plate palette (margin-safe tile, no CSS
+  filters — the Chunk 2 rasterization lesson). Subtle by design.
+- e2e/density-split-merge.spec.ts (3): panel→4 wired children;
+  merge folds two notes; filter mutes the person wire (4 of 5 shown) +
+  minimap. sermon-arc updated to the preset-chip flow.
+- Suite: 273 unit + 49 e2e green; typecheck + lint clean. Goldens NEW:
+  split-panel.golden.json, merge.golden.json (ship with their features).
 
 ## User feedback driving Chunk 17 (verbatim intent, 2026-07-14)
 

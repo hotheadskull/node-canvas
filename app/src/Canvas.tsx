@@ -20,6 +20,7 @@ import {
   applyEdgeChanges,
   applyNodeChanges,
   ConnectionMode,
+  MiniMap,
   ReactFlow,
   useReactFlow,
   type Connection,
@@ -40,6 +41,7 @@ import {
   setAssemblyCollapsed,
 } from '@node-canvas/core';
 import { AddNodeMenu } from './components/AddNodeMenu';
+import { FilterBar } from './components/FilterBar';
 import { ArcRoom } from './components/ArcRoom';
 import { AssemblyFace } from './components/AssemblyFace';
 import { DocumentRoom } from './components/DocumentRoom';
@@ -201,6 +203,9 @@ export function Canvas() {
   // anchors and drops to a ghost line; the drop recomputes and settles.
   const zoomBorrow = useCanvasStore((state) => state.zoomBorrow);
   const openNodeId = useCanvasStore((state) => state.openNodeId);
+  // Density filter (§6): wires outside the filter render as whispers --
+  // resolution is earned by matching the filter or being selected.
+  const wireFilter = useCanvasStore((state) => state.wireFilter);
   const harnessRef = useRef<Map<string, FlatHarness>>(new Map());
   const harness = useMemo(() => {
     if (draggingCount > 0) return harnessRef.current;
@@ -373,7 +378,12 @@ export function Canvas() {
         const givePort = sourceNode ? getPort(sourceNode.type, wire.sourcePort) : undefined;
         const isArc = givePort?.dataKind === 'prop' && wire.targetPort === 'arc-in';
         const routed = harness.get(wire.id);
-        const animate = wire.status === 'live' && animationBudget > 0 ? (animationBudget--, true) : false;
+        const muted =
+          wireFilter !== null && !wireFilter.has(givePort?.dataKind ?? 'any');
+        const animate =
+          wire.status === 'live' && !muted && animationBudget > 0
+            ? (animationBudget--, true)
+            : false;
         return [
           keepIdentity(byId.get(wire.id), {
             ...byId.get(wire.id),
@@ -388,6 +398,7 @@ export function Canvas() {
               dataKind: givePort?.dataKind ?? '',
               portLabel: givePort?.label ?? wire.sourcePort,
               animate,
+              ...(muted ? { muted: true } : {}),
               ...(routed ?? {}),
               ...(isArc ? { isArc } : {}),
               ...(wire.relation !== undefined ? { relation: wire.relation } : {}),
@@ -398,7 +409,7 @@ export function Canvas() {
       });
       return keepArrayIdentity(current, [...plainEdges, ...wireEdges]);
     });
-  }, [document.edges, document.wires, document.nodes, view, flowReady, harness]);
+  }, [document.edges, document.wires, document.nodes, view, flowReady, harness, wireFilter]);
 
   const isAssemblyId = useCallback(
     (id: string) => document.assemblies.some((assembly) => assembly.id === id),
@@ -568,6 +579,22 @@ export function Canvas() {
     if (selectedIds.length >= 2) gatherSelection(selectedIds);
   }, [selectedIds, gatherSelection]);
 
+  // Merge (approved 2026-08-10): 2+ selected nodes of ONE type fold into
+  // the first-selected. Cross-type selections just don't offer it.
+  const mergeSelection = useCanvasStore((state) => state.mergeSelection);
+  const mergeableCount = useMemo(() => {
+    if (selectedIds.length < 2) return 0;
+    const types = selectedIds.map(
+      (id) => document.nodes.find((node) => node.id === id)?.type,
+    );
+    return types.every((type) => type !== undefined && type === types[0])
+      ? selectedIds.length
+      : 0;
+  }, [selectedIds, document.nodes]);
+  const onMerge = useCallback(() => {
+    if (selectedIds.length >= 2) mergeSelection(selectedIds[0]!, selectedIds.slice(1));
+  }, [selectedIds, mergeSelection]);
+
   const breadcrumbNames = useMemo(
     () =>
       drillStack.map(
@@ -680,7 +707,18 @@ export function Canvas() {
         className="nodecanvas-flow"
       >
         <Starfield />
+        {/* §6 density: the minimap earns the old legend's corner */}
+        <MiniMap
+          className="observatory-minimap"
+          pannable
+          zoomable
+          nodeColor="#2a2f57"
+          nodeStrokeColor="#4a4f76"
+          maskColor="rgba(5, 6, 13, 0.72)"
+          bgColor="transparent"
+        />
       </ReactFlow>
+      <FilterBar />
       {drillStack.length > 0 && (
         <nav className="breadcrumbs" aria-label="Group navigation">
           <button className="breadcrumb" onClick={() => drillTo(0)}>
@@ -705,6 +743,8 @@ export function Canvas() {
         onToggleMenu={() => setMenuOpen((open) => !open)}
         selectedCount={selectedIds.length}
         onGather={onGather}
+        mergeableCount={mergeableCount}
+        onMerge={onMerge}
       />
       {/* Legend removed at user request (2026-07-14) until a better design
           exists -- component kept at components/Legend.tsx for its return */}

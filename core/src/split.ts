@@ -22,6 +22,12 @@ export type SplitOptions = {
   intakeId?: string;
   /** Injectable so tests and goldens stay deterministic. */
   idFactory?: (prefix: string) => string;
+  /** Split panel (Observatory §9): wire each child back into the parent's
+   * intake. Default true -- the classic split. */
+  wireBack?: boolean;
+  /** Split panel: MOVE the parent's prose into child 1 (the parent keeps
+   * its title and wiring; the words travel). Default false. */
+  keepText?: boolean;
 };
 
 const STUB_GAP = 60;
@@ -39,6 +45,7 @@ export function splitNode(
   options: SplitOptions = {},
 ): SplitResult {
   const idFactory = options.idFactory ?? createId;
+  const wireBack = options.wireBack ?? true;
   const parent = document.nodes.find((node) => node.id === parentId);
   if (!parent) {
     throw new GraphError(`node "${parentId}" not found`);
@@ -46,7 +53,8 @@ export function splitNode(
   const intake = options.intakeId
     ? getPort(parent.type, options.intakeId)
     : spineIntakeOf(parent.type);
-  if (!intake || intake.direction !== 'take') {
+  // an intake is only REQUIRED when the children wire back into it
+  if (wireBack && (!intake || intake.direction !== 'take')) {
     throw new GraphError(`"${parent.type}" has no such intake to split into`);
   }
   if (stubs.length === 0) {
@@ -56,7 +64,7 @@ export function splitNode(
   // first; 'any' intakes take a text give (or any give as a last resort).
   const giveForIntake = (type: string) => {
     const ports = getNodeDef(type)?.ports ?? [];
-    if (intake.dataKind === 'any') {
+    if (!intake || intake.dataKind === 'any') {
       return (
         ports.find((port) => port.direction === 'give' && port.dataKind === 'text') ??
         ports.find((port) => port.direction === 'give')
@@ -70,9 +78,9 @@ export function splitNode(
     if (!def) {
       throw new GraphError(`unregistered stub type "${stub.type}" (I8)`);
     }
-    if (!giveForIntake(stub.type)) {
+    if (wireBack && !giveForIntake(stub.type)) {
       throw new GraphError(
-        `"${stub.type}" cannot feed the ${intake.label} intake of "${parent.type}"`,
+        `"${stub.type}" cannot feed the ${intake!.label} intake of "${parent.type}"`,
       );
     }
   }
@@ -96,37 +104,51 @@ export function splitNode(
   let cursorX = parentRect.x;
   const rowY = parentRect.y + parentRect.height + STUB_GAP * 2;
 
+  const parentProse = typeof parent.data.content === 'string' ? parent.data.content : '';
   for (const stub of stubs) {
     const def = getNodeDef(stub.type)!;
     const size = def.size ?? { width: 300, height: 200 };
     const position = findFreePosition(occupied, { x: cursorX, y: rowY }, size, {
       gap: STUB_GAP,
     });
+    // keepText: the parent's prose MOVES into child 1 (words travel, the
+    // parent keeps its title and wiring)
+    const inheritsProse = options.keepText === true && newNodes.length === 0;
     const node: CanvasNode = {
       id: idFactory('node'),
       type: stub.type,
       position,
       size: { ...size },
-      data: { title: stub.title, content: '' },
+      data: { title: stub.title, content: inheritsProse ? parentProse : '' },
     };
     newNodes.push(node);
     occupied.push({ ...position, width: size.width, height: size.height });
     cursorX = position.x + size.width + STUB_GAP;
 
-    newWires.push({
-      id: idFactory('wire'),
-      source: node.id,
-      sourcePort: giveForIntake(stub.type)!.id,
-      target: parentId,
-      targetPort: intake.id,
-      status: 'live',
-    });
+    if (wireBack) {
+      newWires.push({
+        id: idFactory('wire'),
+        source: node.id,
+        sourcePort: giveForIntake(stub.type)!.id,
+        target: parentId,
+        targetPort: intake!.id,
+        status: 'live',
+      });
+    }
   }
 
+  const movedProse = options.keepText === true && parentProse !== '';
   return {
     document: {
       ...document,
-      nodes: [...document.nodes, ...newNodes],
+      nodes: [
+        ...document.nodes.map((node) =>
+          movedProse && node.id === parentId
+            ? { ...node, data: { ...node.data, content: '' } }
+            : node,
+        ),
+        ...newNodes,
+      ],
       wires: [...document.wires, ...newWires],
     },
     createdIds: newNodes.map((node) => node.id),

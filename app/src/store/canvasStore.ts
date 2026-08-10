@@ -42,6 +42,7 @@ import {
   serializeDocument,
   setWireRelation as setWireRelationOp,
   spawnNode,
+  mergeNodes,
   splitNode as splitNodeOp,
   SPLIT_PRESETS,
   type CanvasDocument,
@@ -66,6 +67,29 @@ export const PREVIOUS_DOCUMENT_KEY = 'nodecanvas.v2.document.previous';
 export type Viewport = { x: number; y: number; zoom: number };
 export type PortLabelMode = 'hover' | 'always' | 'off';
 export type CanvasSettings = { density: 'comfortable' | 'compact'; portLabels: PortLabelMode };
+
+export type SplitPanelConfig = {
+  type: string;
+  count: number;
+  titleMode: 'numbered' | 'blank' | 'paste';
+  pastedTitles?: string[];
+  wireBack: boolean;
+  keepText: boolean;
+};
+export type CustomSplitPreset = { id: string; label: string; config: SplitPanelConfig };
+
+const CUSTOM_PRESETS_KEY = 'nodecanvas.v2.splitPresets';
+
+function loadCustomPresets(): CustomSplitPreset[] {
+  try {
+    const raw = localStorage.getItem(CUSTOM_PRESETS_KEY);
+    if (raw === null) return [];
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as CustomSplitPreset[]) : [];
+  } catch {
+    return [];
+  }
+}
 
 export type Toast = { message: string; undo?: () => void };
 
@@ -121,6 +145,10 @@ type CanvasState = {
    * dragged could legally land on. Session only; null = no drag. */
   connectCandidates: ReadonlySet<string> | null;
   setConnectCandidates: (candidates: ReadonlySet<string> | null) => void;
+  /** Density filter (Observatory §6): the data kinds currently RESOLVED.
+   * null = no filter, everything draws. Session only. */
+  wireFilter: ReadonlySet<string> | null;
+  setWireFilter: (kinds: ReadonlySet<string> | null) => void;
   /** Observatory collapse (spec §2): sticky, user-controlled, persisted in
    * node.data. 'rolled-up' is the assembly state and stays derived. */
   toggleNodeCollapsed: (nodeId: string) => void;
@@ -159,6 +187,14 @@ type CanvasState = {
   deleteWire: (wireId: string) => void;
   reorderIntake: (nodeId: string, portId: string, wireId: string, newIndex: number) => void;
   splitNode: (nodeId: string, presetId: string) => void;
+  /** The split panel (Observatory §9): count/type/titles/wire-back/keep-text
+   * resolved into stubs; presets are just pre-filled configs. */
+  splitWithConfig: (nodeId: string, config: SplitPanelConfig) => void;
+  /** User-saved panel configs (localStorage; registry presets stay in core). */
+  customPresets: CustomSplitPreset[];
+  saveCustomPreset: (label: string, config: SplitPanelConfig) => void;
+  /** Merge (approved 2026-08-10): fold same-type nodes into the first. */
+  mergeSelection: (targetId: string, otherIds: string[]) => void;
   saveViewport: (viewport: Viewport) => void;
 
   /** The node open in the focus editor overlay (design B); null = closed. */
@@ -721,6 +757,9 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
     connectCandidates: null,
     setConnectCandidates: (candidates) => set({ connectCandidates: candidates }),
 
+    wireFilter: null,
+    setWireFilter: (kinds) => set({ wireFilter: kinds }),
+
     toggleNodeCollapsed: (nodeId) => {
       const doc = get().document;
       commit({
@@ -940,6 +979,58 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
           splitNodeOp(doc, nodeId, preset.stubs, preset.intake ? { intakeId: preset.intake } : {})
             .document,
       );
+    },
+
+    splitWithConfig: (nodeId, config) => {
+      const doc = get().document;
+      const label = getNodeDef(config.type)?.labels.universal ?? config.type;
+      const titles =
+        config.titleMode === 'paste'
+          ? (config.pastedTitles ?? []).map((title) => title.trim()).filter((title) => title !== '')
+          : Array.from({ length: Math.max(1, config.count) }, (_, index) =>
+              config.titleMode === 'numbered'
+                ? `${label} ${String(index + 1).padStart(2, '0')}`
+                : '',
+            );
+      if (titles.length === 0) {
+        set({ toast: { message: 'Nothing to split into — give it at least one title' } });
+        return;
+      }
+      tryOp(
+        () =>
+          splitNodeOp(
+            doc,
+            nodeId,
+            titles.map((title) => ({ type: config.type, title })),
+            { wireBack: config.wireBack, keepText: config.keepText },
+          ).document,
+      );
+    },
+
+    customPresets: loadCustomPresets(),
+    saveCustomPreset: (label, config) => {
+      const next = [
+        ...get().customPresets,
+        { id: `custom_${Date.now().toString(36)}`, label, config },
+      ];
+      set({ customPresets: next });
+      try {
+        localStorage.setItem(CUSTOM_PRESETS_KEY, JSON.stringify(next));
+      } catch {
+        // preset prefs, not user data
+      }
+    },
+
+    mergeSelection: (targetId, otherIds) => {
+      const doc = get().document;
+      const target = doc.nodes.find((node) => node.id === targetId);
+      tryOp(() => mergeNodes(doc, targetId, otherIds).document);
+      if (target) {
+        const title = typeof target.data.title === 'string' && target.data.title !== ''
+          ? target.data.title
+          : 'the first selected node';
+        set({ toast: { message: `${otherIds.length + 1} nodes folded into ${title}` } });
+      }
     },
 
     saveViewport: (viewport) => {
