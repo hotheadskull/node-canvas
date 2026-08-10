@@ -384,6 +384,12 @@ html, body, #root {
   transform: rotate(45deg);
   transition: background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
 }
+/* visibility override (user 2026-08-10): the RELATE diamond hints its gold
+   at rest -- scoped so the assembly face's round dots stay untouched */
+.node-handle.relate-anchor.react-flow__handle::before {
+  background: rgba(240, 192, 80, 0.08);
+  border-color: rgba(240, 192, 80, 0.45);
+}
 .node-handle.is-related::before {
   background: #f0c050;
   border-color: transparent;
@@ -405,11 +411,14 @@ html, body, #root {
    THE RULE: a filled, glowing slot corresponds to a REAL wire; an outline
    slot is open. 24px+ invisible hit area (rule 1), colored by dataKind.
    Slots are STEADY: hover answers with glow, never a size change. */
+/* User override 2026-08-10 ("ports seem invisible, no color"): open slots
+   wear their data-kind color as a tinted outline at rest -- the grammar
+   holds because only a SOLID glowing fill means a real wire. */
 .port-star.react-flow__handle {
-  width: 12px; height: 4px;
-  border-radius: 2px;
-  background: transparent;
-  border: 1px solid #3a3f65;
+  width: 14px; height: 5px;
+  border-radius: 2.5px;
+  background: color-mix(in srgb, var(--port-color) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--port-color) 65%, transparent);
   box-shadow: none;
   transition: box-shadow 0.12s ease, background 0.12s ease, opacity 0.12s ease;
 }
