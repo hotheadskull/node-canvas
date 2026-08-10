@@ -126,7 +126,7 @@ test('Big Idea: wiring a note into the Title derives the statement', async ({ pa
   // drag the note's Text give star onto the Title's plain top dot -> a
   // TENTATIVE wire lands in the first compatible intake (Subject), commit it
   const giveStar = note.locator('.port-star[data-port-direction="give"]');
-  const titleDot = title.locator('.react-flow__handle-top');
+  const titleDot = title.locator('[data-handleid="top"]');
   const from = (await giveStar.boundingBox())!;
   const to = (await titleDot.boundingBox())!;
   await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);

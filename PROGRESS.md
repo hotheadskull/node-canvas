@@ -124,6 +124,24 @@ presentation-walk mode. All registry entries + isolated reducers (invariant I8).
 
 ## Session log
 
+### 2026-08-09 (late night) — Relate anchors join the gutters (user-requested)
+
+- The gold top/bottom diamonds are gone from the plate edges. Plain-edge
+  anchors are now RELATE DIAMONDS at the top of each side gutter, wearing
+  the plate language: slate outline while unused, gold fill (same
+  filled-means-real grammar as the slots) once the node carries any
+  relationship, gold on hover. Diamonds = relationships, slots = data —
+  two species, one home. I1 untouched: zero-setup plain edges remain.
+- ZERO migration: handle ids stayed top/bottom, so every stored edge in
+  every existing document re-anchors automatically.
+- Rode along: CanvasNode.tsx had three RAW control bytes (NUL/SOH baked
+  into the fork-signature separators) making git treat it as binary —
+  replaced with written-out escapes, semantics identical.
+- e2e locators moved from RF position classes to [data-handleid] (the
+  position classes changed with the anchors; face handles keep theirs).
+  Tour step + Tips copy updated to describe the diamond.
+- Suite: 255 unit + 40 e2e green; typecheck + lint clean.
+
 ### 2026-08-09 (night) — Observatory Phase C: the wire harness (completed)
 
 - core/src/harness.ts (+ golden): routePoints (stub → lane → stub

@@ -45,7 +45,7 @@ export function TipsPanel() {
             <h3>Three kinds of connection</h3>
             <ul>
               <li>
-                <strong>Plain line</strong> — drag a top/bottom dot to any node. Works between
+                <strong>Plain line</strong> — drag the diamond at the top of a side rail to any node. Works between
                 everything, zero setup. Click its chip to label or delete.
               </li>
               <li>

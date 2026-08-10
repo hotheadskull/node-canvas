@@ -96,6 +96,7 @@ describe('connection accessibility requirements', () => {
 
   it('handles keep an invisible hit area larger than the visible dot', () => {
     const styles = read('./styles.css');
-    expect(styles).toMatch(/\.node-handle\.react-flow__handle::after\s*\{[^}]*inset:\s*-7px/s);
+    // relate diamonds are 10px; inset -9px keeps the 28px hit floor
+    expect(styles).toMatch(/\.node-handle\.react-flow__handle::after\s*\{[^}]*inset:\s*-9px/s);
   });
 });

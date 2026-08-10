@@ -37,8 +37,8 @@ test('spawn two nodes, connect them, edge renders with both click affordances', 
   expect(overlap).toBe(false);
 
   // connect: real mouse drag from one node's bottom handle to the other node
-  const sourceHandle = page.locator('.react-flow__node').first().locator('.react-flow__handle-bottom');
-  const targetHandle = page.locator('.react-flow__node').nth(1).locator('.react-flow__handle-top');
+  const sourceHandle = page.locator('.react-flow__node').first().locator('[data-handleid="bottom"]');
+  const targetHandle = page.locator('.react-flow__node').nth(1).locator('[data-handleid="top"]');
   const from = (await sourceHandle.boundingBox())!;
   const to = (await targetHandle.boundingBox())!;
   await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);

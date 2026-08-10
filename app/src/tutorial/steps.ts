@@ -58,7 +58,7 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
   {
     id: 'connect',
     title: 'Connect them',
-    body: 'Drag from the small dot on the top or bottom edge of one node onto the other. Plain connections work between every pair of types, zero setup.',
+    body: 'Drag from the small DIAMOND at the top of a side rail onto the other node. Plain connections work between every pair of types, zero setup.',
     target: '.react-flow__node-canvas',
     done: (document) => document.edges.length >= 1,
   },

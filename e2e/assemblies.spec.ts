@@ -77,8 +77,9 @@ test('external edge attaches to the face and survives inner deletion', async ({ 
   await addNode(page, 'note');
   await fitAll(page);
   const note = page.locator('.react-flow__node-canvas').first();
-  const noteDot = note.locator('.react-flow__handle-bottom');
+  const noteDot = note.locator('[data-handleid="bottom"]');
   const face = page.locator('.assembly-face');
+  // face handles carry no id -- they still sit at the face's top/bottom
   const faceDot = face.locator('.react-flow__handle-bottom');
   const from = (await noteDot.boundingBox())!;
   const to = (await faceDot.boundingBox())!;

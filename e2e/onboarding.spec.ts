@@ -40,8 +40,8 @@ test('the tour: invite -> perform every step -> finish -> no more invite', async
   await page.getByRole('button', { name: 'Fit' }).click();
   await page.waitForTimeout(450);
   const nodes = page.locator('.react-flow__node-canvas');
-  const fromDot = nodes.nth(0).locator('.react-flow__handle-bottom');
-  const toDot = nodes.nth(1).locator('.react-flow__handle-top');
+  const fromDot = nodes.nth(0).locator('[data-handleid="bottom"]');
+  const toDot = nodes.nth(1).locator('[data-handleid="top"]');
   const from = (await fromDot.boundingBox())!;
   const to = (await toDot.boundingBox())!;
   await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
