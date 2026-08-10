@@ -92,6 +92,49 @@ Phase B lands (INVARIANT-CHANGE-APPROVED). Chunk 19 stays very last.
 - Suite: 273 unit + 49 e2e green; typecheck + lint clean. Goldens NEW:
   split-panel.golden.json, merge.golden.json (ship with their features).
 
+### 2026-08-10 (later) — pt2 handoff adopted ("Node canvas UI mockups pt2.zip")
+
+The user brought an UPDATED external handoff — same Observatory system,
+now complete: four new mockups (Spec = authoritative, Shell, Presence,
+Hub) + a rewritten README. It replaces docs/design/observatory wholesale.
+Its 10-step "suggested order", built this session as steps land:
+
+1. **done** `.readiness-dot` deleted; TipsPanel copy fixed (ring + pip).
+2. **done** Eleven data-kind hues brightened + four state colours
+   (core/src/colors.ts literals; e.g. text #a595f2→#b19bff).
+3. **done** Plate surface: 100deg kind tint over the base, 32% tinted
+   border, coloured under-glow, selected #8a7ce0 + kind ring, tinted
+   rules/dividers, spine fades to 30%.
+4. **done** Port = ONE slot changing shape (§3): outline open / amber
+   pip wanted / filled 1 wire / 8px flare 2-4 / 12px flare 5+ / r5 dot
+   merged. Bar 12×4 r2, wired glow rgba(hue,.85). Counts per port feed
+   the variants (CanvasNode wireCounts).
+5. **done** The night sky (§1): navy 158deg sky, Milky Way band SVG
+   (glow/core/warm cast/second cloud/190 band stars/great rift/2 dust
+   knots) in CANVAS space; five star layers at coprime tiles 613/719/
+   827/953/1097 in SCREEN space, 20-80% parallax, one-tile drift per
+   380-1100s cycle, transform-only; 24px dot grid; shooting stars CUT.
+6. pending — membership marks (cast band / presence strip / matrix) +
+   select-to-promote.
+7. **done (v1)** Hub type + HubFace (roster grouped by dataKind, hue
+   chips, "speaks for" subject line). Subject hue-adoption on the plate
+   frame is a follow-up (needs a CanvasNode hue override decision).
+8. **done** notes-in on all 16 types + source.clip-out + passage.cite-in
+   (INVARIANT-CHANGE-APPROVED: registry-ports.golden.json regenerated
+   via new scripts/gen-registry-ports-golden.mts).
+9. pending — dock reorder (Add node alone up top, rooms, tools) + add
+   sheet as icon-hue tiles.
+10. partial — trunks/highways still visual-polish debt (filter bar,
+   earned resolution, minimap shipped earlier).
+
+Also still open from the pt2 spec: §4 four-sided AUTO port movement (a
+port slides to the top/bottom edge when its partner sits there — kills
+the wrap-around wires the user flagged), §3 condensed fan-in strand ties,
+§10 gesture set (⌘V paste-to-node, drop-file→Source), block "new" row.
+Commits: 94a86a5 (steps 1-5), cda23bb (7+8). Suite green after each:
+typecheck, 273 unit, 49 e2e. Verified in-browser via Playwright shots
+(sky + band, plate tints, port variants incl. live flare, hub roster).
+
 ## User feedback driving Chunk 17 (verbatim intent, 2026-07-14)
 
 The current nodes "feel like they were thrown together instead of a good
