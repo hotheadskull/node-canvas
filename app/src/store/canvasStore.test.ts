@@ -188,7 +188,23 @@ describe('canvas settings', () => {
   it('persist to localStorage and load back', () => {
     useCanvasStore.getState().setSettings({ density: 'compact', portLabels: 'always' });
     const raw = JSON.parse(localStorage.getItem('nodecanvas.v2.settings')!);
-    expect(raw).toEqual({ density: 'compact', portLabels: 'always' });
+    // v:2 marks a post-migration save: this EXPLICIT Always sticks
+    expect(raw).toEqual({ density: 'compact', portLabels: 'always', v: 2 });
+  });
+
+  it("migrates a pre-v2 stored 'always' (the old default) to hover once", async () => {
+    const { loadSettings } = await import('./canvasStore');
+    localStorage.setItem(
+      'nodecanvas.v2.settings',
+      JSON.stringify({ density: 'comfortable', portLabels: 'always' }),
+    );
+    expect(loadSettings().portLabels).toBe('hover');
+    // an explicit post-migration Always is a real choice and holds
+    localStorage.setItem(
+      'nodecanvas.v2.settings',
+      JSON.stringify({ density: 'comfortable', portLabels: 'always', v: 2 }),
+    );
+    expect(loadSettings().portLabels).toBe('always');
   });
 });
 

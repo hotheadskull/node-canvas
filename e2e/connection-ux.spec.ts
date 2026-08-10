@@ -112,15 +112,17 @@ test('port labels follow the canvas setting', async ({ page }) => {
   const section = page.locator('.react-flow__node').first();
   const label = section.locator('.port-label', { hasText: 'People' });
 
-  // default: ALWAYS visible (user, 2026-08-10 -- show the possibilities)
-  await page.mouse.move(10, 10);
-  await expect(label).toHaveCSS('opacity', '1');
-
-  // switch to hover mode: hidden until the node is hovered
-  await page.getByRole('button', { name: 'Canvas settings' }).click();
-  await page.getByRole('button', { name: 'Hover', exact: true }).click();
+  // default: HIDDEN at rest; only the port under the pointer names
+  // itself (user, 2026-08-10: "not have the names until you hover over
+  // it" -- supersedes their 2026-08-10 morning always-on call)
   await page.mouse.move(10, 10);
   await expect(label).toHaveCSS('opacity', '0');
-  await section.hover();
+  await section.locator('.port-star[data-port-label="People"]').hover();
+  await expect(label).toHaveCSS('opacity', '1');
+
+  // Always mode: visible with the pointer far away
+  await page.getByRole('button', { name: 'Canvas settings' }).click();
+  await page.getByRole('button', { name: 'Always', exact: true }).click();
+  await page.mouse.move(10, 10);
   await expect(label).toHaveCSS('opacity', '1');
 });

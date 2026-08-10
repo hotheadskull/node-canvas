@@ -26,11 +26,13 @@ test('gather -> face counts -> collapse/expand -> drill -> unpack', async ({ pag
   await addNode(page, 'place');
   await fitAll(page);
 
-  // select all three with a selection drag is finicky; use ctrl-click (RF multi-select key on Windows)
+  // select all three with a selection drag is finicky; use ctrl-click (RF
+  // multi-select key on Windows). Click the HEADER rail -- a node's centre
+  // may be a field input (Person's five fields), which focuses, not selects.
   const nodes = page.locator('.react-flow__node.react-flow__node-canvas');
-  await nodes.nth(0).click();
-  await nodes.nth(1).click({ modifiers: ['Control'] });
-  await nodes.nth(2).click({ modifiers: ['Control'] });
+  await nodes.nth(0).locator('.plate-header').click();
+  await nodes.nth(1).locator('.plate-header').click({ modifiers: ['Control'] });
+  await nodes.nth(2).locator('.plate-header').click({ modifiers: ['Control'] });
 
   await page.getByRole('button', { name: 'Group 3' }).click();
 
@@ -72,8 +74,8 @@ test('external edge attaches to the face and survives inner deletion', async ({ 
   await fitAll(page);
 
   const nodes = page.locator('.react-flow__node.react-flow__node-canvas');
-  await nodes.nth(0).click();
-  await nodes.nth(1).click({ modifiers: ['Control'] });
+  await nodes.nth(0).locator('.plate-header').click();
+  await nodes.nth(1).locator('.plate-header').click({ modifiers: ['Control'] });
   await page.getByRole('button', { name: 'Group 2' }).click();
   await expect(page.locator('.assembly-face.is-collapsed')).toHaveCount(1);
 

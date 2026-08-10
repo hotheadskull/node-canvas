@@ -45,7 +45,7 @@ import {
   UserRound,
   type LucideIcon,
 } from 'lucide-react';
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, memo, useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import {
   DATA_KIND_STYLES,
@@ -189,45 +189,44 @@ function PortStars({
     };
   };
 
+  // each label renders IMMEDIATELY AFTER its own handle: the hover mode's
+  // "name the port under the pointer" rule is pure CSS adjacency
+  // (.port-star:hover + .port-label) -- no listeners, no re-render
   return (
     <>
       {ports.map((port, index) => {
         const portSide = getSide(port.id);
         return (
-          <Handle
-            key={port.id}
-            id={port.id}
-            type="source"
-            position={getPosition(portSide)}
-            className={`port-star kind-${port.dataKind} ${portStateClass(port, counts.get(port.id) ?? 0)} ${merged ? 'is-merged' : ''} ${port.defaultVisible || merged ? '' : 'is-hidden-port'} ${broadcastClass(port.id)}`}
-            style={{
-              ...getStyle(index, portSide),
-              ['--port-color' as string]: PORT_KIND_COLORS[port.dataKind] ?? '#8e94c2',
-            }}
-            data-port-label={port.label}
-            data-port-direction={port.direction}
-          />
-        );
-      })}
-      {!merged &&
-        ports.map((port, index) => {
-          const portSide = getSide(port.id);
-          return (
-            <span
-              key={`${port.id}-label`}
-              className={`port-label side-${portSide} ${port.defaultVisible ? '' : 'is-hidden-port'} ${broadcastClass(port.id)}`}
+          <Fragment key={port.id}>
+            <Handle
+              id={port.id}
+              type="source"
+              position={getPosition(portSide)}
+              className={`port-star kind-${port.dataKind} ${portStateClass(port, counts.get(port.id) ?? 0)} ${merged ? 'is-merged' : ''} ${port.defaultVisible || merged ? '' : 'is-hidden-port'} ${broadcastClass(port.id)}`}
               style={{
-                ...(portSide === 'top' || portSide === 'bottom'
-                  ? { left: `${PORT_TOP + index * PORT_GAP}px`, [portSide === 'top' ? 'top' : 'bottom']: -20 }
-                  : { top: `${PORT_TOP + index * PORT_GAP}px` }),
+                ...getStyle(index, portSide),
                 ['--port-color' as string]: PORT_KIND_COLORS[port.dataKind] ?? '#8e94c2',
               }}
-              data-for-node={nodeId}
-            >
-              {port.label}
-            </span>
-          );
-        })}
+              data-port-label={port.label}
+              data-port-direction={port.direction}
+            />
+            {!merged && (
+              <span
+                className={`port-label side-${portSide} ${port.defaultVisible ? '' : 'is-hidden-port'} ${broadcastClass(port.id)}`}
+                style={{
+                  ...(portSide === 'top' || portSide === 'bottom'
+                    ? { left: `${PORT_TOP + index * PORT_GAP}px`, [portSide === 'top' ? 'top' : 'bottom']: -20 }
+                    : { top: `${PORT_TOP + index * PORT_GAP}px` }),
+                  ['--port-color' as string]: PORT_KIND_COLORS[port.dataKind] ?? '#8e94c2',
+                }}
+                data-for-node={nodeId}
+              >
+                {port.label}
+              </span>
+            )}
+          </Fragment>
+        );
+      })}
     </>
   );
 }

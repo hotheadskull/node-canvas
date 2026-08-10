@@ -50,9 +50,9 @@ test('the tour: invite -> perform every step -> finish -> no more invite', async
   await page.mouse.up();
   await expect(counter).toHaveText('6 / 8');
 
-  // step 6: group them
-  await nodes.nth(0).click();
-  await nodes.nth(1).click({ modifiers: ['Control'] });
+  // step 6: group them (headers -- a node centre may be a field input)
+  await nodes.nth(0).locator('.plate-header').click();
+  await nodes.nth(1).locator('.plate-header').click({ modifiers: ['Control'] });
   await page.getByRole('button', { name: 'Group 2' }).click();
   await expect(counter).toHaveText('7 / 8');
 

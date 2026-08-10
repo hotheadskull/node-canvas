@@ -210,6 +210,30 @@ presentation-walk mode. All registry entries + isolated reducers (invariant I8).
 
 ## Session log
 
+### 2026-08-10 (late) — Palette spread around the user's teal; labels name only the hovered port
+
+Evaluation feedback #1 ("colors still too similar, wires too similar" +
+"no port names until you hover"). The user had already moved TEXT to
+teal #2dd4bf solo (the app's lead colour now) — the spread keeps it and
+walks the wheel in ~25-45° steps so no two kinds neighbour: person
+coral 15° · place amber 35° · plant lime 80° · claim green 135° · text
+teal 166° · prop cyan 195° · cite blue 218° · THING takes the lavender
+text vacated (262°) · event orchid 285° · thread pink 310°. Stale hue
+literals in styles.css followed (assembly face, band chips).
+
+Labels: default portLabels 'hover', and hover now means THE PORT under
+the pointer names itself (label rides right after its handle in the DOM;
+pure CSS adjacency). At the 12px pitch, naming a whole side stacked the
+pills. Settings v2 migration: a stored pre-v2 'always' (old default)
+becomes 'hover' once; an explicit Always picked after saves with v:2
+and sticks. Spec updates: label tests hover the port; assembly/
+onboarding selection clicks moved to .plate-header (a Person's centre
+is now a field input — focuses, doesn't select).
+
+Suite: typecheck, 276 unit, 50/50 e2e green. Verified live: 0 labels at
+rest, hovering Supports shows exactly ["Supports"], palette separable
+at a glance (teal/amber/coral/lavender/green on one board).
+
 ### 2026-08-10 (night) — Every type has a body; drop/paste→Source; evaluation guide
 
 User: "you can start working on all of them? then come up with a summary

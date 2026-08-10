@@ -342,24 +342,33 @@ export function cancelPendingSave(): void {
   clearTimeout(saveTimer);
 }
 
-function loadSettings(): CanvasSettings {
+export function loadSettings(): CanvasSettings {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
     if (raw) {
-      const parsed = JSON.parse(raw) as Partial<CanvasSettings>;
+      const parsed = JSON.parse(raw) as Partial<CanvasSettings> & { v?: number };
+      let portLabels: PortLabelMode = ['hover', 'always', 'off'].includes(
+        parsed.portLabels as string,
+      )
+        ? (parsed.portLabels as PortLabelMode)
+        : 'hover';
+      // v2 migration (user, 2026-08-10, superseding their own earlier
+      // call): a stored pre-v2 'always' was the OLD DEFAULT, not a
+      // choice -- it becomes 'hover' once. An Always picked in Settings
+      // after this saves with v:2 and sticks.
+      if (parsed.v === undefined && portLabels === 'always') portLabels = 'hover';
       return {
         density: parsed.density === 'compact' ? 'compact' : 'comfortable',
-        portLabels: ['hover', 'always', 'off'].includes(parsed.portLabels as string)
-          ? (parsed.portLabels as PortLabelMode)
-          : 'always',
+        portLabels,
       };
     }
   } catch {
     // settings are preferences, not user data; fall back silently
   }
-  // labels default VISIBLE (user, 2026-08-10: show the possibilities --
-  // color does the teaching; hover-only was hiding the vocabulary)
-  return { density: 'comfortable', portLabels: 'always' };
+  // labels rest HIDDEN; the one under your pointer names itself (user,
+  // 2026-08-10: "not have the names until you hover over it") -- the
+  // colored slots carry the vocabulary at rest, Settings offers Always
+  return { density: 'comfortable', portLabels: 'hover' };
 }
 
 export const useCanvasStore = create<CanvasState>((set, get) => {
@@ -576,7 +585,8 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
       const settings = { ...get().settings, ...partial };
       set({ settings });
       try {
-        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        // v:2 marks post-migration saves -- an explicit Always sticks
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...settings, v: 2 }));
       } catch {
         // preferences only
       }

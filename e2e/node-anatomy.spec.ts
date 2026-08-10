@@ -102,8 +102,9 @@ test('the user bug: body text owns the full card width -- no rails over text', a
   const transformAfter = await star.evaluate((element) => getComputedStyle(element).transform);
   expect(transformAfter).toBe(transformBefore);
 
-  // port labels render OUTSIDE the card, never over the body
-  await doc.hover();
+  // port labels render OUTSIDE the card, never over the body (hover the
+  // PORT itself -- labels name only the port under the pointer now)
+  await doc.locator('.port-star[data-port-label="Sections"]').hover();
   const label = doc.locator('.port-label', { hasText: 'Sections' });
   await expect(label).toBeVisible();
   const labelBox = (await label.boundingBox())!;
