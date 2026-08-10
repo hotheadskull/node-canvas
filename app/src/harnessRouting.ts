@@ -17,6 +17,7 @@ import {
   type CanvasDocument,
   type HarnessEndpoint,
   type HarnessWireInput,
+  type RoutingRect,
 } from '@node-canvas/core';
 import { PORT_GAP, PORT_TOP } from './components/CanvasNode';
 
@@ -65,12 +66,28 @@ export function anchorFor(
   return { x, y, side };
 }
 
-/** Route every visible live wire; returns wireId -> flat harness fields. */
+/** Route every visible live wire; returns wireId -> flat harness fields.
+ * Visible plates ride along as OBSTACLES (Phase D): lanes slide into free
+ * channels and horizontal runs dodge plates -- hidden members of collapsed
+ * groups must NOT block corridors, hence the visibility predicate. */
 export function computeHarness(
   document: CanvasDocument,
   wireVisible: (wire: CanvasDocument['wires'][number]) => boolean,
   zoomBorrow: boolean,
+  nodeVisible: (id: string) => boolean = () => true,
 ): Map<string, FlatHarness> {
+  const obstacles: RoutingRect[] = document.nodes
+    .filter((node) => nodeVisible(node.id))
+    .map((node) => {
+      const def = getNodeDef(node.type);
+      return {
+        id: node.id,
+        x: node.position.x,
+        y: node.position.y,
+        width: node.size?.width ?? def?.size?.width ?? 300,
+        height: node.size?.height ?? def?.size?.height ?? 150,
+      };
+    });
   const inputs: HarnessWireInput[] = [];
   for (const wire of document.wires) {
     if (wire.status !== 'live' || !wireVisible(wire)) continue;
@@ -85,7 +102,7 @@ export function computeHarness(
       targetKey: `${wire.target}:${wire.targetPort}`,
     });
   }
-  const routed = routeHarness(inputs);
+  const routed = routeHarness(inputs, obstacles);
   const flat = new Map<string, FlatHarness>();
   routed.forEach((wire, index) => {
     const input = inputs[index]!;

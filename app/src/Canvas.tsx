@@ -212,6 +212,7 @@ export function Canvas() {
         displayEndpoint(view.viewDoc, wire.source) === wire.source &&
         displayEndpoint(view.viewDoc, wire.target) === wire.target,
       zoomBorrow,
+      view.nodeVisible,
     );
     harnessRef.current = next;
     return next;

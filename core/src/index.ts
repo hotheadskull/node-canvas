@@ -9,6 +9,7 @@ export * from './graph';
 export * from './wires';
 export * from './layout';
 export * from './harness';
+export * from './routing';
 export * from './derive';
 export * from './split';
 export * from './assemblies';

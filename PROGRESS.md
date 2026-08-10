@@ -48,8 +48,8 @@ Build in the README's suggested order, full suite green between phases:
 | A | Data-kind color law (core/src/colors.ts) + closed DataKind union + readiness ring component | **completed 2026-08-09** (fonts bundled via fontsource; ReadinessRing per spec) |
 | B | Plate anatomy (spine/gutters/rails) + three collapse states (data field; zoom borrows, never writes) | **completed 2026-08-09** |
 | C | Wire rendering: chamfers, hops, lanes; junction dots; the 11 signal animations (budget ~8, reduced-motion) | **completed 2026-08-09** |
-| D | Corridor derivation from free space; ghost-and-settle on drag (new core/src/routing.ts) | not started |
-| E | Assembly face (stacked edges) + block/embed states + fork notice | not started |
+| D | Corridor derivation from free space; ghost-and-settle on drag (new core/src/routing.ts) | **completed 2026-08-09** |
+| E | Assembly face (stacked edges) + block/embed states + fork notice | **completed 2026-08-09** (face union-ports deferred — needs a wiring-semantics decision; block/embed rows + fork notice already landed with the Document pass) |
 | F | Open state: in-place grow, linked rail, writing column, per-form bodies | not started |
 | G | Split panel (replaces the preset list; presets become saved configs) | not started |
 | H | Density: gutter trunks, highways, filter bar, minimap | not started |
@@ -123,6 +123,47 @@ suite, academic-pack polish, merge-progress faces, citation formatting,
 presentation-walk mode. All registry entries + isolated reducers (invariant I8).
 
 ## Session log
+
+### 2026-08-09 (later still) — Observatory Phases D + E + gutter grammar
+
+- **Gutters (user-requested):** each side rail now wears the connection
+  grammar at rail scale — a visible outline while open, a lit indigo fill
+  once it carries any connection (wires on that side, or any relationship).
+  Deliberately brighter than the spec's rgba(0,0,0,.24) by user direction.
+- **Phase D — corridors (core/src/routing.ts + routing.golden.json NEW):**
+  "corridors are derived, not authored." Every visible plate rides into
+  routeHarness as an obstacle, inflated by CORRIDOR_MARGIN (8px);
+  clearLaneX slides a wire's vertical lane outward past any plate it would
+  slice (no rect is exempt — a lane inside its own source is still wrong);
+  dodgeObstacles staircases horizontal runs around plates (nearer edge
+  first, both the drop and the pass verified clear; boxed-in keeps the
+  crossing — a crossing beats a vanished wire). Segments that START or END
+  inside a plate's margin are exempt (stubs leave through their own ring).
+  Junction dots now computed from the INPUT stub (dodges can insert
+  points); wire labels ride the LONGEST vertical (the real lane, not a
+  dodge stub). Hidden members of collapsed groups are NOT obstacles
+  (visibility predicate threaded through computeHarness).
+- **Phase E — assembly face:** the Observatory face — stacked-edges shadow
+  (the only new shape: "there is more inside"), ASSEMBLY label #d08fd0,
+  rollup readiness RING in the header, derived count CHIPS colored by the
+  member type's give dataKind (hue 10% fill / 24% border), readiness
+  distribution bar (stage-ordered flex segments), Space Mono footer with
+  member count + icon actions (expand/drill/arc/unpack — aria labels
+  unchanged, e2e untouched except the counts-text pin, now chips).
+  Expanded groups draw a dashed #3a4070 boundary around the members'
+  DOCUMENT rects (display only, follows drags, never moves anything — I5).
+  Deferred from §7: union-of-unsatisfied-ports on the face (needs a
+  wiring-semantics decision — external wires store member endpoints today)
+  and footer age (assemblies carry no timestamp in core).
+- e2e: harness.spec gains "a plate dropped onto a wire pushes the route
+  into free space" (real drag onto a live wire, then samples every settled
+  path segment against the plate's stored rect).
+- Suite: 267 unit + 41 e2e green; typecheck + lint clean. Goldens:
+  routing.golden.json NEW (ships with its feature; regenerate via
+  scripts/gen-routing-golden.mts).
+
+**Next: Phase F — the open state** (in-place grow to 736px, linked rail,
+writing column, per-form bodies), then G split panel, H density.
 
 ### 2026-08-09 (late night) — Relate anchors join the gutters (user-requested)
 

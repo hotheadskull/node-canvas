@@ -162,9 +162,23 @@ html, body, #root {
 }
 /* Port GUTTERS (13px, divider, dark fill): takes LEFT, gives RIGHT; a side
    with no ports keeps a whisper so the grammar reads everywhere. */
-.canvas-node-gutter { flex: none; width: 13px; background: var(--gutter-fill); position: relative; }
+/* Gutters wear the connection grammar at rail scale (user, 2026-08-09):
+   a visible OUTLINE while open, a lit FILL once the gutter carries any
+   connection. Brighter than the spec's rgba(0,0,0,.24) by user direction. */
+.canvas-node-gutter {
+  flex: none; width: 13px; position: relative;
+  background: rgba(88, 94, 142, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(104, 111, 168, 0.55);
+  transition: background 0.18s ease, box-shadow 0.18s ease;
+}
 .gutter-left { border-right: 1px solid var(--border-quiet); border-radius: 9px 0 0 9px; }
 .gutter-right { border-left: 1px solid var(--border-quiet); border-radius: 0 9px 9px 0; }
+.canvas-node-gutter.is-used {
+  background: rgba(126, 135, 202, 0.3);
+  box-shadow:
+    inset 0 0 0 1px rgba(150, 158, 226, 0.9),
+    inset 0 0 10px rgba(140, 149, 218, 0.22);
+}
 .canvas-node-gutter.is-empty { width: 6px; }
 /* Body column between the gutters: header rail / rule / content / rule / meta */
 .plate-column { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
@@ -497,55 +511,88 @@ html, body, #root {
   white-space: pre-wrap;
 }
 
-/* ---------- Assembly face ---------- */
+/* ---------- Assembly face (Observatory §7) ---------- */
+/* Collapsed: a plate with STACKED EDGES -- the only new shape in the
+   system, meaning "there is more inside". Values literal from the spec. */
 .assembly-face {
   display: flex; flex-direction: column;
   border-radius: 10px;
-  background: rgba(26, 22, 36, 0.94);
-  border: 1px dashed rgba(168, 85, 247, 0.55);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.45);
-  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  overflow: visible;
 }
-.assembly-face.is-collapsed { width: 260px; min-height: 130px; border-style: solid; }
-.assembly-face.is-pill { width: 220px; opacity: 0.92; }
+.assembly-face.is-collapsed {
+  width: 260px; min-height: 130px;
+  box-shadow:
+    5px 5px 0 -1px rgba(20, 23, 49, 0.95), 5px 5px 0 0 #262b52,
+    10px 10px 0 -1px rgba(20, 23, 49, 0.95), 10px 10px 0 0 #1f2445,
+    var(--shadow-plate);
+}
+.assembly-face.is-pill { width: 240px; opacity: 0.94; box-shadow: var(--shadow-plate); }
 .assembly-face.is-selected {
-  border-color: #a855f7;
-  box-shadow: 0 0 0 1px #a855f7, 0 0 18px rgba(168, 85, 247, 0.35);
+  border-color: var(--border-selected);
+  box-shadow:
+    var(--ring-selected),
+    5px 5px 0 -1px rgba(20, 23, 49, 0.95), 5px 5px 0 0 #262b52,
+    10px 10px 0 -1px rgba(20, 23, 49, 0.95), 10px 10px 0 0 #1f2445;
+}
+.assembly-face.is-pill.is-selected { box-shadow: var(--ring-selected), var(--shadow-plate); }
+/* expanded members live inside a quiet dashed boundary (display only) */
+.assembly-boundary {
+  position: absolute; pointer-events: none;
+  border: 1px dashed #3a4070; border-radius: 12px;
+  background: rgba(165, 149, 242, 0.03);
 }
 .assembly-face-header {
   display: flex; align-items: center; gap: 7px;
-  padding: 7px 9px;
-  background: rgba(168, 85, 247, 0.13);
-  border-bottom: 1px solid rgba(168, 85, 247, 0.25);
+  padding: 7px 9px 6px;
+  border-radius: 9px 9px 0 0;
+  background: linear-gradient(96deg,
+    color-mix(in srgb, #d08fd0 15%, transparent),
+    color-mix(in srgb, #d08fd0 4%, transparent) 46%,
+    transparent 72%);
+  border-bottom: 1px solid color-mix(in srgb, #d08fd0 25%, transparent);
 }
-.assembly-face.is-pill .assembly-face-header { border-bottom: none; }
-.assembly-face-icon { color: #c084fc; flex-shrink: 0; }
+.assembly-face.is-pill .assembly-face-header { border-bottom: none; border-radius: 9px; }
+.assembly-face-icon { color: #d08fd0; flex-shrink: 0; }
+.assembly-face-label {
+  font-size: 8.5px; letter-spacing: 0.15em; text-transform: uppercase;
+  color: #d08fd0; flex-shrink: 0;
+}
 .assembly-face-name {
   flex: 1; min-width: 0;
   background: transparent; border: none; outline: none;
-  color: var(--foreground); font-size: 13px; font-weight: 600;
+  color: var(--text); font-size: 12.5px; font-weight: 500;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
 }
-.assembly-face-actions { display: inline-flex; gap: 4px; }
+.assembly-face-actions { display: inline-flex; gap: 3px; }
 .assembly-face-button {
-  display: grid; place-items: center; width: 24px; height: 24px;
+  display: grid; place-items: center; width: 22px; height: 22px;
   border-radius: 5px; background: transparent;
-  border: 1px solid transparent; color: #b79add; cursor: pointer;
+  border: 1px solid transparent; color: #9095bd; cursor: pointer;
 }
-.assembly-face-button:hover { border-color: #a855f7; color: #d8b4fe; }
-.assembly-face-body { padding: 8px 10px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-.assembly-face-counts { margin: 0; font-size: 12px; line-height: 1.6; color: #cfc3e8; }
-.assembly-face-empty { margin: 0; font-size: 11.5px; font-style: italic; color: #6a6a72; }
+.assembly-face-button:hover { border-color: #d08fd0; color: #e8c7e8; }
+.assembly-face-body { padding: 8px 10px 9px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.assembly-face-counts { margin: 0; display: flex; flex-wrap: wrap; gap: 5px; }
+.face-chip {
+  display: inline-flex; align-items: center;
+  padding: 1.5px 8px; border-radius: 9999px;
+  border: 1px solid transparent;
+  font-family: 'Space Mono', ui-monospace, monospace; font-size: 9.5px;
+  white-space: nowrap;
+}
+.readiness-bar {
+  display: flex; height: 4px; border-radius: 2px; overflow: hidden; gap: 1px;
+}
+.readiness-bar-seg { min-width: 3px; }
+.assembly-face-empty { margin: 0; font-size: 11.5px; font-style: italic; color: var(--text-faint); }
 .assembly-face-footer {
+  margin-top: auto;
   display: flex; align-items: center; justify-content: space-between;
-  font-size: 10.5px; color: #8b8b93;
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 9px; color: var(--text-dim);
 }
-.assembly-face-unpack {
-  padding: 2px 9px; border-radius: 5px; font-size: 10.5px;
-  background: transparent; border: 1px solid var(--hairline);
-  color: #b79add; cursor: pointer;
-}
-.assembly-face-unpack:hover { border-color: #a855f7; color: #d8b4fe; }
-.assembly-handle.react-flow__handle { background: #a855f7; }
+.assembly-handle.react-flow__handle { background: #d08fd0; }
 
 /* ---------- Command palette (Ctrl+K) ---------- */
 .palette-backdrop {

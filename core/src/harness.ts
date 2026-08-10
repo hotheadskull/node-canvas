@@ -8,9 +8,12 @@
 // semicircular hop. One give feeding several takes shares a stub and splits
 // at a junction dot -- no dot means no relationship.
 //
-// This module is PURE GEOMETRY (I7): callers supply pixel anchors; corridor
-// DERIVATION from free space is Phase D and will feed lane X positions in.
+// This module is PURE GEOMETRY (I7): callers supply pixel anchors. Corridor
+// derivation (Phase D) lives in routing.ts: pass node rects as `obstacles`
+// and lanes slide into free channels, horizontal runs dodge plates.
 // ============================================================================
+
+import { clearLaneX, dodgeObstacles, inflate, type RoutingRect } from './routing';
 
 export type HarnessPoint = { x: number; y: number };
 
@@ -211,7 +214,11 @@ export function harnessPathD(points: HarnessPoint[], hops: Map<number, number[]>
  * in input order = intake order), hops computed across the family, junction
  * dots where a shared source port splits.
  */
-export function routeHarness(wires: HarnessWireInput[]): HarnessWire[] {
+export function routeHarness(
+  wires: HarnessWireInput[],
+  obstacles: RoutingRect[] = [],
+): HarnessWire[] {
+  const inflated = obstacles.map((rect) => inflate(rect));
   // lane per (targetKey): base lane short of the target column, stepping
   // LANE_GAP per additional inbound wire
   const laneIndex = new Map<string, number>();
@@ -221,9 +228,18 @@ export function routeHarness(wires: HarnessWireInput[]): HarnessWire[] {
     // The lane sits on the APPROACH side of the target stub, LANE_MARGIN
     // short of it, stepping LANE_GAP further out per additional inbound
     // wire (input order = intake order, so lane order reads as wire order).
-    const targetStubX = wire.target.x + stubSign(wire.target.side) * STUB;
-    const laneX = targetStubX + stubSign(wire.target.side) * (LANE_MARGIN + index * LANE_GAP);
-    return { wire, points: routePoints(wire.source, wire.target, laneX) };
+    const sign = stubSign(wire.target.side) as -1 | 1;
+    const targetStubX = wire.target.x + sign * STUB;
+    let laneX = targetStubX + sign * (LANE_MARGIN + index * LANE_GAP);
+    if (inflated.length > 0 && Math.abs(wire.source.y - wire.target.y) >= 0.5) {
+      // Phase D: the lane slides outward into the nearest free channel --
+      // a vertical run may never slice through a plate. Later lanes start
+      // beyond earlier ones (index step), so cleared lanes stay distinct.
+      laneX = clearLaneX(laneX, wire.source.y, wire.target.y, inflated, sign);
+    }
+    let points = routePoints(wire.source, wire.target, laneX);
+    if (inflated.length > 0) points = dodgeObstacles(points, inflated);
+    return { wire, points };
   });
 
   // junctions: 2+ wires sharing a source port split at the shared stub end
@@ -237,21 +253,30 @@ export function routeHarness(wires: HarnessWireInput[]): HarnessWire[] {
   return skeletons.map((entry, index) => {
     const others = skeletons.filter((_, otherIndex) => otherIndex !== index).map((other) => other.points);
     const hops = findHops(entry.points, others);
-    // label rides the vertical lane's midpoint (or the path middle when level)
-    const verticalSeg = segments(entry.points).find((seg) => isVertical(seg));
+    // label rides the LONGEST vertical run's midpoint (the main lane --
+    // dodge staircases add short verticals that must not steal it), or the
+    // path middle when level
+    const verticalSeg = segments(entry.points)
+      .filter((seg) => isVertical(seg))
+      .sort((a, b) => Math.abs(b.b.y - b.a.y) - Math.abs(a.b.y - a.a.y))[0];
     const labelPoint = verticalSeg
       ? { x: verticalSeg.a.x, y: (verticalSeg.a.y + verticalSeg.b.y) / 2 }
       : entry.points[Math.floor(entry.points.length / 2)]!;
     const group = bySource.get(entry.wire.sourceKey) ?? [];
     const isJunctionOwner = group.length > 1 && group[0] === index;
-    const stubEnd = entry.points[1];
+    // the shared stub's end, computed from the INPUT (dodges can insert
+    // points, so points[1] is not guaranteed to be the stub tip)
+    const stubEnd = {
+      x: entry.wire.source.x + stubSign(entry.wire.source.side) * STUB,
+      y: entry.wire.source.y,
+    };
     return {
       id: entry.wire.id,
       d: harnessPathD(entry.points.map((point) => ({ ...point })), hops),
       points: entry.points,
       labelX: labelPoint.x,
       labelY: labelPoint.y,
-      ...(isJunctionOwner && stubEnd ? { junction: { x: stubEnd.x, y: stubEnd.y } } : {}),
+      ...(isJunctionOwner ? { junction: { x: stubEnd.x, y: stubEnd.y } } : {}),
     };
   });
 }

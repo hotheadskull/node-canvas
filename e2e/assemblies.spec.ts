@@ -38,7 +38,11 @@ test('gather -> face counts -> collapse/expand -> drill -> unpack', async ({ pag
   await expect(page.locator('.react-flow__node-canvas')).toHaveCount(0);
   const face = page.locator('.assembly-face.is-collapsed');
   await expect(face).toHaveCount(1);
-  await expect(face.locator('.assembly-face-counts')).toHaveText('Person: 2 · Place: 1');
+  // Observatory §7: derived counts render as data-kind-coloured chips
+  await expect(face.locator('.assembly-face-counts .face-chip')).toHaveText([
+    'Person 2',
+    'Place 1',
+  ]);
 
   // expand in place: members return, face becomes a pill
   await face.locator('[aria-label="Expand group"]').click();

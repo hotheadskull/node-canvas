@@ -1,16 +1,28 @@
-// The assembly's face card. Collapsed: the full derived face ("Person: 2 ·
-// Place: 1", readiness could join later) with expand/open/unpack. Expanded:
-// a compact pill near the members so the group always has an affordance to
-// collapse, drill into, or unpack. External connections attach HERE -- the
-// face is the assembly's stable interface (I3), so it has plain-edge dots.
+// The assembly's face -- Observatory §7. Collapsed: a plate with STACKED
+// EDGES (the only new shape in the system -- "there is more inside"):
+// ASSEMBLY label, rollup readiness ring, name, derived count chips, the
+// readiness distribution bar, then a footer with the member count and the
+// three actions (expand / drill in / unpack). Expanded: members render
+// inside a dashed boundary; the face becomes a pill carrying the same
+// actions. External connections attach HERE -- the face is the assembly's
+// stable interface (I3), so it has plain-edge dots.
 
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { Boxes, DoorOpen, Minimize2, PackageOpen, Spline } from 'lucide-react';
+import {
+  Boxes,
+  DoorOpen,
+  Maximize2,
+  Minimize2,
+  PackageOpen,
+  Spline,
+} from 'lucide-react';
 import { memo, useMemo } from 'react';
 import {
   arcOutline,
+  DATA_KIND_STYLES,
   deriveFace,
   getArcRelation,
+  getNodeDef,
   memberNodeIds,
   ownersOutstanding,
   READINESS_STAGES,
@@ -19,6 +31,7 @@ import {
   workbenchInfo,
 } from '@node-canvas/core';
 import { useCanvasStore } from '../store/canvasStore';
+import { ReadinessRing } from './ReadinessRing';
 
 /** Human age for the workbench face ("2h", "12d"). */
 function ageOf(iso: string): string {
@@ -28,6 +41,20 @@ function ageOf(iso: string): string {
   if (hours < 48) return `${hours}h ago`;
   return `${Math.floor(hours / 24)}d ago`;
 }
+
+/** A count chip's hue follows the color law: the member TYPE's primary give
+ * dataKind (never the type itself). */
+function chipHue(type: string): string {
+  const give = getNodeDef(type)?.ports.find((port) => port.direction === 'give');
+  return (give && DATA_KIND_STYLES[give.dataKind]?.hue) ?? DATA_KIND_STYLES.any.hue;
+}
+
+const STAGE_BAR_COLORS: Record<string, string> = {
+  seed: '#4a4f76',
+  developing: '#f0c96a',
+  ready: '#6fd39a',
+  placed: 'rgba(111,211,154,.4)',
+};
 
 export type AssemblyFaceData = {
   assemblyId: string;
@@ -60,6 +87,49 @@ function AssemblyFaceComponent({ data, selected }: NodeProps & { data: AssemblyF
   const isArcGroup = outline.propCount >= 2;
   const openArcRoom = useCanvasStore((state) => state.openArcRoom);
 
+  // Expanded boundary (spec §7): a dashed box around the members' rects,
+  // drawn RELATIVE to the face's own position. Display only -- it never
+  // moves anything (I5); it just follows the document as members drag.
+  const boundary = useMemo(() => {
+    if (data.collapsed) return null;
+    const assembly = document.assemblies.find(
+      (candidate) => candidate.id === data.assemblyId,
+    );
+    if (!assembly || assembly.memberIds.length === 0) return null;
+    let x1 = Infinity;
+    let y1 = Infinity;
+    let x2 = -Infinity;
+    let y2 = -Infinity;
+    for (const memberId of assembly.memberIds) {
+      const node = document.nodes.find((candidate) => candidate.id === memberId);
+      if (node) {
+        const def = getNodeDef(node.type);
+        const width = node.size?.width ?? def?.size?.width ?? 300;
+        const height = node.size?.height ?? def?.size?.height ?? 150;
+        x1 = Math.min(x1, node.position.x);
+        y1 = Math.min(y1, node.position.y);
+        x2 = Math.max(x2, node.position.x + width);
+        y2 = Math.max(y2, node.position.y + height);
+        continue;
+      }
+      const nested = document.assemblies.find((candidate) => candidate.id === memberId);
+      if (nested) {
+        x1 = Math.min(x1, nested.position.x);
+        y1 = Math.min(y1, nested.position.y);
+        x2 = Math.max(x2, nested.position.x + 260);
+        y2 = Math.max(y2, nested.position.y + 130);
+      }
+    }
+    if (!Number.isFinite(x1)) return null;
+    const pad = 18;
+    return {
+      left: x1 - pad - assembly.position.x,
+      top: y1 - pad - assembly.position.y,
+      width: x2 - x1 + pad * 2,
+      height: y2 - y1 + pad * 2,
+    };
+  }, [data.collapsed, data.assemblyId, document]);
+
   const propText = (nodeId: string): string => {
     const node = document.nodes.find((candidate) => candidate.id === nodeId);
     if (!node) return '…';
@@ -69,47 +139,69 @@ function AssemblyFaceComponent({ data, selected }: NodeProps & { data: AssemblyF
     return title !== '' ? title : 'Untitled proposition';
   };
 
+  const actionButtons = (
+    <>
+      <button
+        className="assembly-face-button nodrag"
+        title={data.collapsed ? 'Expand in place' : 'Collapse into this card'}
+        aria-label={data.collapsed ? 'Expand group' : 'Collapse group'}
+        onClick={() => setCollapsed(data.assemblyId, !data.collapsed)}
+      >
+        {data.collapsed ? <Maximize2 size={12} aria-hidden /> : <Minimize2 size={12} aria-hidden />}
+      </button>
+      <button
+        className="assembly-face-button nodrag"
+        title="Open this group on its own canvas"
+        aria-label="Open group"
+        onClick={() => drillIn(data.assemblyId)}
+      >
+        <DoorOpen size={12} aria-hidden />
+      </button>
+      {isArcGroup && (
+        <button
+          className="assembly-face-button nodrag"
+          title="Arc room: work the propositions and their relationships"
+          aria-label="Open Arc room"
+          onClick={() => openArcRoom(data.assemblyId)}
+        >
+          <Spline size={12} aria-hidden />
+        </button>
+      )}
+      <button
+        className="assembly-face-button assembly-face-unpack nodrag"
+        title="Dissolve the group — every node stays on the canvas"
+        aria-label="Unpack group"
+        onClick={() => unpack(data.assemblyId)}
+      >
+        <PackageOpen size={12} aria-hidden />
+      </button>
+    </>
+  );
+
   return (
     <div
       className={`assembly-face ${data.collapsed ? 'is-collapsed' : 'is-pill'} ${selected ? 'is-selected' : ''}`}
       data-assembly-face={data.assemblyId}
     >
+      {boundary && (
+        <span
+          className="assembly-boundary"
+          style={boundary}
+          aria-hidden
+          data-assembly-boundary
+        />
+      )}
       <header className="assembly-face-header">
-        <Boxes size={13} aria-hidden className="assembly-face-icon" />
+        <Boxes size={12} aria-hidden className="assembly-face-icon" />
+        <span className="assembly-face-label">Assembly</span>
         <input
           className="assembly-face-name nodrag"
           value={data.name}
           placeholder="Group name"
           onChange={(event) => renameAssemblyTo(data.assemblyId, event.target.value)}
         />
-        <span className="assembly-face-actions">
-          <button
-            className="assembly-face-button nodrag"
-            title={data.collapsed ? 'Expand in place' : 'Collapse into this card'}
-            aria-label={data.collapsed ? 'Expand group' : 'Collapse group'}
-            onClick={() => setCollapsed(data.assemblyId, !data.collapsed)}
-          >
-            {data.collapsed ? <PackageOpen size={13} aria-hidden /> : <Minimize2 size={13} aria-hidden />}
-          </button>
-          <button
-            className="assembly-face-button nodrag"
-            title="Open this group on its own canvas"
-            aria-label="Open group"
-            onClick={() => drillIn(data.assemblyId)}
-          >
-            <DoorOpen size={13} aria-hidden />
-          </button>
-          {isArcGroup && (
-            <button
-              className="assembly-face-button nodrag"
-              title="Arc room: work the propositions and their relationships"
-              aria-label="Open Arc room"
-              onClick={() => openArcRoom(data.assemblyId)}
-            >
-              <Spline size={13} aria-hidden />
-            </button>
-          )}
-        </span>
+        {rollup.total > 0 && <ReadinessRing stage={rollup.overall} size={15} />}
+        {!data.collapsed && <span className="assembly-face-actions">{actionButtons}</span>}
       </header>
       {data.collapsed && (
         <div className="assembly-face-body">
@@ -117,12 +209,22 @@ function AssemblyFaceComponent({ data, selected }: NodeProps & { data: AssemblyF
             <p className="assembly-face-empty">Empty group</p>
           ) : (
             <p className="assembly-face-counts">
-              {counts.map((entry, index) => (
-                <span key={entry.type}>
-                  {index > 0 && ' · '}
-                  {entry.label}: {entry.count}
-                </span>
-              ))}
+              {counts.map((entry) => {
+                const hue = chipHue(entry.type);
+                return (
+                  <span
+                    key={entry.type}
+                    className="face-chip"
+                    style={{
+                      background: `color-mix(in srgb, ${hue} 10%, transparent)`,
+                      borderColor: `color-mix(in srgb, ${hue} 24%, transparent)`,
+                      color: hue,
+                    }}
+                  >
+                    {entry.label} {entry.count}
+                  </span>
+                );
+              })}
             </p>
           )}
           {isArcGroup && (
@@ -148,12 +250,22 @@ function AssemblyFaceComponent({ data, selected }: NodeProps & { data: AssemblyF
               </p>
             </div>
           )}
-          {rollup.total > 0 && rollup.counts.seed !== rollup.total && (
-            <p className="assembly-face-readiness" title="Readiness of everything inside">
-              {READINESS_STAGES.filter((stage) => rollup.counts[stage] > 0)
+          {rollup.total > 0 && (
+            <div
+              className="readiness-bar"
+              data-readiness-bar
+              title={READINESS_STAGES.filter((stage) => rollup.counts[stage] > 0)
                 .map((stage) => `${rollup.counts[stage]} ${stage}`)
                 .join(' · ')}
-            </p>
+            >
+              {READINESS_STAGES.filter((stage) => rollup.counts[stage] > 0).map((stage) => (
+                <span
+                  key={stage}
+                  className={`readiness-bar-seg seg-${stage}`}
+                  style={{ flex: rollup.counts[stage], background: STAGE_BAR_COLORS[stage] }}
+                />
+              ))}
+            </div>
           )}
           {owners.length > 0 && (
             <p className="assembly-face-owners" title="Unfinished work per owner">
@@ -169,14 +281,10 @@ function AssemblyFaceComponent({ data, selected }: NodeProps & { data: AssemblyF
             </p>
           )}
           <footer className="assembly-face-footer">
-            <span>{memberCount} inside</span>
-            <button
-              className="assembly-face-unpack nodrag"
-              title="Dissolve the group — every node stays on the canvas"
-              onClick={() => unpack(data.assemblyId)}
-            >
-              Unpack
-            </button>
+            <span className="assembly-face-members">
+              {memberCount} member{memberCount === 1 ? '' : 's'}
+            </span>
+            <span className="assembly-face-actions">{actionButtons}</span>
           </footer>
         </div>
       )}

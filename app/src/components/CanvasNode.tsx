@@ -259,6 +259,11 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
   const hasPlainEdges = useCanvasStore((state) =>
     state.document.edges.some((edge) => edge.source === id || edge.target === id),
   );
+  // Gutter grammar (user, 2026-08-09): each gutter wears an OUTLINE at rest
+  // and FILLS once it carries a connection -- the same filled-means-real
+  // rule the slots and diamonds follow, scaled up to the whole rail.
+  const leftUsed = Number(wiresIn) > 0 || hasPlainEdges;
+  const rightUsed = Number(wiresOut) > 0 || hasPlainEdges;
   const updateNodeInternals = useUpdateNodeInternals();
   const cardRef = useRef<HTMLDivElement>(null);
   // "✎ edited in <doc>" -- this node's text was forked inside a document;
@@ -356,7 +361,7 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
         )}
         <span className="plate-spine" aria-hidden />
         <span
-          className={`canvas-node-gutter gutter-left ${takes.length > 0 ? '' : 'is-empty'}`}
+          className={`canvas-node-gutter gutter-left ${takes.length > 0 ? '' : 'is-empty'} ${leftUsed ? 'is-used' : ''}`}
           aria-hidden
         />
         <div className="plate-column">
@@ -375,7 +380,7 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
           </div>
         </div>
         <span
-          className={`canvas-node-gutter gutter-right ${gives.length > 0 ? '' : 'is-empty'}`}
+          className={`canvas-node-gutter gutter-right ${gives.length > 0 ? '' : 'is-empty'} ${rightUsed ? 'is-used' : ''}`}
           aria-hidden
         />
         <PortStars nodeId={id} ports={takes} side="left" wired={wiredPorts} merged />
@@ -444,7 +449,7 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
       {/* Port gutters (Observatory zone 2/4): takes enter LEFT, gives leave
           RIGHT; a side with no ports keeps a whisper so the grammar reads. */}
       <span
-        className={`canvas-node-gutter gutter-left ${takes.length > 0 ? '' : 'is-empty'}`}
+        className={`canvas-node-gutter gutter-left ${takes.length > 0 ? '' : 'is-empty'} ${leftUsed ? 'is-used' : ''}`}
         aria-hidden
       />
       <div className="plate-column">
@@ -541,7 +546,7 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
         </footer>
       </div>
       <span
-        className={`canvas-node-gutter gutter-right ${gives.length > 0 ? '' : 'is-empty'}`}
+        className={`canvas-node-gutter gutter-right ${gives.length > 0 ? '' : 'is-empty'} ${rightUsed ? 'is-used' : ''}`}
         aria-hidden
       />
       <PortStars nodeId={id} ports={takes} side="left" wired={wiredPorts} />
