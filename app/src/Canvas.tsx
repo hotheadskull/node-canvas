@@ -33,6 +33,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   arcOutline,
   displayEndpoint,
+  getNodeDef,
   getPort,
   hiddenIds,
   isValidWire,
@@ -303,6 +304,7 @@ export function Canvas() {
               ...(docNode.data['collapsed'] === 'collapsed'
                 ? { collapsed: 'collapsed' as const }
                 : {}),
+              ...(docNode.data['flipped'] === true ? { flipped: true } : {}),
             },
           });
         });
@@ -586,6 +588,37 @@ export function Canvas() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        /* Drag-time broadcast (user, 2026-08-10): the moment a wire drag
+           starts from a port, every port it could legally land on across
+           the visible canvas lights up in its data-kind color -- color
+           does the teaching at exactly the moment the question is asked. */
+        onConnectStart={(_event, params) => {
+          const { nodeId, handleId } = params;
+          if (!nodeId || !handleId) return;
+          if (PLAIN_HANDLES.has(handleId) || handleId.startsWith('blk:')) return;
+          const store = useCanvasStore.getState();
+          const doc = store.document;
+          const dragged = getPort(
+            doc.nodes.find((node) => node.id === nodeId)?.type ?? '',
+            handleId,
+          );
+          if (!dragged) return;
+          const wanted = dragged.direction === 'give' ? 'take' : 'give';
+          const candidates = new Set<string>();
+          for (const other of doc.nodes) {
+            if (other.id === nodeId || !view.nodeVisible(other.id)) continue;
+            for (const port of getNodeDef(other.type)?.ports ?? []) {
+              if (port.direction !== wanted) continue;
+              const wire =
+                dragged.direction === 'give'
+                  ? { source: nodeId, sourcePort: handleId, target: other.id, targetPort: port.id }
+                  : { source: other.id, sourcePort: port.id, target: nodeId, targetPort: handleId };
+              if (isValidWire(doc, wire).ok) candidates.add(`${other.id}:${port.id}`);
+            }
+          }
+          store.setConnectCandidates(candidates);
+        }}
+        onConnectEnd={() => useCanvasStore.getState().setConnectCandidates(null)}
         isValidConnection={isValidConnection}
         onInit={() => setFlowReady(true)}
         defaultViewport={initialViewport}

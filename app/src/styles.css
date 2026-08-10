@@ -278,13 +278,13 @@ html, body, #root {
   padding: 8px 12px 0;
 }
 .canvas-node-title::placeholder { color: var(--text-faint); font-weight: 500; }
-.canvas-node-fit {
+.canvas-node-fit, .canvas-node-swap {
   display: grid; place-items: center;
   width: 16px; height: 16px; border-radius: 4px;
   background: transparent; border: 1px solid var(--hairline);
   color: var(--text-dim); cursor: pointer; flex: none;
 }
-.canvas-node-fit:hover { color: var(--gold); border-color: var(--gold-soft); }
+.canvas-node-fit:hover, .canvas-node-swap:hover { color: var(--gold); border-color: var(--gold-soft); }
 .canvas-node-body { flex: 1; display: flex; min-height: 0; position: relative; }
 
 /* ---------- Open state (Observatory §10) ----------
@@ -428,6 +428,30 @@ html, body, #root {
 .port-star.react-flow__handle.is-wired:hover {
   box-shadow: 0 0 10px var(--port-color), 0 0 18px color-mix(in srgb, var(--port-color) 50%, transparent);
 }
+/* Drag-time broadcast (user, 2026-08-10): while a wire drag is live,
+   every port it could legally land on lights up in ITS data-kind color
+   with its label; everything else steps back. Color does the teaching. */
+.port-star.react-flow__handle.is-candidate {
+  border-color: var(--port-color);
+  box-shadow:
+    0 0 9px var(--port-color),
+    0 0 16px color-mix(in srgb, var(--port-color) 45%, transparent);
+  animation: candidate-pulse 1.4s ease-in-out infinite;
+  opacity: 1 !important;
+}
+.port-star.react-flow__handle.is-bystander { opacity: 0.25; }
+@keyframes candidate-pulse {
+  0%, 100% { box-shadow: 0 0 9px var(--port-color), 0 0 16px color-mix(in srgb, var(--port-color) 45%, transparent); }
+  50% { box-shadow: 0 0 4px var(--port-color), 0 0 8px color-mix(in srgb, var(--port-color) 30%, transparent); }
+}
+.port-label.is-candidate {
+  opacity: 1 !important;
+  color: var(--port-color);
+}
+@media (prefers-reduced-motion: reduce) {
+  .port-star.react-flow__handle.is-candidate { animation: none; }
+}
+
 /* live validity coloring during a connection drag: green = will connect,
    red WITH AN × = won't (user asked for an unmissable "no") */
 .port-star.react-flow__handle.connectingto.valid,

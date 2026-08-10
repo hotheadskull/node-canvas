@@ -124,6 +124,31 @@ presentation-walk mode. All registry entries + isolated reducers (invariant I8).
 
 ## Session log
 
+### 2026-08-10 (latest) — Gutter swap + drag-time broadcast (user decisions)
+
+- The wrap-around question RESOLVED by the user: the grammar STAYS fixed
+  (intake one side, output the other — no four-sided ports); the odd node
+  flips instead. **⇄ swap button** on the selected plate's header trades
+  its gutters (data.flipped passthrough, persisted; handles re-register;
+  anchorFor routes to the swapped sides so wires re-settle instantly).
+- **Drag-time broadcast**: starting a wire drag lights EVERY port the wire
+  could legally land on across the visible canvas — candidate slots glow
+  and pulse in their data-kind color with labels forced on; everything
+  else steps back to 25%. Both directions (give→takes, take→gives).
+  Computed once per drag start via isValidWire dry-runs; cleared on end.
+  Color does the teaching (user: "color coded... easy to learn").
+- **Port labels default to ALWAYS** (was hover-only — "not showing
+  things"); the gear setting still offers hover/off.
+- Bug found by the suite mid-build: a replace_all missed the FULL plate
+  variant's PortStars (indentation differs per variant), so candidates/
+  flip only worked on open/collapsed plates until the e2e caught it. Also:
+  the swap button briefly shared .canvas-node-fit and broke the anatomy
+  spec's Fit locator — own class now.
+- e2e/connection-affordances.spec.ts (2): broadcast lights document takes
+  + dims bystanders + clears on release; flip moves the give to the LEFT
+  gutter, wire survives + settles, flip persists across reload.
+- Suite: 267 unit + 46 e2e green; typecheck + lint clean.
+
 ### 2026-08-10 (later) — Observatory Phase F: the open state (shell)
 
 - Double-click grows a plate IN PLACE to 736px (spec §10). SESSION ONLY:

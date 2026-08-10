@@ -21,6 +21,7 @@ import {
   type NodeProps,
 } from '@xyflow/react';
 import {
+  ArrowLeftRight,
   BookMarked,
   BookOpenText,
   Box,
@@ -69,6 +70,8 @@ export type CanvasNodeData = {
   accent?: string;
   /** Observatory §2: sticky user-controlled collapse, persisted in data. */
   collapsed?: 'collapsed';
+  /** Gutter swap (user, 2026-08-10): intake and output trade sides. */
+  flipped?: boolean;
 };
 
 /** The Observatory color law: colour comes from the port's dataKind, never
@@ -122,6 +125,8 @@ function PortStars({
   side,
   wired,
   merged,
+  candidates,
+  broadcasting,
 }: {
   nodeId: string;
   ports: PortDef[];
@@ -131,8 +136,14 @@ function PortStars({
    * v1 lesson: an edge without its handle cannot render) but they stack at
    * one spot and read as a single dot per side. */
   merged?: boolean;
+  /** Drag-time broadcast: ports the dragged wire could land on light up
+   * in their kind color; the rest step back while a drag is live. */
+  candidates?: ReadonlySet<string>;
+  broadcasting?: boolean;
 }) {
   const position = side === 'left' ? Position.Left : Position.Right;
+  const broadcastClass = (portId: string) =>
+    candidates?.has(portId) ? 'is-candidate' : broadcasting ? 'is-bystander' : '';
   // Hidden (non-defaultVisible) ports render too, but only APPEAR on node
   // hover -- otherwise they have no handle and can never be wired (found
   // fixing TRY-IT §12: Footnotes and Subject/Complement were unreachable).
@@ -146,7 +157,7 @@ function PortStars({
           position={position}
           // Observatory port grammar: a filled, glowing slot means a real
           // wire; an outline slot is open. The meta rail counts must agree.
-          className={`port-star kind-${port.dataKind} ${wired.has(port.id) ? 'is-wired' : 'is-open'} ${merged ? 'is-merged' : ''} ${port.defaultVisible || merged ? '' : 'is-hidden-port'}`}
+          className={`port-star kind-${port.dataKind} ${wired.has(port.id) ? 'is-wired' : 'is-open'} ${merged ? 'is-merged' : ''} ${port.defaultVisible || merged ? '' : 'is-hidden-port'} ${broadcastClass(port.id)}`}
           style={{
             top: merged ? '50%' : `${PORT_TOP + index * PORT_GAP}px`,
             // slots live INSIDE their gutter, kissing the outer edge
@@ -161,8 +172,11 @@ function PortStars({
         ports.map((port, index) => (
           <span
             key={`${port.id}-label`}
-            className={`port-label side-${side} ${port.defaultVisible ? '' : 'is-hidden-port'}`}
-            style={{ top: `${PORT_TOP + index * PORT_GAP}px` }}
+            className={`port-label side-${side} ${port.defaultVisible ? '' : 'is-hidden-port'} ${broadcastClass(port.id)}`}
+            style={{
+              top: `${PORT_TOP + index * PORT_GAP}px`,
+              ['--port-color' as string]: PORT_KIND_COLORS[port.dataKind] ?? '#8085ad',
+            }}
             data-for-node={nodeId}
           >
             {port.label}
@@ -260,11 +274,34 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
   const hasPlainEdges = useCanvasStore((state) =>
     state.document.edges.some((edge) => edge.source === id || edge.target === id),
   );
+  // Gutter swap (user, 2026-08-10): the grammar stays fixed -- intake one
+  // side, output the other -- but a node can FLIP so it faces its
+  // partners instead of forcing the wire the long way around.
+  const flipped = data.flipped === true;
+  const takeSide = flipped ? ('right' as const) : ('left' as const);
+  const giveSide = flipped ? ('left' as const) : ('right' as const);
   // Gutter grammar (user, 2026-08-09): each gutter wears an OUTLINE at rest
   // and FILLS once it carries a connection -- the same filled-means-real
   // rule the slots and diamonds follow, scaled up to the whole rail.
-  const leftUsed = Number(wiresIn) > 0 || hasPlainEdges;
-  const rightUsed = Number(wiresOut) > 0 || hasPlainEdges;
+  const leftUsed = Number(flipped ? wiresOut : wiresIn) > 0 || hasPlainEdges;
+  const rightUsed = Number(flipped ? wiresIn : wiresOut) > 0 || hasPlainEdges;
+  // Drag-time broadcast: which of THIS plate's ports the wire being
+  // dragged could land on. String signature so only drags re-render.
+  const broadcasting = useCanvasStore((state) => state.connectCandidates !== null);
+  const candidateSignature = useCanvasStore((state) => {
+    if (state.connectCandidates === null) return '';
+    let joined = '';
+    for (const key of state.connectCandidates) {
+      if (key.startsWith(`${id}:`)) joined += `${key.slice(id.length + 1)} `;
+    }
+    return joined;
+  });
+  const candidatePorts = useMemo(
+    () =>
+      new Set(candidateSignature.trim() === '' ? [] : candidateSignature.trim().split(' ')),
+    [candidateSignature],
+  );
+  const toggleNodeFlipped = useCanvasStore((state) => state.toggleNodeFlipped);
   const updateNodeInternals = useUpdateNodeInternals();
   const cardRef = useRef<HTMLDivElement>(null);
   // "✎ edited in <doc>" -- this node's text was forked inside a document;
@@ -328,7 +365,7 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
   // render, and calling updateNodeInternals from every mounting node made
   // 500-node boots quadratic (each call notifies every RF subscriber -- the
   // Chunk 18 stress spec measured a 36s hang from this line alone).
-  const handleSignature = `${allPorts.map((port) => port.id).join(',')}:${data.ownedHeight ?? ''}:${isCollapsed ? 'c' : isOpen ? 'o' : 'f'}`;
+  const handleSignature = `${allPorts.map((port) => port.id).join(',')}:${data.ownedHeight ?? ''}:${isCollapsed ? 'c' : isOpen ? 'o' : 'f'}:${flipped ? 'x' : ''}`;
   const prevSignatureRef = useRef<string | null>(null);
   useEffect(() => {
     if (prevSignatureRef.current === handleSignature) return;
@@ -372,7 +409,7 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
       >
         <span className="plate-spine" aria-hidden />
         <span
-          className={`canvas-node-gutter gutter-left ${takes.length > 0 ? '' : 'is-empty'} ${leftUsed ? 'is-used' : ''}`}
+          className={`canvas-node-gutter gutter-left ${(flipped ? gives : takes).length > 0 ? '' : 'is-empty'} ${leftUsed ? 'is-used' : ''}`}
           aria-hidden
         />
         <div className="plate-column">
@@ -431,11 +468,11 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
           </footer>
         </div>
         <span
-          className={`canvas-node-gutter gutter-right ${gives.length > 0 ? '' : 'is-empty'} ${rightUsed ? 'is-used' : ''}`}
+          className={`canvas-node-gutter gutter-right ${(flipped ? takes : gives).length > 0 ? '' : 'is-empty'} ${rightUsed ? 'is-used' : ''}`}
           aria-hidden
         />
-        <PortStars nodeId={id} ports={takes} side="left" wired={wiredPorts} />
-        <PortStars nodeId={id} ports={gives} side="right" wired={wiredPorts} />
+        <PortStars nodeId={id} ports={takes} side={takeSide} wired={wiredPorts} candidates={candidatePorts} broadcasting={broadcasting} />
+        <PortStars nodeId={id} ports={gives} side={giveSide} wired={wiredPorts} candidates={candidatePorts} broadcasting={broadcasting} />
         <RelateAnchors related={hasPlainEdges} />
       </div>
     );
@@ -466,7 +503,7 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
         )}
         <span className="plate-spine" aria-hidden />
         <span
-          className={`canvas-node-gutter gutter-left ${takes.length > 0 ? '' : 'is-empty'} ${leftUsed ? 'is-used' : ''}`}
+          className={`canvas-node-gutter gutter-left ${(flipped ? gives : takes).length > 0 ? '' : 'is-empty'} ${leftUsed ? 'is-used' : ''}`}
           aria-hidden
         />
         <div className="plate-column">
@@ -485,11 +522,11 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
           </div>
         </div>
         <span
-          className={`canvas-node-gutter gutter-right ${gives.length > 0 ? '' : 'is-empty'} ${rightUsed ? 'is-used' : ''}`}
+          className={`canvas-node-gutter gutter-right ${(flipped ? takes : gives).length > 0 ? '' : 'is-empty'} ${rightUsed ? 'is-used' : ''}`}
           aria-hidden
         />
-        <PortStars nodeId={id} ports={takes} side="left" wired={wiredPorts} merged />
-        <PortStars nodeId={id} ports={gives} side="right" wired={wiredPorts} merged />
+        <PortStars nodeId={id} ports={takes} side={takeSide} wired={wiredPorts} merged candidates={candidatePorts} broadcasting={broadcasting} />
+        <PortStars nodeId={id} ports={gives} side={giveSide} wired={wiredPorts} merged candidates={candidatePorts} broadcasting={broadcasting} />
         <RelateAnchors related={hasPlainEdges} />
       </div>
     );
@@ -554,7 +591,7 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
       {/* Port gutters (Observatory zone 2/4): takes enter LEFT, gives leave
           RIGHT; a side with no ports keeps a whisper so the grammar reads. */}
       <span
-        className={`canvas-node-gutter gutter-left ${takes.length > 0 ? '' : 'is-empty'} ${leftUsed ? 'is-used' : ''}`}
+        className={`canvas-node-gutter gutter-left ${(flipped ? gives : takes).length > 0 ? '' : 'is-empty'} ${leftUsed ? 'is-used' : ''}`}
         aria-hidden
       />
       <div className="plate-column">
@@ -590,6 +627,20 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
             {shortId}
           </span>
           <ReadinessRing stage={readiness} onClick={() => cycleReadiness(id)} />
+          {selected && (
+            <button
+              className="canvas-node-swap nodrag"
+              title={
+                flipped
+                  ? 'Swap back: intake left, output right'
+                  : 'Swap sides: intake and output trade gutters'
+              }
+              aria-label="Swap connection sides"
+              onClick={() => toggleNodeFlipped(id)}
+            >
+              <ArrowLeftRight size={11} aria-hidden />
+            </button>
+          )}
           {data.ownedHeight !== undefined && selected && (
             <button
               className="canvas-node-fit nodrag"
@@ -667,11 +718,11 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
         </footer>
       </div>
       <span
-        className={`canvas-node-gutter gutter-right ${gives.length > 0 ? '' : 'is-empty'} ${rightUsed ? 'is-used' : ''}`}
+        className={`canvas-node-gutter gutter-right ${(flipped ? takes : gives).length > 0 ? '' : 'is-empty'} ${rightUsed ? 'is-used' : ''}`}
         aria-hidden
       />
-      <PortStars nodeId={id} ports={takes} side="left" wired={wiredPorts} />
-      <PortStars nodeId={id} ports={gives} side="right" wired={wiredPorts} />
+      <PortStars nodeId={id} ports={takes} side={takeSide} wired={wiredPorts} candidates={candidatePorts} broadcasting={broadcasting} />
+      <PortStars nodeId={id} ports={gives} side={giveSide} wired={wiredPorts} candidates={candidatePorts} broadcasting={broadcasting} />
       <RelateAnchors related={hasPlainEdges} />
     </div>
   );

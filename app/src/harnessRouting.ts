@@ -63,7 +63,16 @@ export function anchorFor(
   const sidePorts = def.ports.filter((port) => port.direction === direction);
   const index = sidePorts.findIndex((port) => port.id === portId);
   if (index === -1) return null;
-  const side = direction === 'take' ? ('left' as const) : ('right' as const);
+  // gutter swap: a flipped node takes on the RIGHT and gives on the LEFT
+  const flipped = node.data['flipped'] === true;
+  const side =
+    direction === 'take'
+      ? flipped
+        ? ('right' as const)
+        : ('left' as const)
+      : flipped
+        ? ('left' as const)
+        : ('right' as const);
   const collapsed = zoomBorrow || node.data['collapsed'] === 'collapsed';
   const y = collapsed
     ? node.position.y + height / 2

@@ -113,6 +113,14 @@ type CanvasState = {
   setNodeTitle: (nodeId: string, title: string) => void;
   setNodeContent: (nodeId: string, content: string) => void;
   setNodeAccent: (nodeId: string, accent: string | undefined) => void;
+  /** Per-node gutter swap (user, 2026-08-10): intake and output trade
+   * sides so a node can face its partners -- the grammar stays fixed,
+   * the odd node flips. Stored in node.data (passthrough). */
+  toggleNodeFlipped: (nodeId: string) => void;
+  /** Drag-time broadcast: "nodeId:portId" for every port the wire being
+   * dragged could legally land on. Session only; null = no drag. */
+  connectCandidates: ReadonlySet<string> | null;
+  setConnectCandidates: (candidates: ReadonlySet<string> | null) => void;
   /** Observatory collapse (spec §2): sticky, user-controlled, persisted in
    * node.data. 'rolled-up' is the assembly state and stays derived. */
   toggleNodeCollapsed: (nodeId: string) => void;
@@ -288,13 +296,15 @@ function loadSettings(): CanvasSettings {
         density: parsed.density === 'compact' ? 'compact' : 'comfortable',
         portLabels: ['hover', 'always', 'off'].includes(parsed.portLabels as string)
           ? (parsed.portLabels as PortLabelMode)
-          : 'hover',
+          : 'always',
       };
     }
   } catch {
     // settings are preferences, not user data; fall back silently
   }
-  return { density: 'comfortable', portLabels: 'hover' };
+  // labels default VISIBLE (user, 2026-08-10: show the possibilities --
+  // color does the teaching; hover-only was hiding the vocabulary)
+  return { density: 'comfortable', portLabels: 'always' };
 }
 
 export const useCanvasStore = create<CanvasState>((set, get) => {
@@ -692,6 +702,24 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
         }),
       });
     },
+
+    toggleNodeFlipped: (nodeId) => {
+      const doc = get().document;
+      commit({
+        ...doc,
+        nodes: doc.nodes.map((node) => {
+          if (node.id !== nodeId) return node;
+          if (node.data['flipped'] === true) {
+            const { flipped: _dropped, ...data } = node.data;
+            return { ...node, data };
+          }
+          return { ...node, data: { ...node.data, flipped: true } };
+        }),
+      });
+    },
+
+    connectCandidates: null,
+    setConnectCandidates: (candidates) => set({ connectCandidates: candidates }),
 
     toggleNodeCollapsed: (nodeId) => {
       const doc = get().document;
