@@ -14,6 +14,7 @@ import type { ComponentType } from 'react';
 import { BlocksFace } from './BlocksFace';
 import { DefaultFace } from './DefaultFace';
 import { DocumentFace } from './DocumentFace';
+import { HubFace } from './HubFace';
 import { EventFace, PayoffFace, PlantFace } from './NovelFaces';
 import { PropositionFace } from './PropositionFace';
 import { TitleFace } from './TitleFace';
@@ -37,6 +38,7 @@ export const NODE_FACES: Record<string, ComponentType<FaceProps>> = {
   plant: PlantFace,
   payoff: PayoffFace,
   event: EventFace,
+  hub: HubFace,
 };
 
 export function faceFor(coreType: string): ComponentType<FaceProps> {

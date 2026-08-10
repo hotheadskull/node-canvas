@@ -27,6 +27,7 @@ import {
   Box,
   CalendarClock,
   ChevronsUpDown,
+  CircleDot,
   CircleHelp,
   GitBranch,
   Layers,
@@ -99,6 +100,7 @@ const NODE_ICONS: Record<string, LucideIcon> = {
   plant: Sprout,
   payoff: Target,
   event: CalendarClock,
+  hub: CircleDot,
 };
 
 export const ACCENT_PRESETS = [

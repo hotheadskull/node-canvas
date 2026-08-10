@@ -123,6 +123,7 @@ const UNIVERSAL_CORE: readonly NodeTypeDef[] = [
       { id: 'thread-out', direction: 'give', dataKind: 'thread', label: 'Thread', defaultVisible: true },
       { id: 'subject-in', direction: 'take', dataKind: 'text', label: 'Subject', defaultVisible: false, capacity: 'one' },
       { id: 'complement-in', direction: 'take', dataKind: 'text', label: 'Complement', defaultVisible: false, capacity: 'one' },
+      { id: 'notes-in', direction: 'take', dataKind: 'text', label: 'Notes', defaultVisible: false, capacity: 'many' },
     ],
   },
   {
@@ -140,6 +141,7 @@ const UNIVERSAL_CORE: readonly NodeTypeDef[] = [
     sizing: 'auto-height',
     ports: [
       { id: 'text-out', direction: 'give', dataKind: 'text', label: 'Text', defaultVisible: true },
+      { id: 'notes-in', direction: 'take', dataKind: 'text', label: 'Notes', defaultVisible: false, capacity: 'many' },
     ],
   },
   {
@@ -160,6 +162,7 @@ const UNIVERSAL_CORE: readonly NodeTypeDef[] = [
       { id: 'compiled-out', direction: 'give', dataKind: 'text', label: 'Compiled text', defaultVisible: true },
       { id: 'thread-in', direction: 'take', dataKind: 'thread', label: 'Thread', defaultVisible: false, capacity: 'one', flagWhenEmpty: true },
       { id: 'footnotes-in', direction: 'take', dataKind: 'cite', label: 'Footnotes', defaultVisible: false, capacity: 'many' },
+      { id: 'notes-in', direction: 'take', dataKind: 'text', label: 'Notes', defaultVisible: false, capacity: 'many' },
     ],
   },
   {
@@ -183,6 +186,7 @@ const UNIVERSAL_CORE: readonly NodeTypeDef[] = [
       { id: 'documents-in', direction: 'take', dataKind: 'text', label: 'Documents', defaultVisible: true, capacity: 'many', spine: true },
       { id: 'compiled-out', direction: 'give', dataKind: 'text', label: 'Compiled work', defaultVisible: true },
       { id: 'thread-in', direction: 'take', dataKind: 'thread', label: 'Thread', defaultVisible: false, capacity: 'one', flagWhenEmpty: true },
+      { id: 'notes-in', direction: 'take', dataKind: 'text', label: 'Notes', defaultVisible: false, capacity: 'many' },
     ],
   },
   {
@@ -204,6 +208,7 @@ const UNIVERSAL_CORE: readonly NodeTypeDef[] = [
       { id: 'place-in', direction: 'take', dataKind: 'place', label: 'Setting', defaultVisible: true, capacity: 'one' },
       { id: 'pov-in', direction: 'take', dataKind: 'person', label: 'POV', defaultVisible: false, capacity: 'one' },
       { id: 'serves-in', direction: 'take', dataKind: 'thread', label: 'Serves', defaultVisible: false, capacity: 'one' },
+      { id: 'notes-in', direction: 'take', dataKind: 'text', label: 'Notes', defaultVisible: false, capacity: 'many' },
     ],
   },
   {
@@ -221,6 +226,7 @@ const UNIVERSAL_CORE: readonly NodeTypeDef[] = [
     sizing: 'auto-height',
     ports: [
       { id: 'answer-in', direction: 'take', dataKind: 'text', label: 'Answer', defaultVisible: true, capacity: 'one' },
+      { id: 'notes-in', direction: 'take', dataKind: 'text', label: 'Notes', defaultVisible: false, capacity: 'many' },
     ],
   },
 
@@ -242,6 +248,7 @@ const UNIVERSAL_CORE: readonly NodeTypeDef[] = [
       { id: 'identity-out', direction: 'give', dataKind: 'person', label: 'Identity', defaultVisible: true },
       { id: 'bond-in', direction: 'take', dataKind: 'person', label: 'Bond', defaultVisible: true, capacity: 'many' },
       { id: 'possession-in', direction: 'take', dataKind: 'thing', label: 'Possession', defaultVisible: false, capacity: 'many' },
+      { id: 'notes-in', direction: 'take', dataKind: 'text', label: 'Notes', defaultVisible: false, capacity: 'many' },
     ],
   },
   {
@@ -260,6 +267,7 @@ const UNIVERSAL_CORE: readonly NodeTypeDef[] = [
     ports: [
       { id: 'identity-out', direction: 'give', dataKind: 'place', label: 'Identity', defaultVisible: true },
       { id: 'contains-in', direction: 'take', dataKind: 'place', label: 'Contains', defaultVisible: false, capacity: 'many' },
+      { id: 'notes-in', direction: 'take', dataKind: 'text', label: 'Notes', defaultVisible: false, capacity: 'many' },
     ],
   },
   {
@@ -277,6 +285,32 @@ const UNIVERSAL_CORE: readonly NodeTypeDef[] = [
     sizing: 'auto-height',
     ports: [
       { id: 'identity-out', direction: 'give', dataKind: 'thing', label: 'Identity', defaultVisible: true },
+      { id: 'notes-in', direction: 'take', dataKind: 'text', label: 'Notes', defaultVisible: false, capacity: 'many' },
+    ],
+  },
+
+  // ---------- Universal Core: structure set ----------
+  {
+    // The second container verb (pt2 handoff §7): a Group CONTAINS -- its
+    // members leave the canvas; a Hub COLLECTS -- members stay where they
+    // are and the hub only lists them, grouped by kind. Wire a node into
+    // Subject and the hub speaks for it.
+    type: 'hub',
+    category: 'structure',
+    coreMenu: false,
+    accent: '#8e94c2',
+    labels: same('Hub'),
+    descriptions: {
+      universal: 'Collects nodes that stay on the canvas; the roster lists them by kind',
+      novel: 'A cast sheet, location index, or any roster of living nodes',
+      sermon: 'A study shelf: sources, notes and figures collected in one place',
+    },
+    size: { width: 300, height: 260 },
+    sizing: 'auto-height',
+    ports: [
+      { id: 'holds-in', direction: 'take', dataKind: 'any', label: 'Holds', defaultVisible: true, capacity: 'many', spine: true },
+      { id: 'brief-out', direction: 'give', dataKind: 'text', label: 'Brief', defaultVisible: true },
+      { id: 'subject-in', direction: 'take', dataKind: 'any', label: 'Subject', defaultVisible: true, capacity: 'one' },
     ],
   },
 ];
@@ -300,6 +334,8 @@ const ACADEMIC_PACK: readonly NodeTypeDef[] = [
     sizing: 'auto-height',
     ports: [
       { id: 'citation-out', direction: 'give', dataKind: 'cite', label: 'Citation', defaultVisible: true },
+      { id: 'clip-out', direction: 'give', dataKind: 'text', label: 'Clip', defaultVisible: true },
+      { id: 'notes-in', direction: 'take', dataKind: 'text', label: 'Notes', defaultVisible: false, capacity: 'many' },
     ],
   },
   {
@@ -321,6 +357,7 @@ const ACADEMIC_PACK: readonly NodeTypeDef[] = [
       { id: 'supports-in', direction: 'take', dataKind: 'any', label: 'Supports', defaultVisible: true, capacity: 'many', spine: true, flagWhenEmpty: true },
       { id: 'rebuts-in', direction: 'take', dataKind: 'any', label: 'Rebuts', defaultVisible: false, capacity: 'many' },
       { id: 'warrant-in', direction: 'take', dataKind: 'text', label: 'Warrant', defaultVisible: false, capacity: 'one' },
+      { id: 'notes-in', direction: 'take', dataKind: 'text', label: 'Notes', defaultVisible: false, capacity: 'many' },
     ],
   },
 ];
@@ -346,6 +383,8 @@ const SERMON_PACK: readonly NodeTypeDef[] = [
     ports: [
       { id: 'text-out', direction: 'give', dataKind: 'text', label: 'Text', defaultVisible: true },
       { id: 'props-in', direction: 'take', dataKind: 'prop', label: 'Propositions', defaultVisible: true, capacity: 'many', spine: true },
+      { id: 'cite-in', direction: 'take', dataKind: 'cite', label: 'Cite', defaultVisible: false, capacity: 'one' },
+      { id: 'notes-in', direction: 'take', dataKind: 'text', label: 'Notes', defaultVisible: false, capacity: 'many' },
     ],
   },
   {
@@ -369,6 +408,7 @@ const SERMON_PACK: readonly NodeTypeDef[] = [
       { id: 'prop-out', direction: 'give', dataKind: 'prop', label: 'Proposition', defaultVisible: true },
       { id: 'arc-in', direction: 'take', dataKind: 'prop', label: 'Arcs', defaultVisible: true, capacity: 'many' },
       { id: 'text-out', direction: 'give', dataKind: 'text', label: 'Text', defaultVisible: false },
+      { id: 'notes-in', direction: 'take', dataKind: 'text', label: 'Notes', defaultVisible: false, capacity: 'many' },
     ],
   },
 ];
@@ -392,6 +432,7 @@ const NOVEL_PACK: readonly NodeTypeDef[] = [
     sizing: 'auto-height',
     ports: [
       { id: 'plant-out', direction: 'give', dataKind: 'plant', label: 'Plant', defaultVisible: true, flagWhenUnconsumed: true },
+      { id: 'notes-in', direction: 'take', dataKind: 'text', label: 'Notes', defaultVisible: false, capacity: 'many' },
     ],
   },
   {
@@ -410,6 +451,7 @@ const NOVEL_PACK: readonly NodeTypeDef[] = [
     sizing: 'auto-height',
     ports: [
       { id: 'plants-in', direction: 'take', dataKind: 'plant', label: 'Resolves', defaultVisible: true, capacity: 'many', flagWhenEmpty: true },
+      { id: 'notes-in', direction: 'take', dataKind: 'text', label: 'Notes', defaultVisible: false, capacity: 'many' },
     ],
   },
   {
@@ -431,6 +473,7 @@ const NOVEL_PACK: readonly NodeTypeDef[] = [
     ports: [
       { id: 'event-out', direction: 'give', dataKind: 'event', label: 'Event', defaultVisible: true },
       { id: 'involves-in', direction: 'take', dataKind: 'person', label: 'Involves', defaultVisible: true, capacity: 'many' },
+      { id: 'notes-in', direction: 'take', dataKind: 'text', label: 'Notes', defaultVisible: false, capacity: 'many' },
     ],
   },
 ];

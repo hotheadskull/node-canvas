@@ -4,7 +4,7 @@
 //
 // Colour comes from the PORT'S dataKind, never from the node's type. A wire
 // is the colour of what travels down it; a plate's spine is the colour of
-// its primary give port. Sixteen node types collapse to eleven learnable
+// its primary give port. Seventeen node types collapse to eleven learnable
 // hues, every one already a value in the registry.
 //
 // Values are literal and final per the handoff (high fidelity).

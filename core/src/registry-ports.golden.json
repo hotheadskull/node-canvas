@@ -1,71 +1,493 @@
 {
   "title": [
-    { "id": "thread-out", "direction": "give", "dataKind": "thread", "label": "Thread", "defaultVisible": true },
-    { "id": "subject-in", "direction": "take", "dataKind": "text", "label": "Subject", "defaultVisible": false, "capacity": "one" },
-    { "id": "complement-in", "direction": "take", "dataKind": "text", "label": "Complement", "defaultVisible": false, "capacity": "one" }
+    {
+      "id": "thread-out",
+      "direction": "give",
+      "dataKind": "thread",
+      "label": "Thread",
+      "defaultVisible": true
+    },
+    {
+      "id": "subject-in",
+      "direction": "take",
+      "dataKind": "text",
+      "label": "Subject",
+      "defaultVisible": false,
+      "capacity": "one"
+    },
+    {
+      "id": "complement-in",
+      "direction": "take",
+      "dataKind": "text",
+      "label": "Complement",
+      "defaultVisible": false,
+      "capacity": "one"
+    },
+    {
+      "id": "notes-in",
+      "direction": "take",
+      "dataKind": "text",
+      "label": "Notes",
+      "defaultVisible": false,
+      "capacity": "many"
+    }
   ],
   "note": [
-    { "id": "text-out", "direction": "give", "dataKind": "text", "label": "Text", "defaultVisible": true }
+    {
+      "id": "text-out",
+      "direction": "give",
+      "dataKind": "text",
+      "label": "Text",
+      "defaultVisible": true
+    },
+    {
+      "id": "notes-in",
+      "direction": "take",
+      "dataKind": "text",
+      "label": "Notes",
+      "defaultVisible": false,
+      "capacity": "many"
+    }
   ],
   "document": [
-    { "id": "sections-in", "direction": "take", "dataKind": "text", "label": "Sections", "defaultVisible": true, "capacity": "many", "spine": true },
-    { "id": "compiled-out", "direction": "give", "dataKind": "text", "label": "Compiled text", "defaultVisible": true },
-    { "id": "thread-in", "direction": "take", "dataKind": "thread", "label": "Thread", "defaultVisible": false, "capacity": "one", "flagWhenEmpty": true },
-    { "id": "footnotes-in", "direction": "take", "dataKind": "cite", "label": "Footnotes", "defaultVisible": false, "capacity": "many" }
+    {
+      "id": "sections-in",
+      "direction": "take",
+      "dataKind": "text",
+      "label": "Sections",
+      "defaultVisible": true,
+      "capacity": "many",
+      "spine": true
+    },
+    {
+      "id": "compiled-out",
+      "direction": "give",
+      "dataKind": "text",
+      "label": "Compiled text",
+      "defaultVisible": true
+    },
+    {
+      "id": "thread-in",
+      "direction": "take",
+      "dataKind": "thread",
+      "label": "Thread",
+      "defaultVisible": false,
+      "capacity": "one",
+      "flagWhenEmpty": true
+    },
+    {
+      "id": "footnotes-in",
+      "direction": "take",
+      "dataKind": "cite",
+      "label": "Footnotes",
+      "defaultVisible": false,
+      "capacity": "many"
+    },
+    {
+      "id": "notes-in",
+      "direction": "take",
+      "dataKind": "text",
+      "label": "Notes",
+      "defaultVisible": false,
+      "capacity": "many"
+    }
   ],
   "manuscript": [
-    { "id": "documents-in", "direction": "take", "dataKind": "text", "label": "Documents", "defaultVisible": true, "capacity": "many", "spine": true },
-    { "id": "compiled-out", "direction": "give", "dataKind": "text", "label": "Compiled work", "defaultVisible": true },
-    { "id": "thread-in", "direction": "take", "dataKind": "thread", "label": "Thread", "defaultVisible": false, "capacity": "one", "flagWhenEmpty": true }
+    {
+      "id": "documents-in",
+      "direction": "take",
+      "dataKind": "text",
+      "label": "Documents",
+      "defaultVisible": true,
+      "capacity": "many",
+      "spine": true
+    },
+    {
+      "id": "compiled-out",
+      "direction": "give",
+      "dataKind": "text",
+      "label": "Compiled work",
+      "defaultVisible": true
+    },
+    {
+      "id": "thread-in",
+      "direction": "take",
+      "dataKind": "thread",
+      "label": "Thread",
+      "defaultVisible": false,
+      "capacity": "one",
+      "flagWhenEmpty": true
+    },
+    {
+      "id": "notes-in",
+      "direction": "take",
+      "dataKind": "text",
+      "label": "Notes",
+      "defaultVisible": false,
+      "capacity": "many"
+    }
   ],
   "section": [
-    { "id": "text-out", "direction": "give", "dataKind": "text", "label": "Text", "defaultVisible": true },
-    { "id": "people-in", "direction": "take", "dataKind": "person", "label": "People", "defaultVisible": true, "capacity": "many" },
-    { "id": "place-in", "direction": "take", "dataKind": "place", "label": "Setting", "defaultVisible": true, "capacity": "one" },
-    { "id": "pov-in", "direction": "take", "dataKind": "person", "label": "POV", "defaultVisible": false, "capacity": "one" },
-    { "id": "serves-in", "direction": "take", "dataKind": "thread", "label": "Serves", "defaultVisible": false, "capacity": "one" }
+    {
+      "id": "text-out",
+      "direction": "give",
+      "dataKind": "text",
+      "label": "Text",
+      "defaultVisible": true
+    },
+    {
+      "id": "people-in",
+      "direction": "take",
+      "dataKind": "person",
+      "label": "People",
+      "defaultVisible": true,
+      "capacity": "many"
+    },
+    {
+      "id": "place-in",
+      "direction": "take",
+      "dataKind": "place",
+      "label": "Setting",
+      "defaultVisible": true,
+      "capacity": "one"
+    },
+    {
+      "id": "pov-in",
+      "direction": "take",
+      "dataKind": "person",
+      "label": "POV",
+      "defaultVisible": false,
+      "capacity": "one"
+    },
+    {
+      "id": "serves-in",
+      "direction": "take",
+      "dataKind": "thread",
+      "label": "Serves",
+      "defaultVisible": false,
+      "capacity": "one"
+    },
+    {
+      "id": "notes-in",
+      "direction": "take",
+      "dataKind": "text",
+      "label": "Notes",
+      "defaultVisible": false,
+      "capacity": "many"
+    }
   ],
   "question": [
-    { "id": "answer-in", "direction": "take", "dataKind": "text", "label": "Answer", "defaultVisible": true, "capacity": "one" }
+    {
+      "id": "answer-in",
+      "direction": "take",
+      "dataKind": "text",
+      "label": "Answer",
+      "defaultVisible": true,
+      "capacity": "one"
+    },
+    {
+      "id": "notes-in",
+      "direction": "take",
+      "dataKind": "text",
+      "label": "Notes",
+      "defaultVisible": false,
+      "capacity": "many"
+    }
   ],
   "person": [
-    { "id": "identity-out", "direction": "give", "dataKind": "person", "label": "Identity", "defaultVisible": true },
-    { "id": "bond-in", "direction": "take", "dataKind": "person", "label": "Bond", "defaultVisible": true, "capacity": "many" },
-    { "id": "possession-in", "direction": "take", "dataKind": "thing", "label": "Possession", "defaultVisible": false, "capacity": "many" }
+    {
+      "id": "identity-out",
+      "direction": "give",
+      "dataKind": "person",
+      "label": "Identity",
+      "defaultVisible": true
+    },
+    {
+      "id": "bond-in",
+      "direction": "take",
+      "dataKind": "person",
+      "label": "Bond",
+      "defaultVisible": true,
+      "capacity": "many"
+    },
+    {
+      "id": "possession-in",
+      "direction": "take",
+      "dataKind": "thing",
+      "label": "Possession",
+      "defaultVisible": false,
+      "capacity": "many"
+    },
+    {
+      "id": "notes-in",
+      "direction": "take",
+      "dataKind": "text",
+      "label": "Notes",
+      "defaultVisible": false,
+      "capacity": "many"
+    }
   ],
   "place": [
-    { "id": "identity-out", "direction": "give", "dataKind": "place", "label": "Identity", "defaultVisible": true },
-    { "id": "contains-in", "direction": "take", "dataKind": "place", "label": "Contains", "defaultVisible": false, "capacity": "many" }
+    {
+      "id": "identity-out",
+      "direction": "give",
+      "dataKind": "place",
+      "label": "Identity",
+      "defaultVisible": true
+    },
+    {
+      "id": "contains-in",
+      "direction": "take",
+      "dataKind": "place",
+      "label": "Contains",
+      "defaultVisible": false,
+      "capacity": "many"
+    },
+    {
+      "id": "notes-in",
+      "direction": "take",
+      "dataKind": "text",
+      "label": "Notes",
+      "defaultVisible": false,
+      "capacity": "many"
+    }
   ],
   "thing": [
-    { "id": "identity-out", "direction": "give", "dataKind": "thing", "label": "Identity", "defaultVisible": true }
+    {
+      "id": "identity-out",
+      "direction": "give",
+      "dataKind": "thing",
+      "label": "Identity",
+      "defaultVisible": true
+    },
+    {
+      "id": "notes-in",
+      "direction": "take",
+      "dataKind": "text",
+      "label": "Notes",
+      "defaultVisible": false,
+      "capacity": "many"
+    }
+  ],
+  "hub": [
+    {
+      "id": "holds-in",
+      "direction": "take",
+      "dataKind": "any",
+      "label": "Holds",
+      "defaultVisible": true,
+      "capacity": "many",
+      "spine": true
+    },
+    {
+      "id": "brief-out",
+      "direction": "give",
+      "dataKind": "text",
+      "label": "Brief",
+      "defaultVisible": true
+    },
+    {
+      "id": "subject-in",
+      "direction": "take",
+      "dataKind": "any",
+      "label": "Subject",
+      "defaultVisible": true,
+      "capacity": "one"
+    }
   ],
   "source": [
-    { "id": "citation-out", "direction": "give", "dataKind": "cite", "label": "Citation", "defaultVisible": true }
+    {
+      "id": "citation-out",
+      "direction": "give",
+      "dataKind": "cite",
+      "label": "Citation",
+      "defaultVisible": true
+    },
+    {
+      "id": "clip-out",
+      "direction": "give",
+      "dataKind": "text",
+      "label": "Clip",
+      "defaultVisible": true
+    },
+    {
+      "id": "notes-in",
+      "direction": "take",
+      "dataKind": "text",
+      "label": "Notes",
+      "defaultVisible": false,
+      "capacity": "many"
+    }
   ],
   "claim": [
-    { "id": "claim-out", "direction": "give", "dataKind": "claim", "label": "Claim", "defaultVisible": true },
-    { "id": "supports-in", "direction": "take", "dataKind": "any", "label": "Supports", "defaultVisible": true, "capacity": "many", "spine": true, "flagWhenEmpty": true },
-    { "id": "rebuts-in", "direction": "take", "dataKind": "any", "label": "Rebuts", "defaultVisible": false, "capacity": "many" },
-    { "id": "warrant-in", "direction": "take", "dataKind": "text", "label": "Warrant", "defaultVisible": false, "capacity": "one" }
+    {
+      "id": "claim-out",
+      "direction": "give",
+      "dataKind": "claim",
+      "label": "Claim",
+      "defaultVisible": true
+    },
+    {
+      "id": "supports-in",
+      "direction": "take",
+      "dataKind": "any",
+      "label": "Supports",
+      "defaultVisible": true,
+      "capacity": "many",
+      "spine": true,
+      "flagWhenEmpty": true
+    },
+    {
+      "id": "rebuts-in",
+      "direction": "take",
+      "dataKind": "any",
+      "label": "Rebuts",
+      "defaultVisible": false,
+      "capacity": "many"
+    },
+    {
+      "id": "warrant-in",
+      "direction": "take",
+      "dataKind": "text",
+      "label": "Warrant",
+      "defaultVisible": false,
+      "capacity": "one"
+    },
+    {
+      "id": "notes-in",
+      "direction": "take",
+      "dataKind": "text",
+      "label": "Notes",
+      "defaultVisible": false,
+      "capacity": "many"
+    }
   ],
   "passage": [
-    { "id": "text-out", "direction": "give", "dataKind": "text", "label": "Text", "defaultVisible": true },
-    { "id": "props-in", "direction": "take", "dataKind": "prop", "label": "Propositions", "defaultVisible": true, "capacity": "many", "spine": true }
+    {
+      "id": "text-out",
+      "direction": "give",
+      "dataKind": "text",
+      "label": "Text",
+      "defaultVisible": true
+    },
+    {
+      "id": "props-in",
+      "direction": "take",
+      "dataKind": "prop",
+      "label": "Propositions",
+      "defaultVisible": true,
+      "capacity": "many",
+      "spine": true
+    },
+    {
+      "id": "cite-in",
+      "direction": "take",
+      "dataKind": "cite",
+      "label": "Cite",
+      "defaultVisible": false,
+      "capacity": "one"
+    },
+    {
+      "id": "notes-in",
+      "direction": "take",
+      "dataKind": "text",
+      "label": "Notes",
+      "defaultVisible": false,
+      "capacity": "many"
+    }
   ],
   "proposition": [
-    { "id": "prop-out", "direction": "give", "dataKind": "prop", "label": "Proposition", "defaultVisible": true },
-    { "id": "arc-in", "direction": "take", "dataKind": "prop", "label": "Arcs", "defaultVisible": true, "capacity": "many" },
-    { "id": "text-out", "direction": "give", "dataKind": "text", "label": "Text", "defaultVisible": false }
+    {
+      "id": "prop-out",
+      "direction": "give",
+      "dataKind": "prop",
+      "label": "Proposition",
+      "defaultVisible": true
+    },
+    {
+      "id": "arc-in",
+      "direction": "take",
+      "dataKind": "prop",
+      "label": "Arcs",
+      "defaultVisible": true,
+      "capacity": "many"
+    },
+    {
+      "id": "text-out",
+      "direction": "give",
+      "dataKind": "text",
+      "label": "Text",
+      "defaultVisible": false
+    },
+    {
+      "id": "notes-in",
+      "direction": "take",
+      "dataKind": "text",
+      "label": "Notes",
+      "defaultVisible": false,
+      "capacity": "many"
+    }
   ],
   "plant": [
-    { "id": "plant-out", "direction": "give", "dataKind": "plant", "label": "Plant", "defaultVisible": true, "flagWhenUnconsumed": true }
+    {
+      "id": "plant-out",
+      "direction": "give",
+      "dataKind": "plant",
+      "label": "Plant",
+      "defaultVisible": true,
+      "flagWhenUnconsumed": true
+    },
+    {
+      "id": "notes-in",
+      "direction": "take",
+      "dataKind": "text",
+      "label": "Notes",
+      "defaultVisible": false,
+      "capacity": "many"
+    }
   ],
   "payoff": [
-    { "id": "plants-in", "direction": "take", "dataKind": "plant", "label": "Resolves", "defaultVisible": true, "capacity": "many", "flagWhenEmpty": true }
+    {
+      "id": "plants-in",
+      "direction": "take",
+      "dataKind": "plant",
+      "label": "Resolves",
+      "defaultVisible": true,
+      "capacity": "many",
+      "flagWhenEmpty": true
+    },
+    {
+      "id": "notes-in",
+      "direction": "take",
+      "dataKind": "text",
+      "label": "Notes",
+      "defaultVisible": false,
+      "capacity": "many"
+    }
   ],
   "event": [
-    { "id": "event-out", "direction": "give", "dataKind": "event", "label": "Event", "defaultVisible": true },
-    { "id": "involves-in", "direction": "take", "dataKind": "person", "label": "Involves", "defaultVisible": true, "capacity": "many" }
+    {
+      "id": "event-out",
+      "direction": "give",
+      "dataKind": "event",
+      "label": "Event",
+      "defaultVisible": true
+    },
+    {
+      "id": "involves-in",
+      "direction": "take",
+      "dataKind": "person",
+      "label": "Involves",
+      "defaultVisible": true,
+      "capacity": "many"
+    },
+    {
+      "id": "notes-in",
+      "direction": "take",
+      "dataKind": "text",
+      "label": "Notes",
+      "defaultVisible": false,
+      "capacity": "many"
+    }
   ]
 }

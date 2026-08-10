@@ -75,6 +75,7 @@ describe('universal core registry', () => {
       'documents-in',
       'compiled-out',
       'thread-in',
+      'notes-in',
     ]);
   });
 

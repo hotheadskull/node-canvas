@@ -1441,6 +1441,21 @@ html, body, #root {
 }
 .pair-row { color: #b9b9c2; }
 
+/* Hub face (pt2 handoff §7): the roster of collected nodes, grouped by
+   kind -- members stay on the canvas, these chips only point at them. */
+.hub-face { display: flex; flex-direction: column; gap: 4px; }
+.hub-subject {
+  margin: 0; font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+.hub-roster {
+  margin-top: auto; padding: 6px 4px 2px;
+  border-top: 1px solid var(--border-quiet);
+  display: flex; flex-direction: column; gap: 5px;
+}
+.hub-roster-group { display: flex; flex-direction: column; gap: 3px; }
+.hub-roster-chips { display: flex; flex-wrap: wrap; gap: 3px; }
+
 .event-face { display: flex; flex-direction: column; gap: 4px; }
 .event-time-row { font-size: 11px; color: var(--text-dim); }
 .event-time-row label { display: inline-flex; align-items: center; gap: 6px; }
