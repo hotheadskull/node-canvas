@@ -1369,12 +1369,16 @@ html, body, #root {
   position: absolute; left: -10px; top: 4px; bottom: 4px; width: 2px;
   border-radius: 2px; pointer-events: none;
 }
-.doc-block.is-live .doc-embed-line { background: #3b82f6; box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
-.doc-block.is-forked .doc-embed-line { background: #d4a94a; box-shadow: 0 0 5px rgba(212, 169, 74, 0.5); }
+/* Observatory §8 state colours on the user's margin-line grammar: live
+   embeds wear the text hue, forked embeds the flag amber. The 78px label
+   column from the spec is NOT adopted -- the user's Document pass picked
+   margin lines ("seamlessness: lines, not chips") and that decision holds. */
+.doc-block.is-live .doc-embed-line { background: #a595f2; box-shadow: 0 0 5px rgba(165, 149, 242, 0.5); }
+.doc-block.is-forked .doc-embed-line { background: #f0c96a; box-shadow: 0 0 5px rgba(240, 201, 106, 0.5); }
 .doc-block-handle.react-flow__handle {
   left: -14px; top: 12px; width: 9px; height: 9px;
-  background: #3b82f6; border: none; border-radius: 9999px;
-  box-shadow: 0 0 6px rgba(59, 130, 246, 0.7);
+  background: #a595f2; border: none; border-radius: 9999px;
+  box-shadow: 0 0 6px rgba(165, 149, 242, 0.7);
   opacity: 0; transition: opacity 0.12s ease;
 }
 .doc-block:hover .doc-block-handle.react-flow__handle,
@@ -1406,7 +1410,7 @@ html, body, #root {
   padding: 1px 0 3px; white-space: normal;
 }
 .doc-embed-source { color: #cfcfd8; font-weight: 600; }
-.doc-block.is-forked .doc-embed-source { color: #fac775; }
+.doc-block.is-forked .doc-embed-source { color: #f0c96a; }
 .doc-embed-tag em { font-style: normal; color: #6f6f80; }
 .doc-embed-tag button {
   background: transparent; border: none; cursor: pointer;
@@ -1415,8 +1419,8 @@ html, body, #root {
 }
 .doc-embed-tag button:hover { color: #cfcfd8; }
 .doc-embed-original {
-  font-size: 11px; color: #9a9aab; background: rgba(212, 169, 74, 0.07);
-  border-left: 2px solid rgba(212, 169, 74, 0.5);
+  font-size: 11px; color: #9a9aab; background: rgba(240, 201, 106, 0.05);
+  border-left: 2px solid rgba(240, 201, 106, 0.5);
   border-radius: 0 5px 5px 0; padding: 5px 8px; margin: 2px 0 6px;
   white-space: pre-wrap;
 }
@@ -1426,7 +1430,7 @@ html, body, #root {
 }
 .doc-insert-line {
   position: absolute; left: 8%; right: 8%; top: 3px; height: 2px;
-  border-radius: 2px; background: rgba(96, 165, 250, 0.45);
+  border-radius: 2px; background: rgba(165, 149, 242, 0.45);
   opacity: 0; transition: opacity 0.12s ease;
 }
 /* while the mouse is anywhere in the editor, insert points whisper their
@@ -1451,22 +1455,32 @@ html, body, #root {
 .richtext-toolbar .richtext-split-picker button {
   width: auto; padding: 2px 8px; font-size: 10.5px; color: #cfcfd8;
 }
-/* Fork notice on the SOURCE node: names the document AND can show its
-   edited version (user request 2026-07-15) with a deliberate write-back. */
+/* Fork notice on the SOURCE node (Observatory §8): a header PILL carries
+   the count; the meta rail says which document diverged; this expandable
+   row keeps the user-requested preview + deliberate write-back (2026-07-15). */
+.fork-pill {
+  display: inline-flex; align-items: center; gap: 3px; flex: none;
+  padding: 1px 6px; border-radius: 9999px;
+  background: rgba(240, 201, 106, 0.12);
+  border: 1px solid rgba(240, 201, 106, 0.32);
+  color: #f0c96a; font-family: var(--font-mono); font-size: 8.5px;
+  white-space: nowrap;
+}
+.plate-meta-diverged { color: #f0c96a; }
 .fork-notice {
   margin: 0; padding: 3px 12px 7px;
-  font-size: 10px; color: #c98a2a;
+  font-size: 10px; color: #f0c96a;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 .fork-notice-toggle {
   background: transparent; border: none; cursor: pointer;
-  color: #c98a2a; font-size: 10px; text-align: left; padding: 1px 0;
+  color: #f0c96a; font-size: 10px; text-align: left; padding: 1px 0;
 }
-.fork-notice-toggle:hover { color: #fac775; }
+.fork-notice-toggle:hover { color: #f7dfa4; }
 .fork-notice-body {
   display: flex; flex-direction: column; gap: 3px;
-  background: rgba(212, 169, 74, 0.07);
-  border-left: 2px solid rgba(212, 169, 74, 0.5);
+  background: rgba(240, 201, 106, 0.05);
+  border-left: 2px solid rgba(240, 201, 106, 0.5);
   border-radius: 0 5px 5px 0; padding: 5px 8px; margin: 2px 0 4px;
 }
 .fork-notice-text { color: #b9b9c2; font-size: 11px; white-space: pre-wrap; }

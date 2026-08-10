@@ -49,7 +49,7 @@ Build in the README's suggested order, full suite green between phases:
 | B | Plate anatomy (spine/gutters/rails) + three collapse states (data field; zoom borrows, never writes) | **completed 2026-08-09** |
 | C | Wire rendering: chamfers, hops, lanes; junction dots; the 11 signal animations (budget ~8, reduced-motion) | **completed 2026-08-09** |
 | D | Corridor derivation from free space; ghost-and-settle on drag (new core/src/routing.ts) | **completed 2026-08-09** |
-| E | Assembly face (stacked edges) + block/embed states + fork notice | **completed 2026-08-09** (face union-ports deferred — needs a wiring-semantics decision; block/embed rows + fork notice already landed with the Document pass) |
+| E | Assembly face (stacked edges) + block/embed states + fork notice | **completed 2026-08-10** (face union-ports deferred — needs a wiring-semantics decision; §8 colors + fork pill landed in the audit pass — the 78px label column was NOT adopted, the Document pass's margin-line pick holds) |
 | F | Open state: in-place grow, linked rail, writing column, per-form bodies | not started |
 | G | Split panel (replaces the preset list; presets become saved configs) | not started |
 | H | Density: gutter trunks, highways, filter bar, minimap | not started |
@@ -123,6 +123,30 @@ suite, academic-pack polish, merge-progress faces, citation formatting,
 presentation-walk mode. All registry entries + isolated reducers (invariant I8).
 
 ## Session log
+
+### 2026-08-10 — Mockup audit (user zip) + the §8 remainder of Phase E
+
+- The user dropped "Node canvas UI mockups.zip" for a cross-check: it is
+  the SAME Observatory handoff, byte-for-byte modulo line endings — no new
+  spec content. Audited the build against it anyway:
+  - Literal-exact: tokens, data-kind table (11/11 hue/stroke/dash), wire
+    opacity .68/.74 + halo w7 .09, junction r3.4 + r6.5 ring .3, all 11
+    signal characters, readiness ring, plate anatomy (spine/gutters/
+    header gradient/hairlines/meta/ticks/slots), collapse triggers + zoom
+    borrow, harness constants.
+  - User-approved deviations on record: gutter brightness (outline/fill
+    grammar, hand-tuned values), relate diamonds in the gutters.
+  - FOUND: Phase E had been marked complete with §8 unshipped. Fixed now —
+    block/embed STATE COLORS moved onto the user's margin-line grammar
+    (live #a595f2, forked #f0c96a, spec alphas; the 78px label column NOT
+    adopted — the Document pass's "lines, not chips" seamlessness pick
+    holds); fork notice is now a header PILL (git-branch + "n fork",
+    amber .12 fill / .32 border) + "diverged in <doc>" in the meta rail;
+    the expandable preview/write-back row (user request 2026-07-15) stays.
+  - Known gaps, deliberate: §4 bundles (cable ties) + four-sided ports →
+    Phase H density work; §8 fork AGE and §7 face age need core
+    timestamps (golden-touching — ask the user first).
+- Suite: 267 unit + 41 e2e green; typecheck + lint clean.
 
 ### 2026-08-09 (later still) — Observatory Phases D + E + gutter grammar
 

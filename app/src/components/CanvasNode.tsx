@@ -465,6 +465,16 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
           {flaggedPorts.length > 0 && (
             <span className="hygiene-dot" title={flaggedPorts.join('; ')} data-hygiene-flag />
           )}
+          {forkNotices.length > 0 && (
+            <span
+              className="fork-pill"
+              title={`Text forked in ${forkNotices.map((notice) => notice.documentTitle).join(', ')} — details below`}
+              data-fork-pill
+            >
+              <GitBranch size={9} aria-hidden />
+              {forkNotices.length} fork{forkNotices.length === 1 ? '' : 's'}
+            </span>
+          )}
           <span className="plate-spacer" aria-hidden />
           {owner && (
             <span className="owner-chip" title={`Owner: ${owner}`}>
@@ -542,6 +552,12 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
           <span>
             {wiresIn} in · {wiresOut} out
           </span>
+          {forkNotices.length > 0 && (
+            <span className="plate-meta-diverged">
+              diverged in {forkNotices[0]!.documentTitle}
+              {forkNotices.length > 1 ? ` +${forkNotices.length - 1}` : ''}
+            </span>
+          )}
           <span className="plate-meta-state">{readiness}</span>
         </footer>
       </div>
