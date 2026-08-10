@@ -114,23 +114,30 @@ Its 10-step "suggested order", built this session as steps land:
    knots) in CANVAS space; five star layers at coprime tiles 613/719/
    827/953/1097 in SCREEN space, 20-80% parallax, one-tile drift per
    380-1100s cycle, transform-only; 24px dot grid; shooting stars CUT.
-6. pending — membership marks (cast band / presence strip / matrix) +
-   select-to-promote.
+6. **partial (2026-08-10 eve)** — cast band on Section + presence
+   matrix on Manuscript + person presence-over-events strip (user-built);
+   Place/Person presence strip per chapter + select-to-promote pending.
 7. **done (v1)** Hub type + HubFace (roster grouped by dataKind, hue
    chips, "speaks for" subject line). Subject hue-adoption on the plate
    frame is a follow-up (needs a CanvasNode hue override decision).
 8. **done** notes-in on all 16 types + source.clip-out + passage.cite-in
    (INVARIANT-CHANGE-APPROVED: registry-ports.golden.json regenerated
    via new scripts/gen-registry-ports-golden.mts).
-9. pending — dock reorder (Add node alone up top, rooms, tools) + add
-   sheet as icon-hue tiles.
+9. **done (2026-08-10 eve)** — the DOCK (56px left rail: Add node alone
+   at top, four rooms with 1-4 keys, Find/Filter/Ink, spacer,
+   Fit/Project/Settings/Help; hover labels after 400ms) + add sheet as
+   five families of icon-hue tiles with arrow-key navigation, port-preview
+   footer, and a Group shortcut tile. Core/All split retired (user).
 10. partial — trunks/highways still visual-polish debt (filter bar,
    earned resolution, minimap shipped earlier).
 
-Also still open from the pt2 spec: §4 four-sided AUTO port movement (a
-port slides to the top/bottom edge when its partner sits there — kills
-the wrap-around wires the user flagged), §3 condensed fan-in strand ties,
-§10 gesture set (⌘V paste-to-node, drop-file→Source), block "new" row.
+Also landed since (2026-08-10 evening, mixed session — see log): §4
+four-sided AUTO port movement (shared decision in app/src/portGeometry.ts),
+§3 strand ties at the target stub, the ink layer (perfect-freehand,
+strokes persisted through Zod as document.ink), ⌘V paste-to-note, per-type
+faces for Section/Manuscript/Passage/Person/Source, panOnScroll (wheel
+pans, ctrl+wheel zooms). Still open: drop-file→Source (SourceFace reads
+data.sourceUrl but nothing writes it), block "new" row, trunks/highways.
 Commits: 94a86a5 (steps 1-5), cda23bb (7+8). Suite green after each:
 typecheck, 273 unit, 49 e2e. Verified in-browser via Playwright shots
 (sky + band, plate tints, port variants incl. live flare, hub roster).
@@ -198,6 +205,56 @@ suite, academic-pack polish, merge-progress faces, citation formatting,
 presentation-walk mode. All registry entries + isolated reducers (invariant I8).
 
 ## Session log
+
+### 2026-08-10 (evening) — Dock + add sheet; the user's solo batch reviewed and repaired
+
+Two bodies of work landed together. FIRST, the §10 menu (agent): the
+56px left DOCK (Add node alone at top with its own zone, Canvas/Document/
+Arc/Focus room tiles enabled off the selection with 1-4 keys, Find/
+Filter/Ink, spacer, Fit/Project/Settings/Help; icon-only with 400ms
+hover labels; Group N / Merge N moved to a bottom-center selection pill)
+and the ADD SHEET (five families of icon-hue tiles, arrow keys + Enter,
+port-slot preview footer, N toggles, I8 amended in CLAUDE.md).
+
+SECOND, the user built a large batch solo (out of credits, another
+tool): ink layer (perfect-freehand; strokes persist through Zod as
+document.ink — I9 respected), four-sided ports + strand ties (core
+harness takes top/bottom endpoints), per-type faces (Section cast band,
+Manuscript presence matrix, Person role/wants/fears/voice/wound +
+presence strip, Passage, Source viewer), ⌘V paste-to-note, ⇧F focuses
+the selection, panOnScroll, Core/All tabs retired from the sheet.
+
+Review found and fixed five real bugs in that batch:
+- **Port hit areas overlapped at the new 12px pitch** (inset -10px boxes
+  ate the neighbour's clicks — every wiring flow silently dead; now
+  side-aware: kiss along the slot axis, generous outward).
+- **Auto-side decided in two places that disagreed** → permanent ghost
+  wires. ONE shared decision now lives in app/src/portGeometry.ts
+  (strictly-above/below + close-centers; the open plate never auto-moves;
+  autoSides ride the updateNodeInternals signature).
+- **Double-click had been rerouted to collapse**, orphaning the open
+  state (spec §8: double-click OPENS; ⌥click already collapses).
+- **⇧F stripped the `node_` id prefix** before lookup (never matched);
+  **⌘V spawned at a fixed origin** (now viewport centre); **PersonFace
+  declared its Field component inside render** (input remounted every
+  keystroke, dropping focus).
+- **The routing "stay dodged" shortcut let the follow-up vertical run
+  through unverified space** (e2e caught a route slicing the dropped
+  plate). Reverted to the verified drop-pass-return staircase; the
+  destination-biased side choice KEPT; routing.golden.json regenerated
+  (INVARIANT-CHANGE-APPROVED).
+
+Spec updates for changed UX (not weakened, re-aimed): wheel tests zoom
+via ctrl+wheel (panOnScroll), canvas deselect-clicks moved right of the
+dock, swap/dropped-plate fixtures park plates side by side so four-sided
+auto-movement doesn't pre-empt what they test, AddNodeMenu tests match
+the tab-less sheet. playwright.config pins workers: 2 (measured: 4
+workers flake AND run slower on this machine).
+
+Suite at close: typecheck clean, 272 unit green, 49/49 e2e green.
+Leftovers flagged: drop-file→Source unwritten (SourceFace reads
+data.sourceUrl), Canvas.tsx lost many explanatory comments in the solo
+batch (history has them), app/check_logs.js + scratch/ left untracked.
 
 ### 2026-08-10 (latest) — Gutter swap + drag-time broadcast (user decisions)
 

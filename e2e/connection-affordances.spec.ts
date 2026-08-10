@@ -69,6 +69,18 @@ test('the swap button flips a plate: intake right, output left, wires intact', a
   const doc = page.locator('.react-flow__node').filter({
     has: page.locator('.canvas-node-kind', { hasText: /^Document$/ }),
   });
+
+  // four-sided ports (pt2 §4) move a port toward a STACKED partner, and
+  // spawn can stack these two -- park the document beside the note first
+  // so this test exercises the grammar side + flip, not the auto-move
+  const noteBox0 = (await note.boundingBox())!;
+  const docHeader = (await doc.locator('.plate-header').boundingBox())!;
+  await page.mouse.move(docHeader.x + docHeader.width / 2, docHeader.y + 10);
+  await page.mouse.down();
+  await page.mouse.move(noteBox0.x + noteBox0.width + 460, noteBox0.y + 14, { steps: 10 });
+  await page.mouse.up();
+  await page.waitForTimeout(300);
+
   await note.locator('.port-star[data-port-direction="give"]').first().click({ force: true });
   await doc.locator('.port-star[data-port-direction="take"]').first().click({ force: true });
   await expect(page.locator('.wire-edge.is-live')).toHaveCount(1);

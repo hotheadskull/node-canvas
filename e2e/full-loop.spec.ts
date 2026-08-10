@@ -63,7 +63,7 @@ test('full loop: build, save .nodecanvas, wipe, reopen the file, export markdown
   const doc = nodeOfKind(page, 'Document').first();
   await note.locator('.richtext-content').click();
   await page.keyboard.type('The letter arrives at dawn.', { delay: 1 });
-  await page.locator('.nodecanvas-flow').click({ position: { x: 10, y: 400 } });
+  await page.locator('.nodecanvas-flow').click({ position: { x: 70, y: 400 } });
   const giveStar = note.locator('[data-handleid="text-out"]');
   const takeStar = doc.locator('[data-handleid="sections-in"]');
   await dragBetween(

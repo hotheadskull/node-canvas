@@ -86,11 +86,14 @@ test('zoom below 45% borrows collapsed rendering and never writes it back', asyn
   await page.waitForTimeout(400);
   await expect(page.locator('[data-collapsed-body]')).toHaveCount(0);
 
-  // wheel out well past the 45% threshold
+  // wheel out well past the 45% threshold -- panOnScroll (user,
+  // 2026-08-10) makes a bare wheel PAN, so zooming is ctrl+wheel now
   const pane = page.locator('.react-flow__pane');
   const box = (await pane.boundingBox())!;
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.keyboard.down('Control');
   for (let i = 0; i < 10; i++) await page.mouse.wheel(0, 400);
+  await page.keyboard.up('Control');
   await page.waitForTimeout(300);
   await expect(page.locator('[data-collapsed-body]')).toHaveCount(2);
 
@@ -101,7 +104,9 @@ test('zoom below 45% borrows collapsed rendering and never writes it back', asyn
   expect(stored).not.toContain('"collapsed"');
 
   // zoom back in: full plates return
+  await page.keyboard.down('Control');
   for (let i = 0; i < 10; i++) await page.mouse.wheel(0, -400);
+  await page.keyboard.up('Control');
   await page.waitForTimeout(300);
   await expect(page.locator('[data-collapsed-body]')).toHaveCount(0);
 });

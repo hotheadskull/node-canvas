@@ -13,8 +13,8 @@ test.beforeEach(async ({ page }) => {
 });
 
 async function addNodeFromAll(page: import('@playwright/test').Page, type: string) {
+  // pt2 sheet: every family shows at once, no Core/All tabs to switch
   await page.getByRole('button', { name: /add node/i }).click();
-  await page.getByRole('tab', { name: 'All' }).click();
   await page.locator(`[data-node-type="${type}"]`).click();
 }
 

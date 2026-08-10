@@ -124,6 +124,20 @@ test('a plate dropped onto a wire pushes the route into free space', async ({ pa
   const person = page.locator('.react-flow__node').filter({
     has: page.locator('.canvas-node-kind', { hasText: /^Person$/ }),
   });
+
+  // spawn can STACK note and document; four-sided ports (pt2 §4) then wire
+  // bottom-to-top across a gap too small for the person plate, which would
+  // bury the take port UNDER the dropped plate -- a spot no router can
+  // avoid (the boxed-in rule keeps the crossing). Park them wide apart so
+  // the drop lands in an open corridor, which is what this test is about.
+  const noteBox0 = (await note.boundingBox())!;
+  const docHeader0 = (await doc.locator('.plate-header').boundingBox())!;
+  await page.mouse.move(docHeader0.x + docHeader0.width / 2, docHeader0.y + 10);
+  await page.mouse.down();
+  await page.mouse.move(noteBox0.x + noteBox0.width + 560, noteBox0.y + 14, { steps: 10 });
+  await page.mouse.up();
+  await page.waitForTimeout(300);
+
   await note.locator('.port-star[data-port-direction="give"]').first().click({ force: true });
   await doc.locator('.port-star[data-port-direction="take"]').first().click({ force: true });
   await expect(page.locator('.wire-edge.is-live')).toHaveCount(1);

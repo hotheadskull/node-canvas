@@ -53,7 +53,7 @@ test('wire a note into a document: live embed inline, fork on edit, deliberate w
   // give the note some words
   await note.locator('.richtext-content').click();
   await page.keyboard.type('The letter arrives at dawn.', { delay: 1 });
-  await page.locator('.nodecanvas-flow').click({ position: { x: 10, y: 400 } });
+  await page.locator('.nodecanvas-flow').click({ position: { x: 70, y: 400 } });
 
   // wire note -> document spine
   const giveStar = note.locator('[data-handleid="text-out"]');
@@ -78,7 +78,7 @@ test('wire a note into a document: live embed inline, fork on edit, deliberate w
 
   // hover actions: apply to source = the only write-back. Deselect first --
   // a selected node's resizer lines intercept clicks near the card edges.
-  await page.locator('.nodecanvas-flow').click({ position: { x: 10, y: 500 } });
+  await page.locator('.nodecanvas-flow').click({ position: { x: 70, y: 500 } });
   await embed.hover();
   await embed.locator('button', { hasText: 'apply to source' }).click();
   await expect(embed).toHaveClass(/is-live/);
@@ -103,7 +103,7 @@ test('revert discards the document version; the fullscreen room edits the same b
 
   await note.locator('.richtext-content').click();
   await page.keyboard.type('Original words.', { delay: 1 });
-  await page.locator('.nodecanvas-flow').click({ position: { x: 10, y: 400 } });
+  await page.locator('.nodecanvas-flow').click({ position: { x: 70, y: 400 } });
 
   const giveStar = note.locator('[data-handleid="text-out"]');
   const takeStar = doc.locator('[data-handleid="sections-in"]');
@@ -117,7 +117,7 @@ test('revert discards the document version; the fullscreen room edits the same b
 
   // the user's escape hatch: revert to source (deselect first: a selected
   // node's resizer lines intercept clicks near the card edges)
-  await page.locator('.nodecanvas-flow').click({ position: { x: 10, y: 500 } });
+  await page.locator('.nodecanvas-flow').click({ position: { x: 70, y: 500 } });
   await embed.hover();
   await embed.locator('button', { hasText: 'revert' }).click();
   await expect(embed).toHaveClass(/is-live/);

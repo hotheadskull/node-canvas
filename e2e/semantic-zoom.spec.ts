@@ -21,13 +21,16 @@ test('collapsed groups become stars when zoomed far out', async ({ page }) => {
   await page.getByRole('button', { name: 'Group 2' }).click();
   await expect(page.locator('.assembly-face.is-collapsed')).toHaveCount(1);
 
-  // zoom far out with the wheel
+  // zoom far out: panOnScroll (user, 2026-08-10) makes a bare wheel PAN,
+  // so zooming is ctrl+wheel now (Figma-style)
   const canvas = page.locator('.react-flow__pane');
   const box = (await canvas.boundingBox())!;
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.keyboard.down('Control');
   for (let i = 0; i < 14; i++) {
     await page.mouse.wheel(0, 400);
   }
+  await page.keyboard.up('Control');
   await expect(page.locator('.canvas-root')).toHaveClass(/zoom-far/);
   await expect(page.locator('.assembly-star')).toBeVisible();
 

@@ -146,11 +146,15 @@ export function dodgeObstacles(points: Point[], obstacles: InflatedRect[]): Poin
       );
       const xStop = dir > 0 ? next.x1 : next.x2;
       const xExit = dir > 0 ? next.x2 : next.x1;
-      // choose the pass side: nearer edge first, other side as fallback;
-      // both the vertical drop and the horizontal pass must be clear
-      const sides = [next.y1, next.y2].sort(
-        (a, b) => Math.abs(a - cursor.y) - Math.abs(b - cursor.y),
-      );
+      // choose the pass side: prioritize moving towards the destination, 
+      // other side as fallback; both the vertical drop and the horizontal pass must be clear
+      const targetY = index + 1 < points.length ? points[index + 1]!.y : to.y;
+      const sides = [next.y1, next.y2].sort((a, b) => {
+        const distA = Math.abs(a - targetY);
+        const distB = Math.abs(b - targetY);
+        if (Math.abs(distA - distB) > 0.01) return distA - distB;
+        return Math.abs(a - cursor.y) - Math.abs(b - cursor.y);
+      });
       const clearSide = sides.find(
         (yPass) =>
           verticalBlockers(relevant, xStop, Math.min(cursor.y, yPass), Math.max(cursor.y, yPass))
@@ -161,6 +165,12 @@ export function dodgeObstacles(points: Point[], obstacles: InflatedRect[]): Poin
             .length === 0,
       );
       if (clearSide === undefined) break; // boxed in: the crossing stands
+      // ALWAYS return to cursor.y after the pass. A "stay on the dodged y"
+      // shortcut (tried 2026-08-10) left the follow-up vertical running
+      // through space no check ever cleared -- clearLaneX only verified the
+      // lane over the wire's own span, and the dodge can pass OUTSIDE it
+      // (e2e caught the route slicing the dropped plate). The three checks
+      // above verify exactly this drop-pass-return staircase, nothing more.
       out.push({ x: xStop, y: cursor.y });
       out.push({ x: xStop, y: clearSide });
       out.push({ x: xExit, y: clearSide });

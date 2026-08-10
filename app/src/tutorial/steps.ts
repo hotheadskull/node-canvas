@@ -31,7 +31,7 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
   {
     id: 'add-node',
     title: 'Add your first node',
-    body: 'Click Add node in the top-left and pick a Note from the gallery.',
+    body: 'Click the + at the top of the left dock (or press N) and pick a Note from the sheet.',
     target: '.toolbar-add .toolbar-button',
     done: (document) => document.nodes.length >= 1,
   },
@@ -51,7 +51,7 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
   {
     id: 'second-node',
     title: 'Add a second node',
-    body: 'Open Add node again — any type you like. Notice it never lands on top of the first.',
+    body: 'Open the add sheet again — any type you like. Notice it never lands on top of the first.',
     target: '.toolbar-add .toolbar-button',
     done: (document) => document.nodes.length >= 2,
   },
@@ -65,8 +65,8 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
   {
     id: 'group',
     title: 'Group them',
-    body: 'Click one node, Ctrl-click the other, then press "Group 2" in the bottom-left toolbar. Groups hold references — nodes are never trapped inside.',
-    target: '.toolbar',
+    body: 'Click one node, Ctrl-click the other, then press "Group 2" in the pill at the bottom. Groups hold references — nodes are never trapped inside.',
+    target: '.selection-actions',
     done: (document) => document.assemblies.length >= 1,
   },
   {
@@ -79,7 +79,7 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
   {
     id: 'finish',
     title: 'That is the core of it',
-    body: 'Data wires, tentative ideas, the writing spine, and the packs all build on what you just did. The ? button in the bottom-left holds the reference card and replays this tour.',
+    body: 'Data wires, tentative ideas, the writing spine, and the packs all build on what you just did. The ? at the bottom of the dock holds the reference card and replays this tour.',
     target: null,
     done: null,
   },

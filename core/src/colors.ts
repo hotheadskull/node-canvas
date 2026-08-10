@@ -22,7 +22,7 @@ export type DataKindStyle = {
 };
 
 export const DATA_KIND_STYLES: Record<DataKind, DataKindStyle> = {
-  text: { hue: '#b19bff', stroke: 1.9 },
+  text: { hue: '#2dd4bf', stroke: 1.9 },
   person: { hue: '#f5977f', stroke: 1.6, dash: '3 3' },
   place: { hue: '#e0a85c', stroke: 1.6, dash: '2 5' },
   thing: { hue: '#63e0c6', stroke: 1.6, dash: '7 4' },

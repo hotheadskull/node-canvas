@@ -15,9 +15,11 @@ import { BlocksFace } from './BlocksFace';
 import { DefaultFace } from './DefaultFace';
 import { DocumentFace } from './DocumentFace';
 import { HubFace } from './HubFace';
-import { EventFace, PayoffFace, PlantFace } from './NovelFaces';
+import { EventFace, PayoffFace, PlantFace, PersonFace } from './NovelFaces';
 import { PropositionFace } from './PropositionFace';
+import { SourceFace } from './SourceFace';
 import { TitleFace } from './TitleFace';
+import { ManuscriptFace, PassageFace, SectionFace } from './WritingFaces';
 
 export type FaceProps = {
   nodeId: string;
@@ -27,18 +29,18 @@ export type FaceProps = {
 
 export const NODE_FACES: Record<string, ComponentType<FaceProps>> = {
   title: TitleFace,
-  // document got its own pass (docs/design/node-passes/document.md): the
-  // blocks editor. manuscript/claim/passage keep the compile-list face
-  // until their passes.
   document: BlocksFace,
-  manuscript: DocumentFace,
+  manuscript: ManuscriptFace,
+  section: SectionFace,
   claim: DocumentFace,
-  passage: DocumentFace,
+  passage: PassageFace,
   proposition: PropositionFace,
   plant: PlantFace,
   payoff: PayoffFace,
   event: EventFace,
+  person: PersonFace,
   hub: HubFace,
+  source: SourceFace,
 };
 
 export function faceFor(coreType: string): ComponentType<FaceProps> {

@@ -108,11 +108,11 @@ describe('novel pack rich faces', () => {
     // is emphasized. waitFor: the second node's face can mount a beat later
     // than the first (this was an order-dependent flake).
     await waitFor(() => {
-      expect(document.querySelectorAll('[data-event-timeline]').length).toBe(2);
+      expect(document.querySelectorAll('.event-face [data-event-timeline]').length).toBe(2);
     });
-    const timelines = document.querySelectorAll('[data-event-timeline]');
+    const timelines = document.querySelectorAll('.event-face [data-event-timeline]');
     expect(timelines[0]!.querySelectorAll('.event-dot').length).toBe(2);
-    expect(document.querySelectorAll('.event-dot.is-self').length).toBe(2);
+    expect(document.querySelectorAll('.event-face .event-dot.is-self').length).toBe(2);
 
     // editing story time writes through to the document
     const inputs = screen.getAllByLabelText('Story time');

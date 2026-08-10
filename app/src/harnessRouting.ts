@@ -19,17 +19,14 @@ import {
   type HarnessWireInput,
   type RoutingRect,
 } from '@node-canvas/core';
-import { PORT_GAP, PORT_TOP } from './components/CanvasNode';
+import { autoSideFor, nodeRenderWidth, OPEN_WIDTH, PORT_GAP, PORT_TOP } from './portGeometry';
+
+export { OPEN_WIDTH } from './portGeometry';
 
 /** React Flow anchors an edge at the handle's OUTER edge in its Position
  * direction (measured empirically against the DOM: give = nodeRight + 3,
  * take = nodeLeft - 3 with the current slot geometry). */
 const ANCHOR_OUT = 3;
-
-/** Observatory §10: the open state's rendered width. The DOCUMENT width is
- * untouched -- anchors and obstacles borrow this only while a plate is open
- * so wires stay settled on the grown plate. */
-export const OPEN_WIDTH = 736;
 
 export type FlatHarness = {
   harnessD: string;
@@ -43,6 +40,8 @@ export type FlatHarness = {
   harnessTY: number;
   harnessJunctionX?: number;
   harnessJunctionY?: number;
+  harnessTieX?: number;
+  harnessTieY?: number;
 };
 
 export function anchorFor(
@@ -57,23 +56,37 @@ export function anchorFor(
   if (!node) return null;
   const def = getNodeDef(node.type);
   if (!def) return null;
-  const width =
-    nodeId === openNodeId ? OPEN_WIDTH : (node.size?.width ?? def.size?.width ?? 300);
+  const width = nodeRenderWidth(node, openNodeId);
   const height = node.size?.height ?? def.size?.height ?? 150;
   const sidePorts = def.ports.filter((port) => port.direction === direction);
   const index = sidePorts.findIndex((port) => port.id === portId);
   if (index === -1) return null;
   // gutter swap: a flipped node takes on the RIGHT and gives on the LEFT
   const flipped = node.data['flipped'] === true;
-  const side =
+  // Four-sided ports: the SHARED decision (portGeometry.ts) -- CanvasNode
+  // places the DOM handle with the same call, so they can never disagree.
+  const autoSide = autoSideFor(document, nodeId, portId, openNodeId);
+
+  const side = autoSide ?? (
     direction === 'take'
       ? flipped
         ? ('right' as const)
         : ('left' as const)
       : flipped
         ? ('left' as const)
-        : ('right' as const);
+        : ('right' as const)
+  );
+
   const collapsed = zoomBorrow || node.data['collapsed'] === 'collapsed';
+  
+  if (side === 'top' || side === 'bottom') {
+    const x = collapsed
+      ? node.position.x + width / 2
+      : node.position.x + PORT_TOP + index * PORT_GAP; // Note: horizontally spread for top/bottom
+    const y = side === 'top' ? node.position.y - ANCHOR_OUT : node.position.y + height + ANCHOR_OUT;
+    return { x, y, side };
+  }
+
   const y = collapsed
     ? node.position.y + height / 2
     : node.position.y + PORT_TOP + index * PORT_GAP;
@@ -134,6 +147,9 @@ export function computeHarness(
       harnessTY: input.target.y,
       ...(wire.junction
         ? { harnessJunctionX: wire.junction.x, harnessJunctionY: wire.junction.y }
+        : {}),
+      ...(wire.tie
+        ? { harnessTieX: wire.tie.x, harnessTieY: wire.tie.y }
         : {}),
     });
   });

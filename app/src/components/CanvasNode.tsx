@@ -25,23 +25,24 @@ import {
   BookMarked,
   BookOpenText,
   Box,
-  CalendarClock,
+  CalendarDays,
   ChevronsUpDown,
+  CircleCheck,
   CircleDot,
   CircleHelp,
+  FileText,
   GitBranch,
-  Layers,
   Library,
   MapPin,
+  Milestone,
   Minimize2,
   Package,
-  Quote,
-  Scale,
+  Paperclip,
+  Sparkles,
   Sprout,
   StickyNote,
-  Target,
   Type,
-  User,
+  UserRound,
   type LucideIcon,
 } from 'lucide-react';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
@@ -82,24 +83,25 @@ export const PORT_KIND_COLORS: Record<string, string> = Object.fromEntries(
   Object.entries(DATA_KIND_STYLES).map(([kind, style]) => [kind, style.hue]),
 );
 
-/** Tab glyphs are renderer-side, like NODE_FACES (I8). */
+/** Tab glyphs are renderer-side, like NODE_FACES (I8) -- one glyph per
+ * type, matching the add sheet's icon table (pt2 handoff §10). */
 const NODE_ICONS: Record<string, LucideIcon> = {
   title: Type,
   note: StickyNote,
   document: BookOpenText,
   manuscript: Library,
-  section: Layers,
+  section: FileText,
   question: CircleHelp,
-  person: User,
+  person: UserRound,
   place: MapPin,
   thing: Package,
-  source: Quote,
-  claim: Scale,
+  source: Paperclip,
+  claim: CircleCheck,
   passage: BookMarked,
-  proposition: GitBranch,
+  proposition: Milestone,
   plant: Sprout,
-  payoff: Target,
-  event: CalendarClock,
+  payoff: Sparkles,
+  event: CalendarDays,
   hub: CircleDot,
 };
 
@@ -114,11 +116,11 @@ export const ACCENT_PRESETS = [
   '#ef4444',
 ];
 
-/** Port slot geometry -- ALSO the harness's anchor math (Canvas.tsx): a
- * slot's center is nodeY + PORT_TOP + index * PORT_GAP, x is 8px inside the
- * node edge. Change these and the wires follow automatically. */
-export const PORT_TOP = 34;
-export const PORT_GAP = 26;
+/** Port slot geometry lives in portGeometry.ts, SHARED with the harness's
+ * anchor math -- change it there and the DOM and the wires move together.
+ * Re-exported here for existing import sites. */
+import { autoSideFor, PORT_GAP, PORT_TOP } from '../portGeometry';
+export { PORT_GAP, PORT_TOP } from '../portGeometry';
 export const PORT_INSET_X = 8;
 
 /** The six port shapes (pt2 handoff §3) from a port's wire count: outline
@@ -139,10 +141,11 @@ function PortStars({
   merged,
   candidates,
   broadcasting,
+  autoSides,
 }: {
   nodeId: string;
   ports: PortDef[];
-  side: 'left' | 'right';
+  side: 'left' | 'right' | 'top' | 'bottom';
   /** Live wires per port id -- drives the shape variant AND the meta rail. */
   counts: ReadonlyMap<string, number>;
   /** Collapsed plate: every handle stays MOUNTED (wires must never drop --
@@ -153,46 +156,78 @@ function PortStars({
    * in their kind color; the rest step back while a drag is live. */
   candidates?: ReadonlySet<string>;
   broadcasting?: boolean;
+  /** Per-port dynamic overrides computed from partner positions */
+  autoSides?: Record<string, 'left' | 'right' | 'top' | 'bottom'>;
 }) {
-  const position = side === 'left' ? Position.Left : Position.Right;
+  const getSide = (portId: string) => autoSides?.[portId] ?? side;
+  const getPosition = (portSide: string) =>
+    portSide === 'left' ? Position.Left :
+    portSide === 'right' ? Position.Right :
+    portSide === 'top' ? Position.Top : Position.Bottom;
+  
   const broadcastClass = (portId: string) =>
     candidates?.has(portId) ? 'is-candidate' : broadcasting ? 'is-bystander' : '';
-  // Hidden (non-defaultVisible) ports render too, but only APPEAR on node
-  // hover -- otherwise they have no handle and can never be wired (found
-  // fixing TRY-IT §12: Footnotes and Subject/Complement were unreachable).
+  
+  const getStyle = (index: number, portSide: string) => {
+    if (merged) {
+      if (portSide === 'top' || portSide === 'bottom') return { left: '50%', [portSide === 'top' ? 'top' : 'bottom']: 2 };
+      return { top: '50%', [portSide === 'left' ? 'left' : 'right']: 2 };
+    }
+    
+    if (portSide === 'top' || portSide === 'bottom') {
+      // Horizontal distribution for top/bottom ports
+      return {
+        left: `${PORT_TOP + index * PORT_GAP}px`,
+        [portSide === 'top' ? 'top' : 'bottom']: 2,
+      };
+    }
+    
+    // Vertical distribution for left/right ports
+    return {
+      top: `${PORT_TOP + index * PORT_GAP}px`,
+      [portSide === 'left' ? 'left' : 'right']: 2,
+    };
+  };
+
   return (
     <>
-      {ports.map((port, index) => (
-        <Handle
-          key={port.id}
-          id={port.id}
-          type="source"
-          position={position}
-          className={`port-star kind-${port.dataKind} ${portStateClass(port, counts.get(port.id) ?? 0)} ${merged ? 'is-merged' : ''} ${port.defaultVisible || merged ? '' : 'is-hidden-port'} ${broadcastClass(port.id)}`}
-          style={{
-            top: merged ? '50%' : `${PORT_TOP + index * PORT_GAP}px`,
-            // slots live INSIDE their gutter, kissing the outer edge
-            ...(side === 'left' ? { left: 2 } : { right: 2 }),
-            ['--port-color' as string]: PORT_KIND_COLORS[port.dataKind] ?? '#8e94c2',
-          }}
-          data-port-label={port.label}
-          data-port-direction={port.direction}
-        />
-      ))}
-      {!merged &&
-        ports.map((port, index) => (
-          <span
-            key={`${port.id}-label`}
-            className={`port-label side-${side} ${port.defaultVisible ? '' : 'is-hidden-port'} ${broadcastClass(port.id)}`}
+      {ports.map((port, index) => {
+        const portSide = getSide(port.id);
+        return (
+          <Handle
+            key={port.id}
+            id={port.id}
+            type="source"
+            position={getPosition(portSide)}
+            className={`port-star kind-${port.dataKind} ${portStateClass(port, counts.get(port.id) ?? 0)} ${merged ? 'is-merged' : ''} ${port.defaultVisible || merged ? '' : 'is-hidden-port'} ${broadcastClass(port.id)}`}
             style={{
-              top: `${PORT_TOP + index * PORT_GAP}px`,
+              ...getStyle(index, portSide),
               ['--port-color' as string]: PORT_KIND_COLORS[port.dataKind] ?? '#8e94c2',
             }}
-            data-for-node={nodeId}
-          >
-            {port.label}
-          </span>
-        ))}
+            data-port-label={port.label}
+            data-port-direction={port.direction}
+          />
+        );
+      })}
+      {!merged &&
+        ports.map((port, index) => {
+          const portSide = getSide(port.id);
+          return (
+            <span
+              key={`${port.id}-label`}
+              className={`port-label side-${portSide} ${port.defaultVisible ? '' : 'is-hidden-port'} ${broadcastClass(port.id)}`}
+              style={{
+                ...(portSide === 'top' || portSide === 'bottom'
+                  ? { left: `${PORT_TOP + index * PORT_GAP}px`, [portSide === 'top' ? 'top' : 'bottom']: -20 }
+                  : { top: `${PORT_TOP + index * PORT_GAP}px` }),
+                ['--port-color' as string]: PORT_KIND_COLORS[port.dataKind] ?? '#8e94c2',
+              }}
+              data-for-node={nodeId}
+            >
+              {port.label}
+            </span>
+          );
+        })}
     </>
   );
 }
@@ -279,6 +314,24 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
   const wiredPorts = useMemo(
     () => new Set(wiredList === '' ? [] : wiredList.split(' ')),
     [wiredList],
+  );
+
+  // Four-sided ports: the SHARED decision (portGeometry.ts). The harness's
+  // anchorFor makes the identical call, so the DOM handle and the wire
+  // anchor can never land on different edges (a disagreement renders as a
+  // permanently ghosted wire). Absent entries fall back to the grammar side.
+  const autoSides = useCanvasStore(
+    useShallow((state) => {
+      const sides: Record<string, 'left' | 'right' | 'top' | 'bottom'> = {};
+      const thisNode = state.document.nodes.find((n) => n.id === id);
+      if (!thisNode) return sides;
+      const ports = getNodeDef(thisNode.type)?.ports ?? [];
+      for (const port of ports) {
+        const side = autoSideFor(state.document, id, port.id, state.openNodeId);
+        if (side !== null) sides[port.id] = side;
+      }
+      return sides;
+    }),
   );
   // Wires PER port (the signature keeps duplicates) -- a port with one
   // wire is a filled bar, 2-4 a flare, 5+ a wide flare (pt2 handoff §3).
@@ -387,7 +440,12 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
   // render, and calling updateNodeInternals from every mounting node made
   // 500-node boots quadratic (each call notifies every RF subscriber -- the
   // Chunk 18 stress spec measured a 36s hang from this line alone).
-  const handleSignature = `${allPorts.map((port) => port.id).join(',')}:${data.ownedHeight ?? ''}:${isCollapsed ? 'c' : isOpen ? 'o' : 'f'}:${flipped ? 'x' : ''}`;
+  // autoSides rides in the signature: a port MIGRATING to another edge
+  // moves its handle, and RF's cached handle bounds must follow or every
+  // wire into that port draws from the old spot (renders as a ghost).
+  const handleSignature = `${allPorts.map((port) => port.id).join(',')}:${data.ownedHeight ?? ''}:${isCollapsed ? 'c' : isOpen ? 'o' : 'f'}:${flipped ? 'x' : ''}:${Object.entries(autoSides)
+    .map(([portId, portSide]) => `${portId}=${portSide}`)
+    .join(',')}`;
   const prevSignatureRef = useRef<string | null>(null);
   useEffect(() => {
     if (prevSignatureRef.current === handleSignature) return;
@@ -399,9 +457,9 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
   const TabIcon = NODE_ICONS[data.coreType] ?? Box;
   // The plate's spine and header tint come from its PRIMARY GIVE's dataKind
   // (the colour of what this node produces). A user accent overrides.
-  const giveKind = gives[0]?.dataKind;
+  const primaryKind = gives[0]?.dataKind ?? takes[0]?.dataKind;
   const kindHue =
-    data.accent ?? (giveKind ? DATA_KIND_STYLES[giveKind].hue : DATA_KIND_STYLES.any.hue);
+    data.accent ?? (primaryKind ? DATA_KIND_STYLES[primaryKind].hue : DATA_KIND_STYLES.any.hue);
   const shortId = id.replace(/^node_/, '').slice(0, 4).toUpperCase();
   const words = wordCount(data.content);
 
@@ -493,8 +551,8 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
           className={`canvas-node-gutter gutter-right ${(flipped ? takes : gives).length > 0 ? '' : 'is-empty'} ${rightUsed ? 'is-used' : ''}`}
           aria-hidden
         />
-        <PortStars nodeId={id} ports={takes} side={takeSide} counts={wireCounts} candidates={candidatePorts} broadcasting={broadcasting} />
-        <PortStars nodeId={id} ports={gives} side={giveSide} counts={wireCounts} candidates={candidatePorts} broadcasting={broadcasting} />
+        <PortStars nodeId={id} ports={takes} side={takeSide} counts={wireCounts} candidates={candidatePorts} broadcasting={broadcasting} autoSides={autoSides} />
+        <PortStars nodeId={id} ports={gives} side={giveSide} counts={wireCounts} candidates={candidatePorts} broadcasting={broadcasting} autoSides={autoSides} />
         <RelateAnchors related={hasPlainEdges} />
       </div>
     );
@@ -547,8 +605,8 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
           className={`canvas-node-gutter gutter-right ${(flipped ? takes : gives).length > 0 ? '' : 'is-empty'} ${rightUsed ? 'is-used' : ''}`}
           aria-hidden
         />
-        <PortStars nodeId={id} ports={takes} side={takeSide} counts={wireCounts} merged candidates={candidatePorts} broadcasting={broadcasting} />
-        <PortStars nodeId={id} ports={gives} side={giveSide} counts={wireCounts} merged candidates={candidatePorts} broadcasting={broadcasting} />
+        <PortStars nodeId={id} ports={takes} side={takeSide} counts={wireCounts} merged candidates={candidatePorts} broadcasting={broadcasting} autoSides={autoSides} />
+        <PortStars nodeId={id} ports={gives} side={giveSide} counts={wireCounts} merged candidates={candidatePorts} broadcasting={broadcasting} autoSides={autoSides} />
         <RelateAnchors related={hasPlainEdges} />
       </div>
     );
@@ -743,8 +801,8 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
         className={`canvas-node-gutter gutter-right ${(flipped ? takes : gives).length > 0 ? '' : 'is-empty'} ${rightUsed ? 'is-used' : ''}`}
         aria-hidden
       />
-      <PortStars nodeId={id} ports={takes} side={takeSide} counts={wireCounts} candidates={candidatePorts} broadcasting={broadcasting} />
-      <PortStars nodeId={id} ports={gives} side={giveSide} counts={wireCounts} candidates={candidatePorts} broadcasting={broadcasting} />
+      <PortStars nodeId={id} ports={takes} side={takeSide} counts={wireCounts} candidates={candidatePorts} broadcasting={broadcasting} autoSides={autoSides} />
+      <PortStars nodeId={id} ports={gives} side={giveSide} counts={wireCounts} candidates={candidatePorts} broadcasting={broadcasting} autoSides={autoSides} />
       <RelateAnchors related={hasPlainEdges} />
     </div>
   );

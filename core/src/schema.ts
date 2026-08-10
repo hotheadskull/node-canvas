@@ -86,6 +86,13 @@ export const AssemblySchema = z.object({
   collapsed: z.boolean(),
 });
 
+export const StrokeSchema = z.object({
+  id: z.string().min(1),
+  color: z.string(),
+  size: z.number().positive(),
+  points: z.array(z.tuple([z.number(), z.number(), z.number()])), // x, y, pressure
+});
+
 export const DocumentSchema = z
   .object({
     schemaVersion: z.literal(DOCUMENT_SCHEMA_VERSION),
@@ -97,6 +104,7 @@ export const DocumentSchema = z
     edges: z.array(PlainEdgeSchema),
     wires: z.array(WireSchema),
     assemblies: z.array(AssemblySchema),
+    ink: z.array(StrokeSchema).optional(),
   })
   .superRefine((doc, ctx) => {
     const nodeIds = new Set<string>();
@@ -190,6 +198,7 @@ export type CanvasNode = z.infer<typeof NodeSchema>;
 export type PlainEdge = z.infer<typeof PlainEdgeSchema>;
 export type DataWire = z.infer<typeof WireSchema>;
 export type Assembly = z.infer<typeof AssemblySchema>;
+export type Stroke = z.infer<typeof StrokeSchema>;
 export type CanvasDocument = z.infer<typeof DocumentSchema>;
 
 export type ParseResult =

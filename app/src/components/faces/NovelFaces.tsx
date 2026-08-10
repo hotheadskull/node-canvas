@@ -11,6 +11,7 @@ import {
   plantsResolvedBy,
 } from '@node-canvas/core';
 import { useMemo } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useCanvasStore } from '../../store/canvasStore';
 import { LazyRichText } from '../RichText';
 import type { FaceProps } from './index';
@@ -152,3 +153,92 @@ export function EventFace({ nodeId, content }: FaceProps) {
     </div>
   );
 }
+
+export function PersonFace({ nodeId, content }: FaceProps) {
+  const setNodeContent = useCanvasStore((state) => state.setNodeContent);
+  const setNodeField = useCanvasStore((state) => state.setNodeField);
+  const document = useCanvasStore((state) => state.document);
+  
+  const { role, wants, fears, voice, wound } = useCanvasStore(
+    useShallow((state) => {
+      const node = state.document.nodes.find((candidate) => candidate.id === nodeId);
+      return {
+        role: (node?.data['role'] as string) ?? '',
+        wants: (node?.data['wants'] as string) ?? '',
+        fears: (node?.data['fears'] as string) ?? '',
+        voice: (node?.data['voice'] as string) ?? '',
+        wound: (node?.data['wound'] as string) ?? '',
+      };
+    })
+  );
+
+  const timeline = useMemo(() => eventTimeline(document), [document]);
+  const presence = useMemo(() => {
+    const eventsWithPerson = new Set(
+      document.wires
+        .filter((wire) => wire.status === 'live' && wire.source === nodeId && wire.targetPort === 'involves-in')
+        .map((wire) => wire.target)
+    );
+    return timeline.map(entry => ({ ...entry, present: eventsWithPerson.has(entry.nodeId) }));
+  }, [document.wires, timeline, nodeId]);
+
+  const span = useMemo(() => {
+    if (timeline.length === 0) return null;
+    const min = timeline[0]!.storyTime;
+    const max = timeline[timeline.length - 1]!.storyTime;
+    return { min, range: Math.max(max - min, Number.EPSILON) };
+  }, [timeline]);
+
+  // a render HELPER, not a nested component: a component declared inside
+  // the render gets a fresh identity every pass, so React would remount
+  // the input and drop focus after every keystroke
+  const field = (label: string, value: string, key: string) => (
+    <label className="person-field-row nodrag" key={key}>
+      <span className="person-field-label">{label}</span>
+      <input
+        className="person-field-input"
+        type="text"
+        value={value}
+        placeholder="—"
+        onChange={(e) => setNodeField(nodeId, key, e.target.value)}
+      />
+    </label>
+  );
+
+  return (
+    <div className="canvas-node-body person-face" data-face="person">
+      <LazyRichText
+        value={content}
+        onChange={(html) => setNodeContent(nodeId, html)}
+        placeholder="Who are they?"
+        variant="inline"
+      />
+      <div className="person-fields">
+        {field('Role', role, 'role')}
+        {field('Wants', wants, 'wants')}
+        {field('Fears', fears, 'fears')}
+        {field('Voice', voice, 'voice')}
+        {field('Wound', wound, 'wound')}
+      </div>
+      {span && timeline.length > 1 && (
+        <svg className="event-timeline person-presence nodrag" viewBox="0 0 300 18" data-event-timeline aria-hidden>
+          <line x1="6" y1="9" x2="294" y2="9" className="event-timeline-track" />
+          {presence.map((entry) => {
+            const x = 6 + ((entry.storyTime - span.min) / span.range) * 288;
+            return (
+              <circle
+                key={entry.nodeId}
+                cx={x}
+                cy={9}
+                r={entry.present ? 4 : 2}
+                className={`event-dot ${entry.present ? 'is-self' : ''}`}
+                opacity={entry.present ? 1 : 0.3}
+              />
+            );
+          })}
+        </svg>
+      )}
+    </div>
+  );
+}
+

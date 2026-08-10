@@ -21,7 +21,7 @@ export type HarnessEndpoint = {
   x: number;
   y: number;
   /** Which edge of the node the port sits on. */
-  side: 'left' | 'right';
+  side: 'left' | 'right' | 'top' | 'bottom';
 };
 
 export type HarnessWireInput = {
@@ -42,6 +42,8 @@ export type HarnessWire = {
   labelY: number;
   /** Present on the FIRST wire of a shared-stub group: draw the split dot. */
   junction?: HarnessPoint;
+  /** Present on the FIRST wire of a shared-target-stub group: draw the merge tie. */
+  tie?: HarnessPoint;
 };
 
 export const STUB = 12;
@@ -52,8 +54,12 @@ const LANE_MARGIN = 26;
 const HOP_RADIUS = 6;
 
 /** Direction a stub leaves/enters a port. */
-function stubSign(side: 'left' | 'right'): number {
-  return side === 'right' ? 1 : -1;
+function stubDir(side: HarnessEndpoint['side']): { dx: number; dy: number } {
+  if (side === 'right') return { dx: 1, dy: 0 };
+  if (side === 'left') return { dx: -1, dy: 0 };
+  if (side === 'top') return { dx: 0, dy: -1 };
+  if (side === 'bottom') return { dx: 0, dy: 1 };
+  return { dx: 0, dy: 0 };
 }
 
 /**
@@ -66,20 +72,22 @@ export function routePoints(
   target: HarnessEndpoint,
   laneX: number,
 ): HarnessPoint[] {
-  // Stubs extend AWAY from their node edge: right-side ports stub to +x,
-  // left-side ports to -x -- the same sign rule at both ends.
   const start = { x: source.x, y: source.y };
-  const stubOut = { x: source.x + stubSign(source.side) * STUB, y: source.y };
-  const stubIn = { x: target.x + stubSign(target.side) * STUB, y: target.y };
+  const sDir = stubDir(source.side);
+  const stubOut = { x: source.x + sDir.dx * STUB, y: source.y + sDir.dy * STUB };
+  
+  const tDir = stubDir(target.side);
+  const stubIn = { x: target.x + tDir.dx * STUB, y: target.y + tDir.dy * STUB };
   const end = { x: target.x, y: target.y };
 
   const points: HarnessPoint[] = [start, stubOut];
-  if (Math.abs(source.y - target.y) < 0.5) {
+  if (Math.abs(stubOut.y - stubIn.y) < 0.5) {
     // already level: one straight run
     points.push(stubIn, end);
   } else {
-    points.push({ x: laneX, y: source.y });
-    points.push({ x: laneX, y: target.y });
+    // We add an orthogonal turn to hit the lane
+    points.push({ x: laneX, y: stubOut.y });
+    points.push({ x: laneX, y: stubIn.y });
     points.push(stubIn, end);
   }
   // drop consecutive duplicates (collinear collapses happen naturally)
@@ -228,14 +236,14 @@ export function routeHarness(
     // The lane sits on the APPROACH side of the target stub, LANE_MARGIN
     // short of it, stepping LANE_GAP further out per additional inbound
     // wire (input order = intake order, so lane order reads as wire order).
-    const sign = stubSign(wire.target.side) as -1 | 1;
+    const sign = stubDir(wire.target.side).dx || 1; // Fallback to 1 if top/bottom for lane calculation
     const targetStubX = wire.target.x + sign * STUB;
     let laneX = targetStubX + sign * (LANE_MARGIN + index * LANE_GAP);
     if (inflated.length > 0 && Math.abs(wire.source.y - wire.target.y) >= 0.5) {
       // Phase D: the lane slides outward into the nearest free channel --
       // a vertical run may never slice through a plate. Later lanes start
       // beyond earlier ones (index step), so cleared lanes stay distinct.
-      laneX = clearLaneX(laneX, wire.source.y, wire.target.y, inflated, sign);
+      laneX = clearLaneX(laneX, wire.source.y, wire.target.y, inflated, sign as -1 | 1);
     }
     let points = routePoints(wire.source, wire.target, laneX);
     if (inflated.length > 0) points = dodgeObstacles(points, inflated);
@@ -266,10 +274,23 @@ export function routeHarness(
     const isJunctionOwner = group.length > 1 && group[0] === index;
     // the shared stub's end, computed from the INPUT (dodges can insert
     // points, so points[1] is not guaranteed to be the stub tip)
+    const sDir = stubDir(entry.wire.source.side);
     const stubEnd = {
-      x: entry.wire.source.x + stubSign(entry.wire.source.side) * STUB,
-      y: entry.wire.source.y,
+      x: entry.wire.source.x + sDir.dx * STUB,
+      y: entry.wire.source.y + sDir.dy * STUB,
     };
+    
+    // strand tie: 2+ wires sharing a target port merge at the target stub end
+    const targetGroup = wires
+      .map((w, i) => w.targetKey === entry.wire.targetKey ? i : -1)
+      .filter(i => i !== -1);
+    const isTieOwner = targetGroup.length > 1 && targetGroup[0] === index;
+    const tDir = stubDir(entry.wire.target.side);
+    const targetStubEnd = {
+      x: entry.wire.target.x + tDir.dx * STUB,
+      y: entry.wire.target.y + tDir.dy * STUB,
+    };
+
     return {
       id: entry.wire.id,
       d: harnessPathD(entry.points.map((point) => ({ ...point })), hops),
@@ -277,6 +298,7 @@ export function routeHarness(
       labelX: labelPoint.x,
       labelY: labelPoint.y,
       ...(isJunctionOwner ? { junction: { x: stubEnd.x, y: stubEnd.y } } : {}),
+      ...(isTieOwner ? { tie: { x: targetStubEnd.x, y: targetStubEnd.y } } : {}),
     };
   });
 }

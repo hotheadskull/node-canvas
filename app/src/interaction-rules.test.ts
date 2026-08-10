@@ -56,11 +56,19 @@ describe('connection accessibility requirements', () => {
     expect(canvas).toContain('isValidConnection={isValidConnection}');
   });
 
-  it('port slots keep a >=24px invisible hit area and validity colors', () => {
-    // Observatory slots are 12x4; inset -10px makes the hit area 32x24 --
-    // the >=24px floor (rule 1) holds on the short axis.
+  it('port hit areas kiss along the slot axis and stay generous outward', () => {
+    // At the pt2 12px pitch a uniform -10px inset made neighbouring hit
+    // boxes OVERLAP -- every click landed one slot off and wiring went
+    // dead (2026-08-10). The contract now: -3px along the stacking axis
+    // (boxes kiss, never overlap), -10px outward; the 40px
+    // connectionRadius (asserted above) supplies the generous drop reach.
     const styles = read('./styles.css');
-    expect(styles).toMatch(/\.port-star\.react-flow__handle::after\s*\{[^}]*inset:\s*-10px/s);
+    expect(styles).toMatch(
+      /\.port-star\.react-flow__handle-left::after,\s*\.port-star\.react-flow__handle-right::after\s*\{[^}]*inset:\s*-3px\s+-10px/s,
+    );
+    expect(styles).toMatch(
+      /\.port-star\.react-flow__handle-top::after,\s*\.port-star\.react-flow__handle-bottom::after\s*\{[^}]*inset:\s*-10px\s+-3px/s,
+    );
     expect(styles).toContain('.port-star.react-flow__handle.valid');
   });
 

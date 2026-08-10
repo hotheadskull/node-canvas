@@ -14,6 +14,7 @@ export function FilterBar() {
   const document = useCanvasStore((state) => state.document);
   const wireFilter = useCanvasStore((state) => state.wireFilter);
   const setWireFilter = useCanvasStore((state) => state.setWireFilter);
+  const filterPinned = useCanvasStore((state) => state.filterPinned);
 
   const { kinds, total, shown } = useMemo(() => {
     const counts = new Map<string, number>();
@@ -35,7 +36,9 @@ export function FilterBar() {
     return { kinds: [...counts.entries()].sort((a, b) => b[1] - a[1]), total: liveTotal, shown: visible };
   }, [document, wireFilter]);
 
-  if (total < MIN_WIRES) return null;
+  // the dock's Filter tool pins the bar open below the automatic gate;
+  // with zero wires there is nothing to filter either way
+  if (total === 0 || (total < MIN_WIRES && !filterPinned)) return null;
 
   const toggle = (kind: string) => {
     const next = new Set(wireFilter ?? []);

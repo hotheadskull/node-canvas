@@ -45,6 +45,8 @@ export type WireEdgeData = {
   harnessTY?: number;
   harnessJunctionX?: number;
   harnessJunctionY?: number;
+  harnessTieX?: number;
+  harnessTieY?: number;
 };
 
 /** Signal character per data kind (spec §5) -- dash/duration/timing live in
@@ -150,7 +152,7 @@ function WireEdgeComponent({
       )}
       {/* junction dot: one give splitting to several takes (spec §4) -- no
           dot means no relationship, so an unmarked crossing never lies */}
-      {settled && data?.harnessJunctionX !== undefined && (
+      {data?.harnessJunctionX !== undefined && settled && (
         <g className="wire-junction" data-junction>
           <circle cx={data.harnessJunctionX} cy={data.harnessJunctionY} r={3.4} fill={color} />
           <circle
@@ -160,6 +162,19 @@ function WireEdgeComponent({
             fill="none"
             stroke={color}
             strokeOpacity={0.3}
+          />
+        </g>
+      )}
+      {/* strand tie: several gives merging into one take port */}
+      {settled && data?.harnessTieX !== undefined && (
+        <g className="wire-tie" data-tie>
+          <rect
+            x={(data.harnessTieX as number) - 2.5}
+            y={(data.harnessTieY as number) - 6}
+            width={5}
+            height={12}
+            fill={color}
+            rx={2}
           />
         </g>
       )}

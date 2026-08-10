@@ -55,6 +55,8 @@ import { Toast } from './components/Toast';
 import { Toolbar } from './components/Toolbar';
 import { Tutorial } from './components/Tutorial';
 import { WireEdge } from './components/WireEdge';
+import { InkLayer } from './components/InkLayer';
+import { InkPalette } from './components/InkPalette';
 import { firstCompatibleTake, PLAIN_HANDLES, useCanvasStore } from './store/canvasStore';
 import { computeHarness, type FlatHarness } from './harnessRouting';
 
@@ -123,22 +125,14 @@ export function Canvas() {
   const gatherSelection = useCanvasStore((state) => state.gatherSelection);
   const drillTo = useCanvasStore((state) => state.drillTo);
   const exportingCanvas = useCanvasStore((state) => state.exportingCanvas);
+  const inkMode = useCanvasStore((state) => state.inkMode);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [rfNodes, setRfNodes] = useState<Node[]>([]);
   const [rfEdges, setRfEdges] = useState<Edge[]>([]);
-  // Nodes are handed to RF only after it has MEASURED its container. Before
-  // that, onlyRenderVisibleElements has a 0x0 viewport to test against and
-  // mounts EVERY node -- on a 500-node canvas that meant ~500 TipTap editors
-  // built and immediately unmounted (a 27s boot, found by the stress spec).
   const [flowReady, setFlowReady] = useState(false);
-  // Any node mid-drag? The harness freezes (spec §4: wires drop to a ghost
-  // line during a drag and settle on release) -- and skipping recompute per
-  // drag frame is also the perf answer for the O(n²) hop pass.
   const [draggingCount, setDraggingCount] = useState(0);
 
-  // ⌥⇧A: collapse everything / expand everything (Observatory §2). If any
-  // plate is still full, the sweep collapses; otherwise it expands.
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (!event.altKey || !event.shiftKey || event.code !== 'KeyA') return;
@@ -155,19 +149,11 @@ export function Canvas() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
-  // Semantic zoom: past the far threshold, collapsed assemblies render as
-  // glowing star points (the theme made mechanical + the perf lever).
   const [zoomBucket, setZoomBucket] = useState<'near' | 'far'>('near');
   const { screenToFlowPosition, getViewport, setCenter } = useReactFlow();
   const drillStack = useCanvasStore((state) => state.drillStack);
   const drilled = drillStack.length > 0 ? drillStack[drillStack.length - 1] : null;
 
-  // Visibility model:
-  // - viewDoc treats drilled assemblies as expanded (drilling into a
-  //   collapsed group must show its members)
-  // - hidden = everything inside a collapsed assembly (transitive)
-  // - drill mode additionally scopes the canvas to the drilled assembly's
-  //   DIRECT members (nested collapsed groups still render as faces)
   const view = useMemo(() => {
     const viewDoc = drillStack.reduce(
       (doc, assemblyId) => setAssemblyCollapsed(doc, assemblyId, false),
@@ -182,9 +168,6 @@ export function Canvas() {
       !hidden.has(id) && (scope === null || scope.has(id));
     const assemblyVisible = (id: string) =>
       !hidden.has(id) && id !== drilled && (scope === null || scope.has(id));
-    // Drilling into an Arc group shows its propositions as PHRASING STRIPS
-    // (user-picked design C): indent derived from subordination. Display
-    // positions only -- stored positions never change, dragging is off (I5).
     let phrasing: Map<string, { level: number; order: number }> | null = null;
     if (drilledAssembly) {
       const outline = arcOutline(document, drilledAssembly.memberIds);
@@ -198,13 +181,8 @@ export function Canvas() {
     return { viewDoc, hidden, nodeVisible, assemblyVisible, phrasing, phrasingOrigin };
   }, [document, drillStack, drilled]);
 
-  // The routed harness for every visible live wire. FROZEN while a drag is
-  // in flight: WireEdge sees its live handle coords diverge from the frozen
-  // anchors and drops to a ghost line; the drop recomputes and settles.
   const zoomBorrow = useCanvasStore((state) => state.zoomBorrow);
   const openNodeId = useCanvasStore((state) => state.openNodeId);
-  // Density filter (§6): wires outside the filter render as whispers --
-  // resolution is earned by matching the filter or being selected.
   const wireFilter = useCanvasStore((state) => state.wireFilter);
   const harnessRef = useRef<Map<string, FlatHarness>>(new Map());
   const harness = useMemo(() => {
@@ -225,10 +203,7 @@ export function Canvas() {
     return next;
   }, [document, view, zoomBorrow, draggingCount, openNodeId]);
 
-  // Esc closes the open plate (unless a fuller overlay is up -- those own
-  // Esc); ⇧F from the open plate steps into the focus room (spec §10).
   useEffect(() => {
-    if (openNodeId === null) return;
     const onKey = (event: KeyboardEvent) => {
       const store = useCanvasStore.getState();
       if (store.editorNodeId !== null || store.docRoomId !== null) return;
@@ -238,19 +213,53 @@ export function Canvas() {
       if (event.key === 'Escape') {
         store.setOpenNode(null);
       } else if (event.shiftKey && event.code === 'KeyF' && !typing) {
+        // ⇧F focuses the SELECTED plate (spec §10). RF's data-id is the
+        // document node id verbatim -- ids already carry their `node_`
+        // prefix, so it is never stripped.
+        const selectedEl = window.document.querySelector('.react-flow__node.selected[data-id]');
+        if (!selectedEl) return;
+        const id = selectedEl.getAttribute('data-id');
+        if (!id) return;
+
         event.preventDefault();
-        const openNode = store.document.nodes.find((node) => node.id === store.openNodeId);
-        if (!openNode) return;
-        if (openNode.type === 'document') store.openDocRoom(openNode.id);
-        else store.openEditor(openNode.id);
+        const selectedNode = store.document.nodes.find((node) => node.id === id);
+        if (!selectedNode) return;
+        if (selectedNode.type === 'document') store.openDocRoom(selectedNode.id);
+        else store.openEditor(selectedNode.id);
       }
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [openNodeId]);
 
-  // Sync core document -> RF state. Existing RF node objects are merged so
-  // RF-owned fields (measured dims, selection, dragging) survive the sync.
+    // ⌘V over the canvas: text becomes a Note at the viewport centre --
+    // spawning at a fixed origin would land off-view at any pan (§10).
+    const onPaste = (event: ClipboardEvent) => {
+      const store = useCanvasStore.getState();
+      const target = event.target as HTMLElement | null;
+      const typing =
+        (target && /^(input|textarea)$/i.test(target.tagName)) || target?.isContentEditable;
+      if (typing) return;
+
+      const text = event.clipboardData?.getData('text/plain');
+      if (!text) return;
+
+      const center = screenToFlowPosition({
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2,
+      });
+      const nodeId = store.spawnAt('note', center);
+      if (nodeId) {
+        store.setNodeTitle(nodeId, 'Clipped Note');
+        store.setNodeContent(nodeId, text);
+      }
+    };
+
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('paste', onPaste);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('paste', onPaste);
+    };
+  }, [screenToFlowPosition]);
+
   useEffect(() => {
     if (!flowReady) return;
     setRfNodes((current) => {
@@ -260,9 +269,6 @@ export function Canvas() {
         .map((docNode) => {
           const existing = byId.get(docNode.id);
           const strip = view.phrasing?.get(docNode.id);
-          // Drop RF-owned explicit dims on every sync: the NodeResizer writes
-          // node.width/height during a resize, and a stale height would pin
-          // the card after Fit hands ownership back to auto-growth.
           const { width: _staleW, height: _staleH, ...existingBase } = existing ?? ({} as Node);
           const owned = typeof docNode.data['ownedHeight'] === 'number';
           const isOpen = docNode.id === openNodeId;
@@ -270,24 +276,15 @@ export function Canvas() {
             ...existingBase,
             id: docNode.id,
             type: 'canvas' as const,
-            // Observatory §10: the open plate BORROWS a 736px render width
-            // and rides above its neighbours; the stored size is untouched.
             ...(isOpen
               ? { width: 736, zIndex: 1200 }
               : docNode.size
                 ? { width: docNode.size.width }
                 : {}),
             ...(!isOpen && owned && docNode.size ? { height: docNode.size.height } : {}),
-            // Size HINTS for the culling pass only (RF: measured ?? explicit
-            // ?? initial). Without a height hint an unmeasured auto-height
-            // node "has no dimensions", is exempt from culling, and mounts
-            // just to be measured -- 500 TipTap editors at boot. The card's
-            // real height still comes from CSS auto-growth after mount.
             ...(docNode.size
               ? { initialWidth: docNode.size.width, initialHeight: docNode.size.height }
               : {}),
-            // phrasing strips take a DERIVED display position; the stored
-            // position is untouched and dragging is disabled while displayed
             position: strip
               ? {
                   x: view.phrasingOrigin.x + strip.level * 72,
@@ -338,13 +335,10 @@ export function Canvas() {
       const byId = new Map(current.map((edge) => [edge.id, edge]));
       const endpointVisible = (id: string) =>
         view.nodeVisible(id) || view.assemblyVisible(id);
-      // Boundary connections DRAW to the outermost collapsed face
-      // (display-only remap; storage never changes). Handle ids are dropped
-      // when an endpoint remaps -- the face resolves its unnamed handles.
       const plainEdges = document.edges.flatMap((docEdge) => {
         const source = displayEndpoint(view.viewDoc, docEdge.source);
         const target = displayEndpoint(view.viewDoc, docEdge.target);
-        if (source === target) return []; // fully inside one collapsed face
+        if (source === target) return []; 
         if (!endpointVisible(source) || !endpointVisible(target)) return [];
         const sourceRemapped = source !== docEdge.source;
         const targetRemapped = target !== docEdge.target;
@@ -365,9 +359,6 @@ export function Canvas() {
           }),
         ];
       });
-      // Animation budget (spec §5): ~8 animated wires. First N visible live
-      // wires carry the signal; the rest stay static. Reduced-motion kills
-      // every animation in CSS regardless.
       let animationBudget = 8;
       const wireEdges = document.wires.flatMap((wire) => {
         const source = displayEndpoint(view.viewDoc, wire.source);
@@ -419,7 +410,6 @@ export function Canvas() {
   const onNodesChange = useCallback(
     (changes: NodeChange<Node>[]) => {
       setRfNodes((nodes) => applyNodeChanges(changes, nodes));
-      // drag bookkeeping for the harness freeze (ghost-and-settle)
       for (const change of changes) {
         if (change.type === 'position' && change.dragging === true) {
           setDraggingCount((count) => (count === 0 ? 1 : count));
@@ -432,7 +422,6 @@ export function Canvas() {
           if (isAssemblyId(change.id)) moveAssemblyTo(change.id, change.position);
           else moveNode(change.id, change.position);
         } else if (change.type === 'remove') {
-          // deleting a face unpacks the group -- member nodes are sacred (I3)
           if (isAssemblyId(change.id)) unpack(change.id);
           else deleteNode(change.id);
         }
@@ -473,9 +462,6 @@ export function Canvas() {
     [connectFromHandles],
   );
 
-  // Live valid/invalid coloring during a drag. Returning false BLOCKS the
-  // drop and RF marks the hovered handle .invalid (styled red); true marks
-  // it .valid (green glow).
   const isValidConnection: IsValidConnection = useCallback(
     (connection) => {
       const { source, target, sourceHandle, targetHandle } = connection;
@@ -483,15 +469,12 @@ export function Canvas() {
       const sourceIsPort = !!sourceHandle && !PLAIN_HANDLES.has(sourceHandle);
       const targetIsPort = !!targetHandle && !PLAIN_HANDLES.has(targetHandle);
       if (!sourceIsPort && !targetIsPort) {
-        // plain relationship line: always allowed except self (I1)
         return source !== target;
       }
       const direction = (nodeId: string, portId: string) => {
         const node = document.nodes.find((candidate) => candidate.id === nodeId);
         return node ? getPort(node.type, portId)?.direction : undefined;
       };
-      // document BLOCK handles: valid when the drag is a give that could
-      // legally wire into the document's spine (it lands at that block)
       if (targetHandle?.startsWith('blk:')) {
         return (
           !!sourceHandle &&
@@ -518,14 +501,11 @@ export function Canvas() {
         }
         return isValidWire(document, reversed).ok;
       }
-      // give star -> plain dot: allowed when the target has a compatible
-      // intake (this creates a tentative wire)
       if (sourceIsPort && direction(source, sourceHandle) === 'give') {
         return (
           source !== target && firstCompatibleTake(document, source, sourceHandle, target) !== null
         );
       }
-      // remaining mixed combos fall back to plain edges
       return source !== target;
     },
     [document],
@@ -540,10 +520,6 @@ export function Canvas() {
       const id = spawnAt(type, center);
       setMenuOpen(false);
       if (!id) return;
-      // Spawning is the user's explicit action, so the camera may follow a
-      // node that landed off-view (v1 behavior; interaction rule 6 addendum).
-      // Collision-free placement can push spawns outside the viewport, and an
-      // invisible new node reads as "nothing happened".
       const spawned = useCanvasStore.getState().document.nodes.find((node) => node.id === id);
       if (!spawned) return;
       const { x, y, zoom } = getViewport();
@@ -579,8 +555,6 @@ export function Canvas() {
     if (selectedIds.length >= 2) gatherSelection(selectedIds);
   }, [selectedIds, gatherSelection]);
 
-  // Merge (approved 2026-08-10): 2+ selected nodes of ONE type fold into
-  // the first-selected. Cross-type selections just don't offer it.
   const mergeSelection = useCanvasStore((state) => state.mergeSelection);
   const mergeableCount = useMemo(() => {
     if (selectedIds.length < 2) return 0;
@@ -603,9 +577,47 @@ export function Canvas() {
     [drillStack, document.assemblies],
   );
 
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    const storeState = useCanvasStore.getState();
+    if (storeState.inkMode || e.pointerType === 'pen') {
+      if ((e.target as HTMLElement).closest('button, input, .dock, .toolbar-floating-pill, .settings-popover, .add-menu, .room-overlay')) return;
+      
+      e.stopPropagation();
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+      const pos = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+      storeState.startStroke([pos.x, pos.y, e.pressure]);
+    }
+  }, [screenToFlowPosition]);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    const storeState = useCanvasStore.getState();
+    if (storeState.currentStroke) {
+      e.stopPropagation();
+      const pos = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+      storeState.updateStroke([pos.x, pos.y, e.pressure]);
+    }
+  }, [screenToFlowPosition]);
+
+  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    const storeState = useCanvasStore.getState();
+    if (storeState.currentStroke) {
+      e.stopPropagation();
+      try {
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch (err) {}
+      storeState.endStroke();
+    }
+  }, []);
+
+  const isInkModeActive = inkMode;
+
   return (
     <div
       className={`canvas-root density-${settings.density} port-labels-${settings.portLabels} zoom-${zoomBucket}`}
+      onPointerDownCapture={handlePointerDown}
+      onPointerMoveCapture={handlePointerMove}
+      onPointerUpCapture={handlePointerUp}
+      onPointerCancelCapture={handlePointerUp}
     >
       <ReactFlow
         nodes={rfNodes}
@@ -615,10 +627,12 @@ export function Canvas() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        /* Drag-time broadcast (user, 2026-08-10): the moment a wire drag
-           starts from a port, every port it could legally land on across
-           the visible canvas lights up in its data-kind color -- color
-           does the teaching at exactly the moment the question is asked. */
+        panOnScroll
+        selectionOnDrag={!isInkModeActive}
+        panOnDrag={!isInkModeActive ? [1, 2] : false}
+        nodesDraggable={!isInkModeActive}
+        nodesConnectable={!isInkModeActive}
+        elementsSelectable={!isInkModeActive}
         onConnectStart={(_event, params) => {
           const { nodeId, handleId } = params;
           if (!nodeId || !handleId) return;
@@ -692,6 +706,8 @@ export function Canvas() {
             return;
           }
           if (node.type === 'canvas') {
+            // double-click OPENS (spec §8/§10; ⌥click already collapses) --
+            // routing this to collapse orphaned the whole open state
             useCanvasStore.getState().setOpenNode(node.id);
             return;
           }
@@ -707,6 +723,7 @@ export function Canvas() {
         className="nodecanvas-flow"
       >
         <Starfield />
+        <InkLayer />
         {/* §6 density: the minimap earns the old legend's corner */}
         <MiniMap
           className="observatory-minimap"
@@ -738,14 +755,39 @@ export function Canvas() {
           ))}
         </nav>
       )}
-      <Toolbar
-        menuOpen={menuOpen}
-        onToggleMenu={() => setMenuOpen((open) => !open)}
-        selectedCount={selectedIds.length}
-        onGather={onGather}
-        mergeableCount={mergeableCount}
-        onMerge={onMerge}
-      />
+      {(() => {
+        const singleSelectedId = selectedIds.length === 1 ? selectedIds[0]! : null;
+        return (
+          <Toolbar
+            menuOpen={menuOpen}
+            onToggleMenu={() => setMenuOpen((open) => !open)}
+            selectedCount={selectedIds.length}
+            onGather={onGather}
+            mergeableCount={mergeableCount}
+            onMerge={onMerge}
+            docTargetId={
+              singleSelectedId &&
+              document.nodes.some(
+                (n) =>
+                  n.id === singleSelectedId &&
+                  ['document', 'manuscript'].includes(n.type),
+              )
+                ? singleSelectedId
+                : null
+            }
+            arcTargetId={
+              singleSelectedId && document.assemblies.some((a) => a.id === singleSelectedId)
+                ? singleSelectedId
+                : null
+            }
+            focusTargetId={
+              singleSelectedId && document.nodes.some((n) => n.id === singleSelectedId)
+                ? singleSelectedId
+                : null
+            }
+          />
+        );
+      })()}
       {/* Legend removed at user request (2026-07-14) until a better design
           exists -- component kept at components/Legend.tsx for its return */}
       <Toast />
@@ -755,6 +797,7 @@ export function Canvas() {
       <CommandPalette />
       <Tutorial />
       <TipsPanel />
+      <InkPalette />
       {menuOpen && <AddNodeMenu onPick={pickType} onClose={() => setMenuOpen(false)} />}
     </div>
   );

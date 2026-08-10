@@ -47,7 +47,7 @@ test('add sections -> write -> compile -> reorder, all through the real UI', asy
   await page.keyboard.type('First words.');
   await sections.nth(1).locator('.richtext-content').click();
   await page.keyboard.type('Second words.');
-  await page.locator('.nodecanvas-flow').click({ position: { x: 10, y: 500 } });
+  await page.locator('.nodecanvas-flow').click({ position: { x: 70, y: 500 } });
 
   // the embeds mirror the sections LIVE, in wire order
   await expect(doc.locator('[data-doc-blocks]')).toContainText('First words.');

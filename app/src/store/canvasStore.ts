@@ -137,6 +137,21 @@ type CanvasState = {
   setNodeTitle: (nodeId: string, title: string) => void;
   setNodeContent: (nodeId: string, content: string) => void;
   setNodeAccent: (nodeId: string, accent: string | undefined) => void;
+  setNodeField: (nodeId: string, field: string, value: unknown) => void;
+
+  // ---- Ink Layer ----
+  inkMode: boolean;
+  setInkMode: (mode: boolean) => void;
+  inkColor: string;
+  setInkColor: (color: string) => void;
+  inkSize: number;
+  setInkSize: (size: number) => void;
+  currentStroke: { points: [number, number, number][] } | null;
+  startStroke: (point: [number, number, number]) => void;
+  updateStroke: (point: [number, number, number]) => void;
+  endStroke: () => void;
+  clearInk: () => void;
+
   /** Per-node gutter swap (user, 2026-08-10): intake and output trade
    * sides so a node can face its partners -- the grammar stays fixed,
    * the odd node flips. Stored in node.data (passthrough). */
@@ -149,6 +164,10 @@ type CanvasState = {
    * null = no filter, everything draws. Session only. */
   wireFilter: ReadonlySet<string> | null;
   setWireFilter: (kinds: ReadonlySet<string> | null) => void;
+  /** Dock Filter tool (spec §10): pin the filter bar open below its
+   * automatic 4-wire threshold. Session only. */
+  filterPinned: boolean;
+  setFilterPinned: (pinned: boolean) => void;
   /** Observatory collapse (spec §2): sticky, user-controlled, persisted in
    * node.data. 'rolled-up' is the assembly state and stays derived. */
   toggleNodeCollapsed: (nodeId: string) => void;
@@ -420,6 +439,48 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
     projectPath: null,
     projectFileName: null,
     exportingCanvas: false,
+
+    inkMode: false,
+    inkColor: '#f1f1f2',
+    inkSize: 4,
+    currentStroke: null,
+    setInkMode: (mode) => set({ inkMode: mode }),
+    setInkColor: (color) => set({ inkColor: color }),
+    setInkSize: (size) => set({ inkSize: size }),
+    startStroke: (point) => set({ currentStroke: { points: [point] } }),
+    updateStroke: (point) =>
+      set((state) => {
+        if (!state.currentStroke) return state;
+        return {
+          currentStroke: { points: [...state.currentStroke.points, point] },
+        };
+      }),
+    endStroke: () => {
+      tryOp(() => {
+        const state = get();
+        if (!state.currentStroke || state.currentStroke.points.length === 0) return state.document;
+        
+        const newStroke = {
+          id: `stroke_${Math.random().toString(36).substring(2, 9)}`,
+          color: state.inkColor,
+          size: state.inkSize,
+          points: state.currentStroke.points,
+        };
+
+        const document = {
+          ...state.document,
+          ink: [...(state.document.ink || []), newStroke],
+        };
+        set({ currentStroke: null });
+        return document;
+      });
+    },
+    clearInk: () => {
+      tryOp(() => {
+        const document = { ...get().document, ink: [] };
+        return document;
+      });
+    },
 
     load: () => {
       let viewport: Viewport = { x: 0, y: 0, zoom: 1 };
@@ -759,6 +820,8 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
 
     wireFilter: null,
     setWireFilter: (kinds) => set({ wireFilter: kinds }),
+    filterPinned: false,
+    setFilterPinned: (pinned) => set({ filterPinned: pinned }),
 
     toggleNodeCollapsed: (nodeId) => {
       const doc = get().document;
@@ -1258,6 +1321,17 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
         }
         throw error;
       }
+    },
+
+    setNodeField: (nodeId, field, value) => {
+      const doc = get().document;
+      commit({
+        ...doc,
+        nodes: doc.nodes.map((node) => {
+          if (node.id !== nodeId) return node;
+          return { ...node, data: { ...node.data, [field]: value } };
+        }),
+      });
     },
 
     setStoryTime: (nodeId, storyTime) => {
