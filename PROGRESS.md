@@ -210,6 +210,19 @@ presentation-walk mode. All registry entries + isolated reducers (invariant I8).
 
 ## Session log
 
+### 2026-08-10 (late, cont.) — Per-node paint: bright red beside bright yellow
+
+Evaluation feedback #2 ("can one node be a bright red while another a
+bright yellow, same style?"). The per-node accent already existed end
+to end (click the type name in a plate's header -> swatch picker;
+data.accent overrides the plate's --kind, ports/wires keep their
+dataKind colors) — but the presets were stale Tailwind tones. Recut to
+TEN vivid swatches walking the wheel (bright red #ff4747 and bright
+yellow #ffd21f included), picker wraps 5-per-row so it fits a 240px
+plate. Verified live through the real UI: red + yellow + unpainted
+teal side by side, accents persisted in the document. Suite: typecheck,
+276 unit green (constants + CSS only; no spec touches swatches).
+
 ### 2026-08-10 (late) — Palette spread around the user's teal; labels name only the hovered port
 
 Evaluation feedback #1 ("colors still too similar, wires too similar" +

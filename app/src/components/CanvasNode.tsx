@@ -105,15 +105,22 @@ const NODE_ICONS: Record<string, LucideIcon> = {
   hub: CircleDot,
 };
 
+// Per-node PAINT (user, 2026-08-10: "can one node be a bright red while
+// another is a bright yellow?"): ten vivid swatches walking the wheel,
+// same glow-on-navy voice as the kind palette. The accent recolors the
+// PLATE (spine, tint, border, glow) only -- ports and wires keep their
+// dataKind colors, so the wire law survives any paint job.
 export const ACCENT_PRESETS = [
-  '#f0c050',
-  '#ec4899',
-  '#3b82f6',
-  '#10b981',
-  '#a78bfa',
-  '#f59e0b',
-  '#22d3ee',
-  '#ef4444',
+  '#ff4747', // bright red
+  '#ff8e66', // coral
+  '#ffd21f', // bright yellow
+  '#b5e84f', // lime
+  '#46e06c', // green
+  '#2dd4bf', // teal
+  '#33c5f0', // cyan
+  '#4d9bff', // blue
+  '#b19bff', // violet
+  '#ff70dd', // pink
 ];
 
 /** Port slot geometry lives in portGeometry.ts, SHARED with the harness's

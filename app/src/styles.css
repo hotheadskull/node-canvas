@@ -542,7 +542,9 @@ html, body, #root {
 .canvas-node-kind:hover { text-decoration: underline dotted; }
 .accent-picker {
   position: absolute; top: 34px; left: 8px; z-index: 30;
-  display: flex; gap: 5px; padding: 6px;
+  display: flex; flex-wrap: wrap; gap: 5px; padding: 6px;
+  /* 5 swatches per row: ten paints + reset stay inside a 240px plate */
+  max-width: 121px;
   background: var(--panel-solid); border: 1px solid var(--hairline);
   border-radius: 8px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
 }
