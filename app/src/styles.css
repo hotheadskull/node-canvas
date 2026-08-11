@@ -408,14 +408,23 @@ html, body, #root {
   width: 16px; height: 6px;
   border-radius: 3px;
   background: var(--port-color);
-  border: 1px solid color-mix(in srgb, var(--port-color) 65%, transparent);
-  box-shadow: none;
+  /* the slot border mixes toward the panel dark, not transparent -- the
+     card border must never ghost through the slot's rim */
+  border: 1px solid color-mix(in srgb, var(--port-color) 65%, #10122c);
+  /* ABOVE the frame (user, 2026-08-10: "ports above the border"): the
+     slot straddles the card edge, so it must outrank the spine (z 5) and
+     the selection ticks (z 7); the dark seat ring separates it from the
+     border line it crosses */
+  z-index: 9;
+  box-shadow: 0 0 0 2px rgba(7, 9, 22, 0.9);
   transition: box-shadow 0.12s ease, background 0.12s ease, opacity 0.12s ease;
 }
 .port-star.react-flow__handle.is-wired {
   background: var(--port-color);
   border-color: transparent;
-  box-shadow: 0 0 7px color-mix(in srgb, var(--port-color) 85%, transparent);
+  box-shadow:
+    0 0 0 2px rgba(7, 9, 22, 0.9),
+    0 0 7px color-mix(in srgb, var(--port-color) 85%, transparent);
 }
 /* wanted (flagWhenEmpty, still empty): the open bar plus a 5px amber pip
    riding its outer shoulder -- the nudge that never blocks */
