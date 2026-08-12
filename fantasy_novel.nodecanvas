@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "id": "doc-a907dcc1-b9c3-4c3f-8e7d-02640a58d6d7",
+  "name": "Necromancer Novel - Chapter 1",
+  "canvasMode": "universal",
+  "createdAt": "2026-08-11T00:45:16.541Z",
+  "nodes": [
+    {
+      "id": "n1",
+      "type": "canvas",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "title": "Scene 1: The Awakening",
+        "content": "<p>Vaelin wakes up in a shallow grave. His bones ache. He realizes the resurrection spell worked, but his soul is untethered. The earth is cold and smells like iron.</p>"
+      }
+    },
+    {
+      "id": "n2",
+      "type": "canvas",
+      "position": {
+        "x": 400,
+        "y": -100
+      },
+      "data": {
+        "title": "Lore Note: Soul Tethering",
+        "content": "<p>A soul needs an anchor to stay in the mortal realm. Without it, Vaelin has 3 days before he becomes a wraith.</p>"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "canvas",
+      "position": {
+        "x": 400,
+        "y": 100
+      },
+      "data": {
+        "title": "Scene 2: The Ambush",
+        "content": "<p>Grave robbers dig up the adjacent plot. They spot Vaelin. He tries to cast a simple bone-splinter, but his magic is erratic.</p>"
+      }
+    },
+    {
+      "id": "n4",
+      "type": "canvas",
+      "position": {
+        "x": 800,
+        "y": 0
+      },
+      "data": {
+        "title": "Scene 3: The Escape",
+        "content": "<p>Vaelin steals their horse, a ragged mare. He rides towards the Obsidian Spire to find the lich who cursed him.</p>"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "n1",
+      "target": "n2"
+    },
+    {
+      "id": "e2",
+      "source": "n1",
+      "target": "n3"
+    },
+    {
+      "id": "e3",
+      "source": "n3",
+      "target": "n4"
+    }
+  ],
+  "wires": [],
+  "assemblies": [],
+  "ink": []
+}

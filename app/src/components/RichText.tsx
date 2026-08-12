@@ -39,7 +39,7 @@ type Props = {
 export function RichText({
   value,
   onChange,
-  placeholder,
+  placeholder = 'Start writing here...',
   variant,
   autoFocus = false,
   onBoundary,
@@ -273,8 +273,9 @@ function StaticShell({
   // Empty state mirrors ProseMirror's empty document (one line-box "<p><br>"
   // with the placeholder riding on the paragraph), so an empty card is the
   // same height before and after the editor mounts.
+  const defaultPlaceholder = placeholder ?? 'Start writing here...';
   const html = empty
-    ? `<p class="is-editor-empty" data-placeholder="${(placeholder ?? '').replace(/"/g, '&quot;')}"><br></p>`
+    ? `<p class="is-editor-empty" data-placeholder="${defaultPlaceholder.replace(/"/g, '&quot;')}"><br></p>`
     : value;
   return (
     <div className={`richtext richtext-wrap-${variant}`}>

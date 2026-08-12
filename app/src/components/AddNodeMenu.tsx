@@ -59,6 +59,7 @@ const SHEET_ICONS: Record<string, LucideIcon> = {
   plant: Sprout,
   payoff: Sparkles,
   hub: CircleDot,
+  brainstorm: Layers,
 };
 
 /** Five families of four (§10). Group is the odd one out -- it gathers a
@@ -68,7 +69,7 @@ const FAMILIES: { title: string; types: string[] }[] = [
   { title: 'People & world', types: ['person', 'place', 'thing', 'event'] },
   { title: 'Argument', types: ['claim', 'question', 'passage', 'proposition'] },
   { title: 'Material & craft', types: ['source', 'note', 'plant', 'payoff'] },
-  { title: 'Containers', types: ['hub'] },
+  { title: 'Containers', types: ['hub', 'brainstorm'] },
 ];
 
 const MODE_NAMES: Record<CanvasMode, string> = {

@@ -30,6 +30,8 @@ const NodeDataSchema = z
   .object({
     title: z.string().optional(),
     content: z.string().optional(),
+    mediaUrl: z.string().optional(),
+    mediaType: z.string().optional(),
   })
   .passthrough();
 

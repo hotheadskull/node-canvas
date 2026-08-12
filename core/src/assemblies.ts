@@ -50,9 +50,7 @@ export function createAssembly(
   idFactory: (prefix: string) => string = createId,
 ): { document: CanvasDocument; assemblyId: string } {
   const unique = [...new Set(memberIds)];
-  if (unique.length === 0) {
-    throw new GraphError('an assembly needs at least one member');
-  }
+  // Empty assemblies are now allowed (e.g. for spawning empty "Brainstorm" zones).
   for (const memberId of unique) {
     if (!entityExists(document, memberId)) {
       throw new GraphError(`cannot assemble: "${memberId}" not found`);

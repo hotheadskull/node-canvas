@@ -9,12 +9,12 @@ import {
   nodeLabel,
 } from './registry';
 
-const CORE_EIGHT = ['title', 'note', 'document', 'section', 'question', 'person', 'place', 'thing'];
+const CORE_NINE = ['title', 'note', 'brainstorm', 'document', 'section', 'question', 'person', 'place', 'thing'];
 const MODES = ['universal', 'novel', 'sermon'] as const;
 
 describe('universal core registry', () => {
-  it('registers exactly the core eight in the compact menu', () => {
-    expect(coreMenuTypes().map((def) => def.type)).toEqual(CORE_EIGHT);
+  it('registers exactly the core nine in the compact menu', () => {
+    expect(coreMenuTypes().map((def) => def.type)).toEqual(CORE_NINE);
   });
 
   it('every type has labels and descriptions for every canvas mode', () => {
@@ -34,7 +34,7 @@ describe('universal core registry', () => {
   });
 
   it('type strings are stable lookups', () => {
-    for (const type of CORE_EIGHT) {
+    for (const type of CORE_NINE) {
       expect(isRegisteredType(type)).toBe(true);
       expect(getNodeDef(type)?.type).toBe(type);
     }

@@ -20,14 +20,15 @@ import {
   GitBranch,
   HelpCircle,
   Import,
-  List,
   PenLine,
-  Pilcrow,
   Plus,
   Search,
   Settings2,
-  Spline,
+  Trash2,
+  Undo2,
+  Redo2,
 } from 'lucide-react';
+import { ProjectLauncher } from './ProjectLauncher';
 import { useEffect, useState } from 'react';
 import { isTauri } from '../persistence/projectFile';
 import { useCanvasStore, type PortLabelMode } from '../store/canvasStore';
@@ -68,7 +69,7 @@ export function Toolbar({
   arcTargetId,
   focusTargetId,
 }: Props) {
-  const { fitBounds } = useReactFlow();
+  const { fitBounds, deleteElements, getNodes, getEdges } = useReactFlow();
   const settings = useCanvasStore((state) => state.settings);
   const setSettings = useCanvasStore((state) => state.setSettings);
   const setTipsOpen = useCanvasStore((state) => state.setTipsOpen);
@@ -80,7 +81,13 @@ export function Toolbar({
   const filterPinned = useCanvasStore((state) => state.filterPinned);
   const setFilterPinned = useCanvasStore((state) => state.setFilterPinned);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [launcherOpen, setLauncherOpen] = useState(false);
   const [projectOpen, setProjectOpen] = useState(false);
+
+  const past = useCanvasStore((state) => state.past);
+  const future = useCanvasStore((state) => state.future);
+  const undo = useCanvasStore((state) => state.undo);
+  const redo = useCanvasStore((state) => state.redo);
 
   const inkMode = useCanvasStore((state) => state.inkMode);
   const setInkMode = useCanvasStore((state) => state.setInkMode);
@@ -144,7 +151,20 @@ export function Toolbar({
   // triggers them; modifier chords stay free for the browser/app.
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
+      if (event.ctrlKey || event.metaKey) {
+        if (event.key === 'z') {
+          event.preventDefault();
+          if (event.shiftKey) {
+            redo();
+          } else {
+            undo();
+          }
+          return;
+        }
+      }
+
       if (event.metaKey || event.ctrlKey || event.altKey) return;
+
       if (isTyping(event.target)) return;
       switch (event.key) {
         case 'n':
@@ -202,45 +222,7 @@ export function Toolbar({
           <GitBranch size={16} aria-hidden />
           <span className="dock-label">Canvas</span>
         </button>
-        <button
-          className={`dock-tile ${activeRoom === 'document' ? 'is-room-active' : ''}`}
-          aria-label="Document room"
-          title={
-            docTargetId
-              ? tile('Document — blocks and prose', '2')
-              : 'Document room — select a document plate first'
-          }
-          disabled={docTargetId === null && activeRoom !== 'document'}
-          onClick={toDocument}
-        >
-          <List size={16} aria-hidden />
-          <span className="dock-label">Document</span>
-        </button>
-        <button
-          className={`dock-tile ${activeRoom === 'arc' ? 'is-room-active' : ''}`}
-          aria-label="Arc room"
-          title={
-            arcTargetId ? tile('Arc — the sequence', '3') : 'Arc room — select a group first'
-          }
-          disabled={arcTargetId === null && activeRoom !== 'arc'}
-          onClick={toArc}
-        >
-          <Spline size={16} aria-hidden />
-          <span className="dock-label">Arc</span>
-        </button>
-        <button
-          className={`dock-tile ${activeRoom === 'focus' ? 'is-room-active' : ''}`}
-          aria-label="Focus room"
-          title={
-            focusTargetId ? tile('Focus — one column, no chrome', '4') : 'Focus — select a plate first'
-          }
-          disabled={focusTargetId === null && activeRoom !== 'focus'}
-          onClick={toFocus}
-        >
-          <Pilcrow size={16} aria-hidden />
-          <span className="dock-label">Focus</span>
-        </button>
-        <span className="dock-rule" aria-hidden />
+
         <button
           className="dock-tile"
           aria-label="Find"
@@ -267,6 +249,47 @@ export function Toolbar({
         >
           <PenLine size={16} aria-hidden />
           <span className="dock-label">Ink</span>
+        </button>
+        <span className="dock-rule" aria-hidden />
+        <button
+          className="dock-tile"
+          aria-label="Undo"
+          title={tile('Undo', '⌘Z')}
+          onClick={undo}
+          disabled={past.length === 0}
+        >
+          <Undo2 size={16} aria-hidden />
+          <span className="dock-label">Undo</span>
+        </button>
+        <button
+          className="dock-tile"
+          aria-label="Redo"
+          title={tile('Redo', '⇧⌘Z')}
+          onClick={redo}
+          disabled={future.length === 0}
+        >
+          <Redo2 size={16} aria-hidden />
+          <span className="dock-label">Redo</span>
+        </button>
+        <button
+          className={`dock-tile dock-delete ${(selectedCount > 0 || editorNodeId !== null) ? 'is-glowing' : ''}`}
+          aria-label="Delete"
+          title={tile('Delete selected', 'Del')}
+          onClick={() => {
+            if (selectedCount > 0) {
+              const nodes = getNodes().filter(n => n.selected);
+              const edges = getEdges().filter(e => e.selected);
+              deleteElements({ nodes, edges });
+            } else if (editorNodeId !== null) {
+              const node = getNodes().find(n => n.id === editorNodeId);
+              if (node) deleteElements({ nodes: [node] });
+              useCanvasStore.getState().openEditor(null);
+            }
+          }}
+          disabled={selectedCount === 0 && editorNodeId === null}
+        >
+          <Trash2 size={16} aria-hidden />
+          <span className="dock-label">Delete</span>
         </button>
         <span className="dock-spacer" aria-hidden />
         <button className="dock-tile" aria-label="Fit" title="Fit the view to your nodes" onClick={fitAll}>
@@ -303,8 +326,23 @@ export function Toolbar({
           <span className="dock-label">Help</span>
         </button>
       </nav>
-      {(selectedCount >= 2 || mergeableCount >= 2) && (
+      {((selectedCount >= 1) || mergeableCount >= 2) && (
         <div className="selection-actions" role="toolbar" aria-label="Selection actions">
+          {selectedCount >= 1 && (
+            <button
+              className="toolbar-button"
+              style={{ color: '#f87171' }}
+              title="Delete selected"
+              onClick={() => {
+                const nodes = getNodes().filter(n => n.selected);
+                const edges = getEdges().filter(e => e.selected);
+                deleteElements({ nodes, edges });
+              }}
+            >
+              <Trash2 size={15} aria-hidden />
+              <span>Delete {selectedCount}</span>
+            </button>
+          )}
           {selectedCount >= 2 && (
             <button
               className="toolbar-button"
@@ -336,7 +374,7 @@ export function Toolbar({
             <button onClick={projectAction(() => useCanvasStore.getState().newProject())}>
               New canvas
             </button>
-            <button onClick={projectAction(() => useCanvasStore.getState().openProject())}>
+            <button onClick={() => { setLauncherOpen(true); setProjectOpen(false); }}>
               Open project…
             </button>
             <button onClick={projectAction(() => useCanvasStore.getState().saveProject())}>
@@ -359,6 +397,9 @@ export function Toolbar({
             </button>
           </div>
         </div>
+      )}
+      {launcherOpen && (
+        <ProjectLauncher onClose={() => setLauncherOpen(false)} />
       )}
       {settingsOpen && (
         <div className="settings-popover is-dock" role="dialog" aria-label="Canvas settings">

@@ -66,7 +66,8 @@ export const PREVIOUS_DOCUMENT_KEY = 'nodecanvas.v2.document.previous';
 
 export type Viewport = { x: number; y: number; zoom: number };
 export type PortLabelMode = 'hover' | 'always' | 'off';
-export type CanvasSettings = { density: 'comfortable' | 'compact'; portLabels: PortLabelMode };
+export type RecentProject = { name: string; path: string | null; date: number };
+export type CanvasSettings = { density: 'comfortable' | 'compact'; portLabels: PortLabelMode; recentProjects?: RecentProject[] };
 
 export type SplitPanelConfig = {
   type: string;
@@ -107,6 +108,10 @@ type CanvasState = {
   initialViewport: Viewport;
   settings: CanvasSettings;
   toast: Toast | null;
+  past: CanvasDocument[];
+  future: CanvasDocument[];
+  undo: () => void;
+  redo: () => void;
 
   load: () => void;
   save: () => void;
@@ -125,6 +130,8 @@ type CanvasState = {
   exportingCanvas: boolean;
   newProject: () => void;
   openProject: () => Promise<void>;
+  loadTemplate: (doc: CanvasDocument, title: string) => void;
+  openRecentProject: (path: string) => Promise<void>;
   /** Write the bound file now; falls back to Save As when unbound. */
   saveProject: () => Promise<void>;
   saveProjectAs: () => Promise<void>;
@@ -146,10 +153,13 @@ type CanvasState = {
   setInkColor: (color: string) => void;
   inkSize: number;
   setInkSize: (size: number) => void;
+  inkEraserMode: boolean;
+  setInkEraserMode: (mode: boolean) => void;
   currentStroke: { points: [number, number, number][] } | null;
   startStroke: (point: [number, number, number]) => void;
   updateStroke: (point: [number, number, number]) => void;
   endStroke: () => void;
+  eraseAt: (x: number, y: number) => void;
   clearInk: () => void;
 
   /** Per-node gutter swap (user, 2026-08-10): intake and output trade
@@ -255,6 +265,10 @@ type CanvasState = {
     blockId: string,
     parts: { extracted: string; remaining: string },
     type: string,
+  ) => void;
+  extractBrainstormTopic: (
+    nodeId: string,
+    topic: { id: string; type: string; title: string; content: string },
   ) => void;
   /** The document open in the fullscreen writing room; null = closed. */
   docRoomId: string | null;
@@ -384,7 +398,15 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
   // error banner is reserved for persistence problems (I9).
   const tryOp = (op: () => CanvasDocument) => {
     try {
-      commit(op());
+      const currentDoc = get().document;
+      const newDoc = op();
+      if (currentDoc !== newDoc) {
+        set((state) => ({
+          past: [...state.past, state.document],
+          future: []
+        }));
+        commit(newDoc);
+      }
     } catch (error) {
       if (error instanceof GraphError) {
         set({ toast: { message: error.message } });
@@ -426,6 +448,8 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
       projectPath: binding.path,
       projectFileName: binding.fileName,
       persistenceError: null,
+      past: [],
+      future: [],
       toast: {
         message: binding.toastMessage,
         undo: () => {
@@ -436,11 +460,38 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
       },
     });
     rebindPath(binding.path);
+
+    if (binding.fileName && binding.fileName !== 'Untitled project (browser storage)' && binding.fileName !== 'My canvas') {
+      const currentRecent = get().settings.recentProjects || [];
+      const nextRecent = currentRecent.filter(p => (binding.path ? p.path !== binding.path : p.name !== binding.fileName));
+      nextRecent.unshift({ name: binding.fileName, path: binding.path, date: Date.now() });
+      if (nextRecent.length > 10) nextRecent.length = 10;
+      get().setSettings({ recentProjects: nextRecent });
+    }
+
     get().save();
   };
 
   return {
     document: createEmptyDocument('My canvas'),
+    past: [],
+    future: [],
+    undo: () => {
+      const state = get();
+      if (state.past.length === 0) return;
+      const newPast = [...state.past];
+      const previous = newPast.pop()!;
+      set({ past: newPast, future: [state.document, ...state.future] });
+      commit(previous);
+    },
+    redo: () => {
+      const state = get();
+      if (state.future.length === 0) return;
+      const newFuture = [...state.future];
+      const next = newFuture.shift()!;
+      set({ past: [...state.past, state.document], future: newFuture });
+      commit(next);
+    },
     persistenceError: null,
     initialViewport: { x: 0, y: 0, zoom: 1 },
     settings: loadSettings(),
@@ -452,10 +503,12 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
     inkMode: false,
     inkColor: '#f1f1f2',
     inkSize: 4,
+    inkEraserMode: false,
     currentStroke: null,
     setInkMode: (mode) => set({ inkMode: mode }),
-    setInkColor: (color) => set({ inkColor: color }),
+    setInkColor: (color) => set({ inkColor: color, inkEraserMode: false }),
     setInkSize: (size) => set({ inkSize: size }),
+    setInkEraserMode: (mode) => set({ inkEraserMode: mode }),
     startStroke: (point) => set({ currentStroke: { points: [point] } }),
     updateStroke: (point) =>
       set((state) => {
@@ -488,6 +541,44 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
       tryOp(() => {
         const document = { ...get().document, ink: [] };
         return document;
+      });
+    },
+    eraseAt: (x, y) => {
+      tryOp(() => {
+        const state = get();
+        if (!state.document.ink || state.document.ink.length === 0) return state.document;
+        
+        const ERASER_RADIUS = 25;
+        const ERASER_RADIUS_SQ = ERASER_RADIUS * ERASER_RADIUS;
+        const newInk = [];
+        let changed = false;
+
+        for (const stroke of state.document.ink) {
+          let currentSegment: [number, number, number][] = [];
+          
+          for (const pt of stroke.points) {
+            const dx = pt[0] - x;
+            const dy = pt[1] - y;
+            if (dx * dx + dy * dy <= ERASER_RADIUS_SQ) {
+              changed = true;
+              if (currentSegment.length > 0) {
+                newInk.push({ ...stroke, id: crypto.randomUUID(), points: currentSegment });
+                currentSegment = [];
+              }
+            } else {
+              currentSegment.push(pt);
+            }
+          }
+          
+          if (currentSegment.length === stroke.points.length) {
+            newInk.push(stroke);
+          } else if (currentSegment.length > 0) {
+            newInk.push({ ...stroke, id: crypto.randomUUID(), points: currentSegment });
+          }
+        }
+        
+        if (!changed) return state.document;
+        return { ...state.document, ink: newInk };
       });
     },
 
@@ -639,6 +730,37 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
         fileName: picked.fileName,
         toastMessage: `Opened "${picked.fileName}"${migrationNote}`,
       });
+    },
+
+    loadTemplate: (doc: CanvasDocument, title: string) => {
+      adopt(doc, {
+        path: null,
+        fileName: title,
+        toastMessage: `Loaded template: ${title}`,
+      });
+    },
+
+    openRecentProject: async (path: string) => {
+      if (!projectIO.isTauri()) return;
+      try {
+        const { readTextFile } = await import('@tauri-apps/plugin-fs');
+        const raw = await readTextFile(path);
+        const fileName = path.split(/[\\/]/).pop() || path;
+        
+        const parsed = loadDocument(raw);
+        if (!parsed.ok) {
+          set({ persistenceError: `Could not open "${fileName}": ${parsed.error}` });
+          return;
+        }
+        
+        adopt(parsed.document, {
+          path,
+          fileName,
+          toastMessage: `Opened "${fileName}"`,
+        });
+      } catch (err) {
+        set({ persistenceError: `Could not read file at ${path}: ${(err as Error).message}` });
+      }
     },
 
     saveProject: async () => {
@@ -1227,6 +1349,49 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
               ),
             }
           : next;
+      });
+    },
+
+    extractBrainstormTopic: (nodeId, topic) => {
+      const doc = get().document;
+      const docNode = doc.nodes.find((candidate) => candidate.id === nodeId);
+      const def = getNodeDef(topic.type);
+      if (!docNode || !def) {
+        set({ toast: { message: `Cannot extract into unknown type "${topic.type}"` } });
+        return;
+      }
+      
+      const size = def.size ?? { width: 300, height: 220 };
+      const desired = {
+        x: docNode.position.x + (docNode.size?.width ?? 500) + 140,
+        y: docNode.position.y,
+      };
+      const position = findFreePosition(doc.nodes.map(nodeRect), desired, size);
+      const node = spawnNode(topic.type, position);
+      
+      node.data = { ...node.data, title: topic.title, content: topic.content };
+      
+      tryOp(() => {
+        let next = addNode(doc, node);
+        // wire it back to the brainstorm node's generic ideas-out port
+        next = addWire(next, {
+          source: nodeId,
+          sourcePort: 'ideas-out',
+          target: node.id,
+          targetPort: def.ports.find((p) => p.direction === 'take')?.id ?? 'notes-in',
+        });
+        
+        // delete topic from master node
+        const topics = (docNode.data.topics as any[]) || [];
+        next = {
+          ...next,
+          nodes: next.nodes.map((n) =>
+            n.id === nodeId
+              ? { ...n, data: { ...n.data, topics: topics.filter((t) => t.id !== topic.id) } }
+              : n
+          ),
+        };
+        return next;
       });
     },
 

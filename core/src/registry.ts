@@ -145,6 +145,19 @@ const UNIVERSAL_CORE: readonly NodeTypeDef[] = [
     ],
   },
   {
+    type: 'brainstorm',
+    category: 'writing',
+    coreMenu: true,
+    accent: '#fb923c', // orange-400
+    labels: same('Brainstorm Hub'),
+    descriptions: same('A master node for gathering thoughts and managing topics'),
+    size: { width: 500, height: 400 },
+    sizing: 'auto-height',
+    ports: [
+      { id: 'ideas-out', direction: 'give', dataKind: 'text', label: 'Ideas', defaultVisible: true },
+    ],
+  },
+  {
     type: 'document',
     category: 'writing',
     coreMenu: true,
@@ -285,6 +298,24 @@ const UNIVERSAL_CORE: readonly NodeTypeDef[] = [
     sizing: 'auto-height',
     ports: [
       { id: 'identity-out', direction: 'give', dataKind: 'thing', label: 'Identity', defaultVisible: true },
+      { id: 'notes-in', direction: 'take', dataKind: 'text', label: 'Notes', defaultVisible: false, capacity: 'many' },
+    ],
+  },
+
+  {
+    type: 'image',
+    category: 'knowledge',
+    coreMenu: false,
+    accent: '#d946ef',
+    labels: same('Image'),
+    descriptions: {
+      universal: 'An embedded image or visual reference',
+      novel: 'Visual reference, map, or mood board item',
+      sermon: 'Visual illustration or slide reference',
+    },
+    size: { width: 300, height: 300 },
+    sizing: 'fixed',
+    ports: [
       { id: 'notes-in', direction: 'take', dataKind: 'text', label: 'Notes', defaultVisible: false, capacity: 'many' },
     ],
   },

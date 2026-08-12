@@ -20,7 +20,6 @@ import {
   applyEdgeChanges,
   applyNodeChanges,
   ConnectionMode,
-  MiniMap,
   ReactFlow,
   useReactFlow,
   type Connection,
@@ -46,6 +45,7 @@ import { ArcRoom } from './components/ArcRoom';
 import { AssemblyFace } from './components/AssemblyFace';
 import { DocumentRoom } from './components/DocumentRoom';
 import { CanvasNode } from './components/CanvasNode';
+import { ImageNode } from './components/ImageNode';
 import { CommandPalette } from './components/CommandPalette';
 import { FocusEditor } from './components/FocusEditor';
 import { PlainEdge } from './components/PlainEdge';
@@ -60,7 +60,7 @@ import { InkPalette } from './components/InkPalette';
 import { firstCompatibleTake, PLAIN_HANDLES, useCanvasStore } from './store/canvasStore';
 import { computeHarness, type FlatHarness } from './harnessRouting';
 
-const nodeTypes = { canvas: CanvasNode, assembly: AssemblyFace };
+const nodeTypes = { canvas: CanvasNode, assembly: AssemblyFace, image: ImageNode };
 const edgeTypes = { plain: PlainEdge, wire: WireEdge };
 
 // ---- Identity-preserving sync (Chunk 18 perf pass) ----
@@ -659,19 +659,33 @@ export function Canvas() {
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     const storeState = useCanvasStore.getState();
+    const isEraser = e.buttons === 32 || e.button === 5 || storeState.inkEraserMode;
+
     if (storeState.inkMode || e.pointerType === 'pen') {
-      if ((e.target as HTMLElement).closest('button, input, .dock, .toolbar-floating-pill, .settings-popover, .add-menu, .room-overlay')) return;
+      if ((e.target as HTMLElement).closest('button, input, .dock, .toolbar-floating-pill, .settings-popover, .add-menu, .room-overlay, .selection-actions')) return;
       
       e.stopPropagation();
       (e.target as HTMLElement).setPointerCapture(e.pointerId);
       const pos = screenToFlowPosition({ x: e.clientX, y: e.clientY });
-      storeState.startStroke([pos.x, pos.y, e.pressure]);
+      
+      if (isEraser) {
+        storeState.eraseAt(pos.x, pos.y);
+      } else {
+        storeState.startStroke([pos.x, pos.y, e.pressure]);
+      }
     }
   }, [screenToFlowPosition]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     const storeState = useCanvasStore.getState();
-    if (storeState.currentStroke) {
+    const isEraser = e.buttons === 32 || e.button === 5 || storeState.inkEraserMode;
+
+    if (isEraser && (storeState.inkMode || e.pointerType === 'pen') && e.buttons !== 0) {
+      // If moving while erasing and buttons are held down
+      e.stopPropagation();
+      const pos = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+      storeState.eraseAt(pos.x, pos.y);
+    } else if (storeState.currentStroke) {
       e.stopPropagation();
       const pos = screenToFlowPosition({ x: e.clientX, y: e.clientY });
       storeState.updateStroke([pos.x, pos.y, e.pressure]);
@@ -735,6 +749,20 @@ export function Canvas() {
         });
         return;
       }
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const store = useCanvasStore.getState();
+          const nodeId = store.spawnAt('image', position);
+          if (nodeId) {
+            store.setNodeField(nodeId, 'mediaUrl', String(reader.result));
+            store.setNodeField(nodeId, 'mediaType', file.type);
+          }
+        };
+        reader.readAsDataURL(file);
+        return;
+      }
+      
       const reader = new FileReader();
       reader.onload = () =>
         spawnSourceAt(position, file.name, String(reader.result), file.type);
@@ -768,7 +796,6 @@ export function Canvas() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        panOnScroll
         selectionOnDrag={!isInkModeActive}
         panOnDrag={!isInkModeActive ? [1, 2] : false}
         nodesDraggable={!isInkModeActive}
@@ -800,7 +827,35 @@ export function Canvas() {
           }
           store.setConnectCandidates(candidates);
         }}
-        onConnectEnd={() => useCanvasStore.getState().setConnectCandidates(null)}
+        onConnectEnd={(event, connectionState) => {
+          const store = useCanvasStore.getState();
+          store.setConnectCandidates(null);
+          
+          if (!connectionState.isValid && connectionState.fromNode && connectionState.fromHandle) {
+            const target = event.target as Element;
+            if (target && target.classList.contains('react-flow__pane')) {
+              let clientX = 0;
+              let clientY = 0;
+              if ('clientX' in event) {
+                clientX = event.clientX;
+                clientY = event.clientY;
+              } else if ('touches' in event && event.touches && event.touches.length > 0) {
+                clientX = event.touches[0]?.clientX ?? 0;
+                clientY = event.touches[0]?.clientY ?? 0;
+              }
+              const position = screenToFlowPosition({ x: clientX, y: clientY });
+              const newNodeId = store.spawnAt('note', position);
+              if (newNodeId) {
+                const targetPort = getNodeDef('note')?.ports.find(p => p.direction === 'take')?.id ?? 'notes-in';
+                if (connectionState.fromHandle.type === 'source') {
+                  store.connectFromHandles(connectionState.fromNode.id, connectionState.fromHandle.id, newNodeId, targetPort);
+                } else {
+                  store.connectFromHandles(newNodeId, 'text-out', connectionState.fromNode.id, connectionState.fromHandle.id);
+                }
+              }
+            }
+          }
+        }}
         isValidConnection={isValidConnection}
         onInit={() => setFlowReady(true)}
         defaultViewport={initialViewport}
@@ -865,16 +920,6 @@ export function Canvas() {
       >
         <Starfield />
         <InkLayer />
-        {/* §6 density: the minimap earns the old legend's corner */}
-        <MiniMap
-          className="observatory-minimap"
-          pannable
-          zoomable
-          nodeColor="#2a2f57"
-          nodeStrokeColor="#4a4f76"
-          maskColor="rgba(5, 6, 13, 0.72)"
-          bgColor="transparent"
-        />
       </ReactFlow>
       <FilterBar />
       {drillStack.length > 0 && (

@@ -549,7 +549,7 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
                 data.coreType === 'document' ? openDocRoom(id) : openFocusEditor(id)
               }
             >
-              Focus
+              Open Full Editor
             </button>
           </footer>
         </div>

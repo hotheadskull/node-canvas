@@ -21,6 +21,7 @@ import { PropositionFace } from './PropositionFace';
 import { SourceFace } from './SourceFace';
 import { TitleFace } from './TitleFace';
 import { ManuscriptFace, PassageFace, SectionFace } from './WritingFaces';
+import { BrainstormFace } from './BrainstormFace';
 
 export type FaceProps = {
   nodeId: string;
@@ -30,6 +31,7 @@ export type FaceProps = {
 
 export const NODE_FACES: Record<string, ComponentType<FaceProps>> = {
   title: TitleFace,
+  brainstorm: BrainstormFace,
   document: BlocksFace,
   manuscript: ManuscriptFace,
   section: SectionFace,

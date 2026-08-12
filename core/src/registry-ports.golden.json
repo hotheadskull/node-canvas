@@ -1,4 +1,13 @@
 {
+  "brainstorm": [
+    {
+      "id": "ideas-out",
+      "direction": "give",
+      "dataKind": "text",
+      "label": "Ideas",
+      "defaultVisible": true
+    }
+  ],
   "title": [
     {
       "id": "thread-out",
@@ -83,6 +92,16 @@
       "defaultVisible": false,
       "capacity": "many"
     },
+    {
+      "id": "notes-in",
+      "direction": "take",
+      "dataKind": "text",
+      "label": "Notes",
+      "defaultVisible": false,
+      "capacity": "many"
+    }
+  ],
+  "image": [
     {
       "id": "notes-in",
       "direction": "take",

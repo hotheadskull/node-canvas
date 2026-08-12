@@ -145,8 +145,7 @@ describe('guards', () => {
     expect(() => addMember(fixture, 'asm_court', 'asm_kingdom')).toThrow(GraphError);
   });
 
-  it('rejects empty assemblies and unknown members', () => {
-    expect(() => createAssembly(fixture, 'x', [], { x: 0, y: 0 })).toThrow(GraphError);
+  it('rejects unknown members', () => {
     expect(() => createAssembly(fixture, 'x', ['node_ghost'], { x: 0, y: 0 })).toThrow(
       GraphError,
     );

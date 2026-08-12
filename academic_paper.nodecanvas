@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "id": "doc-6108bfe8-5955-4855-8165-852a51c119a8",
+  "name": "Academic Paper Structure",
+  "canvasMode": "universal",
+  "createdAt": "2026-08-11T00:45:16.541Z",
+  "nodes": [
+    {
+      "id": "n1",
+      "type": "canvas",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "title": "Thesis Statement",
+        "content": "<p>The integration of AI into cognitive behavioral therapy (CBT) provides measurable improvements in patient consistency, though it lacks the empathetic nuance required for trauma-heavy diagnosis.</p>"
+      }
+    },
+    {
+      "id": "n2",
+      "type": "canvas",
+      "position": {
+        "x": -300,
+        "y": 200
+      },
+      "data": {
+        "title": "Source 1 (Smith et al. 2024)",
+        "content": "<p>Study showing 40% increase in patient homework completion when prompted by an AI assistant.</p>"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "canvas",
+      "position": {
+        "x": 0,
+        "y": 200
+      },
+      "data": {
+        "title": "Source 2 (Doe 2023)",
+        "content": "<p>Argues that therapeutic alliance is the primary driver of clinical outcomes, which AI cannot form.</p>"
+      }
+    },
+    {
+      "id": "n4",
+      "type": "canvas",
+      "position": {
+        "x": 300,
+        "y": 200
+      },
+      "data": {
+        "title": "Source 3 (Chen 2025)",
+        "content": "<p>Meta-analysis showing AI tools excel at CBT structural exercises (thought records) but fail at complex empathetic mirroring.</p>"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "canvas",
+      "position": {
+        "x": 0,
+        "y": 400
+      },
+      "data": {
+        "title": "Synthesis / Conclusion",
+        "content": "<p>AI should be viewed as a supplemental tool for structural CBT exercises, while human therapists handle the empathetic alliance.</p>"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "n2",
+      "target": "n1"
+    },
+    {
+      "id": "e2",
+      "source": "n3",
+      "target": "n1"
+    },
+    {
+      "id": "e3",
+      "source": "n4",
+      "target": "n1"
+    },
+    {
+      "id": "e4",
+      "source": "n1",
+      "target": "n5"
+    }
+  ],
+  "wires": [],
+  "assemblies": [],
+  "ink": []
+}

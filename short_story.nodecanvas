@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "id": "doc-4264e763-752a-45f8-8516-e94086e4d26a",
+  "name": "Short Story Ideas",
+  "canvasMode": "universal",
+  "createdAt": "2026-08-11T00:45:16.540Z",
+  "nodes": [
+    {
+      "id": "n1",
+      "type": "canvas",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "title": "Premise",
+        "content": "<p>A detective who can see the last 10 seconds of a murder victim's life discovers a victim who saw <em>him</em> in those final seconds.</p>"
+      }
+    },
+    {
+      "id": "n2",
+      "type": "canvas",
+      "position": {
+        "x": 300,
+        "y": -100
+      },
+      "data": {
+        "title": "Protagonist",
+        "content": "<p>Detective Aris Thorne. Cynical, tired, relies too heavily on his ability.</p>"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "canvas",
+      "position": {
+        "x": 300,
+        "y": 100
+      },
+      "data": {
+        "title": "The Victim",
+        "content": "<p>Sarah Jenks. A seemingly ordinary accountant with no known enemies.</p>"
+      }
+    },
+    {
+      "id": "n4",
+      "type": "canvas",
+      "position": {
+        "x": 600,
+        "y": 0
+      },
+      "data": {
+        "title": "The Twist",
+        "content": "<p>Aris realizes he is the murderer from a future timeline trying to fix a catastrophic mistake.</p>"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "n1",
+      "target": "n2"
+    },
+    {
+      "id": "e2",
+      "source": "n1",
+      "target": "n3"
+    },
+    {
+      "id": "e3",
+      "source": "n2",
+      "target": "n4"
+    },
+    {
+      "id": "e4",
+      "source": "n3",
+      "target": "n4"
+    }
+  ],
+  "wires": [],
+  "assemblies": [],
+  "ink": []
+}
