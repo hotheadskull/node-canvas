@@ -19,8 +19,26 @@ import {
   type PortDef,
 } from '@node-canvas/core';
 import {
+  Activity,
+  Atom,
+  Book,
   BookMarked,
   BookOpenText,
+  ClipboardCheck,
+  GitBranch,
+  GitCommit,
+  GitCompare,
+  GitMerge,
+  IterationCcw,
+  Lightbulb,
+  LocateFixed,
+  Palette,
+  Quote,
+  Scale,
+  Settings2,
+  Shield,
+  Split,
+  Workflow,
   CalendarDays,
   CircleCheck,
   CircleDot,
@@ -61,17 +79,60 @@ const SHEET_ICONS: Record<string, LucideIcon> = {
   payoff: Sparkles,
   hub: CircleDot,
   brainstorm: Layers,
+  // design direction §6 additions
+  idea: Lightbulb,
+  quote: Quote,
+  concept: Atom,
+  theme: Palette,
+  definition: Book,
+  evidence: ClipboardCheck,
+  argument: Scale,
+  counterargument: Shield,
+  // reasoning / flow (§14) and the compact reference (§7)
+  reference: LocateFixed,
+  sequence: IterationCcw,
+  decision: GitBranch,
+  condition: Settings2,
+  and: GitCommit,
+  or: GitCommit,
+  not: GitCommit,
+  compare: GitCompare,
+  merge: GitMerge,
+  split: Split,
+  transform: Activity,
+  filter: Workflow,
 };
 
-/** Five families of four (§10). Group is the odd one out -- it gathers a
- * selection instead of spawning, so its tile is a shortcut, not a type. */
+/** The families of the design direction §5, in its own order and words.
+ * Group is the odd one out -- it gathers a selection instead of spawning,
+ * so its tile is a shortcut, not a type. */
 const FAMILIES: { title: string; types: string[] }[] = [
-  { title: 'Structure', types: ['title', 'manuscript', 'document', 'section'] },
-  { title: 'People & world', types: ['person', 'place', 'thing', 'event'] },
-  { title: 'Argument', types: ['claim', 'question', 'passage', 'proposition'] },
-  { title: 'Material & craft', types: ['source', 'note', 'plant', 'payoff'] },
-  { title: 'Containers', types: ['hub', 'brainstorm'] },
+  { title: 'Thinking & capture', types: ['note', 'idea', 'question', 'quote', 'brainstorm'] },
+  {
+    title: 'Things & knowledge',
+    types: ['person', 'place', 'concept', 'thing', 'event', 'theme', 'source', 'definition'],
+  },
+  {
+    title: 'Writing & work',
+    types: ['title', 'manuscript', 'document', 'section', 'passage', 'argument'],
+  },
+  {
+    title: 'Reasoning & evidence',
+    types: ['claim', 'evidence', 'counterargument', 'proposition', 'plant', 'payoff'],
+  },
+  {
+    title: 'Flow & logic',
+    types: [
+      'sequence', 'decision', 'condition', 'compare',
+      'and', 'or', 'not', 'merge', 'split', 'transform', 'filter',
+    ],
+  },
+  { title: 'Reference & containers', types: ['reference', 'hub'] },
 ];
+
+/** The family the Group SHORTCUT rides in. Named once: keying the tile off
+ * a literal title silently drops it whenever a family is renamed. */
+const CONTAINERS_FAMILY = 'Reference & containers';
 
 const MODE_NAMES: Record<CanvasMode, string> = {
   universal: 'Universal',
@@ -80,12 +141,15 @@ const MODE_NAMES: Record<CanvasMode, string> = {
 };
 
 /** The colour law, menu edition: primary give's kind, else the first
- * take's (Question and Payoff are takes-only), else neutral. */
+ * take's (Question and Payoff are takes-only), else the type's OWN accent.
+ * Most types are portless under the 2026-08-12 direction, and falling
+ * through to the neutral grey painted two dozen tiles identically. */
 function typeHue(def: NodeTypeDef): string {
   const give = def.ports.find((port) => port.direction === 'give');
   const take = def.ports.find((port) => port.direction === 'take');
-  const kind = give?.dataKind ?? take?.dataKind ?? 'any';
-  return DATA_KIND_STYLES[kind]?.hue ?? DATA_KIND_STYLES.any.hue;
+  const kind = give?.dataKind ?? take?.dataKind;
+  if (kind) return DATA_KIND_STYLES[kind]?.hue ?? DATA_KIND_STYLES.any.hue;
+  return def.accent || DATA_KIND_STYLES.any.hue;
 }
 
 function portHue(port: PortDef): string {
@@ -233,7 +297,7 @@ export function AddNodeMenu({ onPick, onPickTemplate, onClose, selectedCount = 0
                     onHover={setPreviewType}
                   />
                 ))}
-                {group.title === 'Containers' && (
+                {group.title === CONTAINERS_FAMILY && (
                   <button
                     className="sheet-tile is-shortcut"
                     style={{ ['--tile-hue' as string]: DATA_KIND_STYLES.any.hue }}
