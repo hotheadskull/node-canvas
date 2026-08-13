@@ -24,10 +24,13 @@ import {
   Activity,
   ArrowLeftRight,
   Atom,
+  BellRing,
   Book,
+  BookA,
   BookMarked,
   BookOpenText,
   Box,
+  Braces,
   CalendarDays,
   ChevronsUpDown,
   CircleCheck,
@@ -39,14 +42,16 @@ import {
   GitCommit,
   GitCompare,
   GitMerge,
+  GraduationCap,
   IterationCcw,
+  Languages,
   Layers,
   Library,
   Lightbulb,
+  ListTree,
   LocateFixed,
   MapPin,
   Milestone,
-
   Package,
   Palette,
   Paperclip,
@@ -138,6 +143,12 @@ const NODE_ICONS: Record<string, LucideIcon> = {
   evidence: ClipboardCheck,
   argument: Scale,
   counterargument: Shield,
+  word: BookA,
+  translation: Languages,
+  syntax: Braces,
+  outline: ListTree,
+  study: GraduationCap,
+  reminder: BellRing,
   reference: LocateFixed,
   sequence: IterationCcw,
   decision: GitBranch,
@@ -580,7 +591,14 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
     <div
       ref={cardRef}
       className={`canvas-node type-${data.type} ${selected ? 'is-selected' : ''}`}
-      style={{ ['--accent' as string]: accent, ['--kind' as string]: kindHue }}
+      style={{
+        ['--accent' as string]: accent,
+        ['--kind' as string]: kindHue,
+        // the size the user dragged to is the SMALLEST this card may be;
+        // content is free to push it taller (question 2, "grow even if
+        // touched"), so nothing a user writes can ever be clipped
+        ...(data.ownedHeight !== undefined ? { minHeight: data.ownedHeight } : {}),
+      }}
     >
       <NodeResizer
         isVisible={selected ?? false}
@@ -690,9 +708,10 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
           )}
         </header>
         <span className="plate-rule is-tinted" aria-hidden />
-        {/* is-owned: a user-owned height turns the body into a scrolling
-            window (nowheel lets the wheel scroll it instead of zooming). */}
-        <div className={`canvas-node-main${data.ownedHeight !== undefined ? ' is-owned nowheel' : ''}`}>
+        {/* A dragged height is a FLOOR, not a cap (user, 2026-08-12): the
+            body never becomes a scrolling window, so text can always push
+            the card taller than the user last sized it. */}
+        <div className="canvas-node-main">
           {!faceOwnsTitle && (
             <input
               className="canvas-node-title nodrag"

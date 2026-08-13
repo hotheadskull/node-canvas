@@ -39,14 +39,14 @@ not re-litigate them without the user reopening one.
 | # | Question | Answer | Status |
 |---|---|---|---|
 | 1 | Do connections carry meaning? | **Infer it.** A drag is READ: Person→Section is cast, Place is setting, Note→Document is a section. | **built** — core/src/infer.ts |
-| 2 | May a node resize itself? | **Grow even if touched.** Height always follows content; a drag sets a FLOOR, never a ceiling. | pending |
+| 2 | May a node resize itself? | **Grow even if touched.** Height always follows content; a drag sets a FLOOR, never a ceiling. | **built** |
 | 3 | Shapes per node kind? | **Yes for small / specifically picked nodes**, plus a per-node menu to change shape. | pending |
 | 4 | Linking names in prose? | **Underline matches**, click to link; linked names shimmer faintly. | pending |
 | 5 | What does Extract leave? | **Link the text** — extracted words become a live reference both ways. | pending |
 | 6 | Keep AND/OR/NOT? | **Keep them** — they are for brainstorming. | already built |
 | 7 | Template contents? | **Structure only** — fields present, empty. | needs change (carries text today) |
 | 8 | Reference node face? | **Icon and name.** | pending |
-| 9 | Missing node types? | **All of them** — Word, Translation, Syntax, Outline, Study, Reminder too. "Something for every aspect." | pending |
+| 9 | Missing node types? | **All of them** — Word, Translation, Syntax, Outline, Study, Reminder too. "Something for every aspect." | **built** (45 types) |
 | 10 | Alternate versions? | **Not a versioning system.** Duplicate the node and write beside it; old drafts live on as ordinary neighbouring nodes (they rewrote Ch.1 eleven times and want them all visible). | mostly satisfied by duplicate |
 | 11 | Track time? | **No** — not until group projects arrive. | closed |
 | 12 | First real projects? | Fantasy **novel**; **sermon + word study**; sister's **nursing study** notes (diseases, everything connected); her partner's **physics papers** (many sources, no 50 tabs). | calibration |

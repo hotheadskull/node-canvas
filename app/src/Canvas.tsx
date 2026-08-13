@@ -344,7 +344,6 @@ export function Canvas() {
           const existing = byId.get(docNode.id);
           const strip = view.phrasing?.get(docNode.id);
           const { width: _staleW, height: _staleH, ...existingBase } = existing ?? ({} as Node);
-          const owned = typeof docNode.data['ownedHeight'] === 'number';
           const isOpen = docNode.id === openNodeId;
           return keepIdentity(existing, {
             ...existingBase,
@@ -355,7 +354,10 @@ export function Canvas() {
               : docNode.size
                 ? { width: docNode.size.width }
                 : {}),
-            ...(!isOpen && owned && docNode.size ? { height: docNode.size.height } : {}),
+            // NO explicit height, ever (user decision 2026-08-12, question
+            // 2: "grow even if touched"). A height the user dragged is a
+            // FLOOR, applied as min-height on the card itself -- pinning it
+            // here instead would cap the card and hide text as it grew.
             ...(docNode.size
               ? { initialWidth: docNode.size.width, initialHeight: docNode.size.height }
               : {}),

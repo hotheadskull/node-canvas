@@ -1011,9 +1011,12 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
       if (!node) return;
       const def = getNodeDef(node.type);
       if (def?.sizing !== 'auto-height') return;
-      // user-owned heights are the user's statement -- never overwrite (I5)
-      if (typeof node.data['ownedHeight'] === 'number') return;
-      const rounded = Math.max(Math.round(height), 60);
+      // A user-dragged height is a FLOOR, not a lock (user decision
+      // 2026-08-12, question 2: "grow even if touched"). The card measures
+      // at least that tall because min-height holds it there, so recording
+      // what was measured respects the drag AND lets content grow past it.
+      const floor = typeof node.data['ownedHeight'] === 'number' ? node.data['ownedHeight'] : 0;
+      const rounded = Math.max(Math.round(height), floor, 60);
       const current = node.size?.height;
       if (current !== undefined && Math.abs(current - rounded) < 2) return;
       commit({

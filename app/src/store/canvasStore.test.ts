@@ -349,19 +349,37 @@ describe('sizing under the Tab Card anatomy (Chunk 17): measurement records, nev
     expect(useCanvasStore.getState().document).toBe(before);
   });
 
-  it('user-owned height is never overwritten by measurement (I5)', () => {
+  // Rule CHANGED by the user on 2026-08-12 (question 2, "grow even if
+  // touched"). A dragged height used to LOCK the card, so text past that
+  // point hid behind a scrollbar. It is now a floor: the card still grows,
+  // it just can never be shorter than what was dragged.
+  it('a dragged height is a floor: content grows past it, never under it', () => {
     const store = useCanvasStore.getState();
     const id = store.spawnAt('note', { x: 0, y: 0 })!;
     useCanvasStore.getState().setOwnedSize(id, 340, 480);
+
+    // content TALLER than the drag wins -- nothing written is ever clipped
     useCanvasStore.getState().recordMeasuredHeight(id, 900);
     let node = useCanvasStore.getState().document.nodes[0]!;
+    expect(node.size!.height).toBe(900);
+    // ...and the drag is still remembered as the floor it now is
+    expect(node.data['ownedHeight']).toBe(480);
+
+    // content SHORTER than the drag does not shrink the card below it
+    useCanvasStore.getState().recordMeasuredHeight(id, 120);
+    node = useCanvasStore.getState().document.nodes[0]!;
     expect(node.size!.height).toBe(480);
     expect(node.data['ownedHeight']).toBe(480);
-    // Fit hands ownership back -- measurement records again
+  });
+
+  it('Fit hands ownership back: no floor, pure auto-height', () => {
+    const store = useCanvasStore.getState();
+    const id = store.spawnAt('note', { x: 0, y: 0 })!;
+    useCanvasStore.getState().setOwnedSize(id, 340, 480);
     useCanvasStore.getState().clearOwnedHeight(id);
-    useCanvasStore.getState().recordMeasuredHeight(id, 900);
-    node = useCanvasStore.getState().document.nodes[0]!;
-    expect(node.size!.height).toBe(900);
+    useCanvasStore.getState().recordMeasuredHeight(id, 200);
+    const node = useCanvasStore.getState().document.nodes[0]!;
+    expect(node.size!.height).toBe(200);
     expect(node.data['ownedHeight']).toBeUndefined();
   });
 });

@@ -749,6 +749,87 @@ const NOVEL_PACK: readonly NodeTypeDef[] = [
     sizing: 'auto-height',
     ports: [],
   },
+
+  // ---------------------------------------------------------------------
+  // The remaining §6 types (user, question 9: "all of those are needed --
+  // something for every aspect"). Language study for the sermon path, and
+  // the capture/organise pieces the note-taking and coursework paths lean
+  // on. Portless like the rest; structure comes from fields.
+  // ---------------------------------------------------------------------
+  {
+    type: 'word',
+    category: 'knowledge',
+    coreMenu: false,
+    accent: '#f0abfc',
+    labels: { universal: 'Word', novel: 'Word', sermon: 'Word Study' },
+    descriptions: {
+      universal: 'A single word held for study: its forms, senses, and where it occurs',
+      novel: 'A word the book uses deliberately — invented, archaic, or loaded',
+      sermon: 'A word from the original text, with its range of meaning',
+    },
+    size: { width: 300, height: 210 },
+    sizing: 'auto-height',
+    ports: [],
+  },
+  {
+    type: 'translation',
+    category: 'knowledge',
+    coreMenu: false,
+    accent: '#fda4af',
+    labels: same('Translation'),
+    descriptions: same('How a passage or term renders in another language, and what the choice costs'),
+    size: { width: 320, height: 200 },
+    sizing: 'auto-height',
+    ports: [],
+  },
+  {
+    type: 'syntax',
+    category: 'knowledge',
+    coreMenu: false,
+    accent: '#c4b5fd',
+    labels: { universal: 'Syntax', novel: 'Syntax', sermon: 'Syntax' },
+    descriptions: {
+      universal: 'How a sentence is built — clauses, cases, and what hangs on what',
+      novel: 'A sentence whose construction is doing the work',
+      sermon: 'The grammatical structure of the verse and what it forces',
+    },
+    size: { width: 340, height: 220 },
+    sizing: 'auto-height',
+    ports: [],
+  },
+  {
+    type: 'outline',
+    category: 'writing',
+    coreMenu: false,
+    accent: '#7dd3fc',
+    labels: same('Outline'),
+    descriptions: same('The shape of a piece before it is written — points in order, nothing filled in'),
+    size: { width: 340, height: 260 },
+    sizing: 'auto-height',
+    ports: [],
+  },
+  {
+    type: 'study',
+    category: 'knowledge',
+    coreMenu: false,
+    accent: '#5eead4',
+    labels: same('Study'),
+    descriptions: same('A topic being learned: what it is, why it matters, and what still confuses you'),
+    size: { width: 340, height: 250 },
+    sizing: 'auto-height',
+    ports: [],
+  },
+  {
+    type: 'reminder',
+    category: 'knowledge',
+    coreMenu: false,
+    accent: '#fcd34d',
+    labels: same('Reminder'),
+    descriptions: same('Something to come back to — the note you would otherwise lose'),
+    size: { width: 240, height: 130 },
+    sizing: 'auto-height',
+    ports: [],
+  },
 ];
 
 export const NODE_TYPE_DEFS: readonly NodeTypeDef[] = [

@@ -258,9 +258,6 @@ html, body, #root {
    element keeps React Flow from zooming while the wheel scrolls the text.
    The inner face/editor give up their own flex-clipping so the ONE scroll
    container is the body itself. */
-.canvas-node-main.is-owned { overflow-y: auto; scrollbar-width: thin; }
-.canvas-node-main.is-owned .canvas-node-body { flex: none; }
-.canvas-node-main.is-owned .richtext-editor { flex: none; overflow-y: visible; }
 /* The title is the card's bold first words -- paper, not a form slot. */
 .canvas-node-title {
   display: block; width: 100%;
