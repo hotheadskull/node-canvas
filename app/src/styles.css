@@ -2354,3 +2354,97 @@ html, body, #root {
   color: var(--obs-dimmer);
 }
 
+
+/* ---------- The LIBRARY room (design direction q12: "50 tabs open") ----
+   Every source as a list, with what was taken from each. Reads like a
+   reference page, not like a canvas: generous measure, quiet chrome. */
+.library-room {
+  /* starts RIGHT of the 56px dock: at inset:0 the heading and footer ran
+     underneath it and read as "brary" */
+  position: absolute; top: 0; right: 0; bottom: 0; left: 56px; z-index: 60;
+  display: flex; flex-direction: column;
+  background: rgba(5, 6, 13, 0.97);
+  backdrop-filter: blur(14px);
+}
+.library-head {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 12px 18px; border-bottom: 1px solid var(--hairline);
+}
+.library-head-icon { color: var(--accent-teal, #2dd4bf); flex: none; }
+.library-title {
+  margin: 0; font-family: var(--font-ui); font-size: 15px; font-weight: 600;
+  color: var(--text); letter-spacing: -0.01em;
+}
+.library-count {
+  font-family: var(--font-mono); font-size: 10px; color: var(--obs-dimmer);
+}
+.library-search {
+  flex: 1; min-width: 180px; max-width: 420px;
+  padding: 5px 10px; border-radius: 7px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--hairline);
+  color: var(--text); font-size: 12.5px;
+}
+.library-search:focus { outline: none; border-color: var(--border-selected); }
+.library-styles { display: inline-flex; border: 1px solid var(--hairline); border-radius: 7px; overflow: hidden; }
+.library-styles button {
+  padding: 4px 10px; border: none; cursor: pointer;
+  background: transparent; color: var(--obs-dim); font-size: 11px;
+}
+.library-styles button.is-active { background: rgba(45, 212, 191, 0.16); color: #7ff0e0; }
+.library-action {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px; border-radius: 7px; cursor: pointer;
+  background: transparent; border: 1px solid var(--hairline);
+  color: var(--obs-dim); font-size: 11.5px;
+}
+.library-action:hover:not(:disabled) { border-color: var(--border-selected); color: var(--text); }
+.library-action:disabled { opacity: 0.4; cursor: default; }
+.library-action.is-quiet { border-color: transparent; padding: 4px 6px; flex: none; }
+.library-close {
+  border: none; background: transparent; color: var(--obs-dimmer);
+  cursor: pointer; padding: 4px; display: grid; place-items: center;
+}
+.library-close:hover { color: var(--text); }
+
+.library-body { flex: 1; overflow-y: auto; padding: 18px 22px 40px; }
+.library-empty {
+  max-width: 60ch; margin: 40px auto; text-align: center;
+  color: var(--obs-dim); font-size: 13.5px; line-height: 1.65;
+}
+.library-entry {
+  max-width: 78ch; margin: 0 auto 22px;
+  padding-bottom: 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.library-entry-head { display: flex; align-items: flex-start; gap: 10px; }
+/* A reference is prose, so it gets the reading face and a hanging indent
+   the way a printed bibliography would. */
+.library-citation {
+  flex: 1; margin: 0;
+  font-family: var(--font-reading, Spectral, Georgia, serif);
+  font-size: 14.5px; line-height: 1.6; color: var(--text-muted);
+  padding-left: 1.6em; text-indent: -1.6em;
+}
+.library-link {
+  display: inline-block; margin-top: 4px; padding-left: 1.6em;
+  font-family: var(--font-mono); font-size: 10.5px;
+  color: #6ea9ff; text-decoration: none; word-break: break-all;
+}
+.library-link:hover { text-decoration: underline; }
+.library-clips { list-style: none; margin: 10px 0 0; padding: 0 0 0 1.6em; display: flex; flex-direction: column; gap: 6px; }
+.library-clip {
+  display: flex; gap: 8px; align-items: baseline;
+  font-size: 12.5px; line-height: 1.55; color: var(--obs-dim);
+}
+.library-clip svg { flex: none; opacity: 0.6; }
+.library-clip-body { min-width: 0; }
+.library-clip b { color: var(--text); font-weight: 600; margin-right: 6px; }
+.library-clip.is-quote .library-clip-body span { font-style: italic; }
+.library-clip .is-empty { opacity: 0.5; }
+
+.library-foot {
+  display: flex; justify-content: space-between; gap: 12px;
+  padding: 9px 18px; border-top: 1px solid var(--hairline);
+  font-family: var(--font-mono); font-size: 10px; color: var(--obs-dimmer);
+}
+.library-citation.is-incomplete { color: var(--obs-dimmer); font-style: italic; }

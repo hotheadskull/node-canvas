@@ -1,0 +1,263 @@
+{
+  "document": {
+    "schemaVersion": 2,
+    "id": "doc_cite",
+    "name": "Citation fixture",
+    "mode": "universal",
+    "nodes": [
+      {
+        "id": "node_hawking",
+        "type": "source",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
+        "data": {
+          "title": "Particle Creation by Black Holes",
+          "fields": [
+            {
+              "id": "f_Authors",
+              "name": "Authors",
+              "type": "text",
+              "value": "Hawking, Stephen W.; Penrose, Roger; Ellis, George"
+            },
+            {
+              "id": "f_Journal",
+              "name": "Journal",
+              "type": "text",
+              "value": "Communications in Mathematical Physics"
+            },
+            {
+              "id": "f_Year",
+              "name": "Year",
+              "type": "text",
+              "value": "1975"
+            },
+            {
+              "id": "f_Volume",
+              "name": "Volume",
+              "type": "text",
+              "value": "43"
+            },
+            {
+              "id": "f_Issue",
+              "name": "Issue",
+              "type": "text",
+              "value": "3"
+            },
+            {
+              "id": "f_Pages",
+              "name": "Pages",
+              "type": "text",
+              "value": "199-220"
+            },
+            {
+              "id": "f_DOI",
+              "name": "DOI",
+              "type": "text",
+              "value": "10.1007/BF02345020"
+            }
+          ]
+        }
+      },
+      {
+        "id": "node_kuhn",
+        "type": "source",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
+        "data": {
+          "title": "The Structure of Scientific Revolutions",
+          "fields": [
+            {
+              "id": "f_Author",
+              "name": "Author",
+              "type": "text",
+              "value": "Thomas S. Kuhn"
+            },
+            {
+              "id": "f_Publisher",
+              "name": "Publisher",
+              "type": "text",
+              "value": "University of Chicago Press"
+            },
+            {
+              "id": "f_Year",
+              "name": "Year",
+              "type": "text",
+              "value": "1962"
+            },
+            {
+              "id": "f_Edition",
+              "name": "Edition",
+              "type": "text",
+              "value": "2nd ed."
+            }
+          ]
+        }
+      },
+      {
+        "id": "node_web",
+        "type": "source",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
+        "data": {
+          "title": "Notes on Canvas Interfaces",
+          "fields": [
+            {
+              "id": "f_Authors",
+              "name": "Authors",
+              "type": "text",
+              "value": "Ada Lovelace and Grace Hopper"
+            },
+            {
+              "id": "f_Site",
+              "name": "Site",
+              "type": "text",
+              "value": "Interface Review"
+            },
+            {
+              "id": "f_URL",
+              "name": "URL",
+              "type": "text",
+              "value": "https://example.org/canvas"
+            }
+          ]
+        }
+      },
+      {
+        "id": "node_bare",
+        "type": "source",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
+        "data": {
+          "title": "An Untitled Pamphlet",
+          "fields": []
+        }
+      }
+    ],
+    "edges": [],
+    "wires": [],
+    "assemblies": []
+  },
+  "results": [
+    {
+      "nodeId": "node_hawking",
+      "record": {
+        "authors": "Hawking, Stephen W.; Penrose, Roger; Ellis, George",
+        "title": "Particle Creation by Black Holes",
+        "container": "Communications in Mathematical Physics",
+        "publisher": "",
+        "year": "1975",
+        "volume": "43",
+        "issue": "3",
+        "pages": "199-220",
+        "edition": "",
+        "url": "",
+        "doi": "10.1007/BF02345020",
+        "accessed": ""
+      },
+      "formatted": {
+        "apa": "Hawking, S. W., Penrose, R., & Ellis, G. (1975). Particle Creation by Black Holes. Communications in Mathematical Physics, 43(3), 199-220. https://doi.org/10.1007/BF02345020",
+        "mla": "Hawking, Stephen W., et al. \"Particle Creation by Black Holes.\" Communications in Mathematical Physics, vol. 43, no. 3, 1975, pp. 199-220. https://doi.org/10.1007/BF02345020",
+        "chicago": "Hawking, Stephen W., Roger Penrose, and George Ellis. \"Particle Creation by Black Holes.\" Communications in Mathematical Physics 43, no. 3 (1975): 199-220. https://doi.org/10.1007/BF02345020"
+      },
+      "inText": {
+        "apa": "(Hawking et al., 1975, p. 12)",
+        "mla": "(Hawking et al. 12)",
+        "chicago": "(Hawking et al. 12)"
+      }
+    },
+    {
+      "nodeId": "node_kuhn",
+      "record": {
+        "authors": "Thomas S. Kuhn",
+        "title": "The Structure of Scientific Revolutions",
+        "container": "",
+        "publisher": "University of Chicago Press",
+        "year": "1962",
+        "volume": "",
+        "issue": "",
+        "pages": "",
+        "edition": "2nd ed.",
+        "url": "",
+        "doi": "",
+        "accessed": ""
+      },
+      "formatted": {
+        "apa": "Kuhn, T. S. (1962). The Structure of Scientific Revolutions (2nd ed.). University of Chicago Press.",
+        "mla": "Kuhn, Thomas S. The Structure of Scientific Revolutions (2nd ed.). University of Chicago Press, 1962.",
+        "chicago": "Kuhn, Thomas S. The Structure of Scientific Revolutions (2nd ed.). University of Chicago Press, 1962."
+      },
+      "inText": {
+        "apa": "(Kuhn, 1962, p. 12)",
+        "mla": "(Kuhn 12)",
+        "chicago": "(Kuhn 12)"
+      }
+    },
+    {
+      "nodeId": "node_web",
+      "record": {
+        "authors": "Ada Lovelace and Grace Hopper",
+        "title": "Notes on Canvas Interfaces",
+        "container": "Interface Review",
+        "publisher": "",
+        "year": "",
+        "volume": "",
+        "issue": "",
+        "pages": "",
+        "edition": "",
+        "url": "https://example.org/canvas",
+        "doi": "",
+        "accessed": ""
+      },
+      "formatted": {
+        "apa": "Lovelace, A., & Hopper, G. (n.d.). Notes on Canvas Interfaces. Interface Review. https://example.org/canvas",
+        "mla": "Lovelace, Ada, and Grace Hopper. \"Notes on Canvas Interfaces.\" Interface Review, n.d. https://example.org/canvas",
+        "chicago": "Lovelace, Ada, and Grace Hopper. \"Notes on Canvas Interfaces.\" Interface Review (n.d.). https://example.org/canvas"
+      },
+      "inText": {
+        "apa": "(Lovelace & Hopper, n.d., p. 12)",
+        "mla": "(Lovelace and Hopper 12)",
+        "chicago": "(Lovelace and Hopper 12)"
+      }
+    },
+    {
+      "nodeId": "node_bare",
+      "record": {
+        "authors": "",
+        "title": "An Untitled Pamphlet",
+        "container": "",
+        "publisher": "",
+        "year": "",
+        "volume": "",
+        "issue": "",
+        "pages": "",
+        "edition": "",
+        "url": "",
+        "doi": "",
+        "accessed": ""
+      },
+      "formatted": {
+        "apa": "An Untitled Pamphlet. (n.d.).",
+        "mla": "An Untitled Pamphlet. n.d.",
+        "chicago": "An Untitled Pamphlet. n.d."
+      },
+      "inText": {
+        "apa": "(An Untitled Pamphlet, n.d., p. 12)",
+        "mla": "(An Untitled Pamphlet 12)",
+        "chicago": "(An Untitled Pamphlet 12)"
+      }
+    }
+  ],
+  "bibliography": {
+    "apa": "## References\n\n*An Untitled Pamphlet*. (n.d.).\n\nHawking, S. W., Penrose, R., & Ellis, G. (1975). Particle Creation by Black Holes. *Communications in Mathematical Physics*, *43*(3), 199-220. https://doi.org/10.1007/BF02345020\n\nKuhn, T. S. (1962). *The Structure of Scientific Revolutions* (2nd ed.). University of Chicago Press.\n\nLovelace, A., & Hopper, G. (n.d.). Notes on Canvas Interfaces. *Interface Review*. https://example.org/canvas\n",
+    "mla": "## Works Cited\n\n*An Untitled Pamphlet*. n.d.\n\nHawking, Stephen W., et al. \"Particle Creation by Black Holes.\" *Communications in Mathematical Physics*, vol. 43, no. 3, 1975, pp. 199-220. https://doi.org/10.1007/BF02345020\n\nKuhn, Thomas S. *The Structure of Scientific Revolutions* (2nd ed.). University of Chicago Press, 1962.\n\nLovelace, Ada, and Grace Hopper. \"Notes on Canvas Interfaces.\" *Interface Review*, n.d. https://example.org/canvas\n",
+    "chicago": "## References\n\n*An Untitled Pamphlet*. n.d.\n\nHawking, Stephen W., Roger Penrose, and George Ellis. \"Particle Creation by Black Holes.\" *Communications in Mathematical Physics* 43, no. 3 (1975): 199-220. https://doi.org/10.1007/BF02345020\n\nKuhn, Thomas S. *The Structure of Scientific Revolutions* (2nd ed.). University of Chicago Press, 1962.\n\nLovelace, Ada, and Grace Hopper. \"Notes on Canvas Interfaces.\" *Interface Review* (n.d.). https://example.org/canvas\n"
+  }
+}

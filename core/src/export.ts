@@ -3,8 +3,10 @@
 //
 // The editors store TipTap StarterKit HTML in node content. Export renders
 // that HTML to Markdown (headings, emphasis, lists, quotes, code, rules,
-// links) or plain text. Deliberately NO citation formatting (decision log:
-// export markdown, let word processors typeset).
+// links) or plain text. Body text carries no citation formatting -- word
+// processors typeset that. A REFERENCE LIST is different: it is data the
+// canvas already holds, so exportMarkdown will append one on request
+// (citation.ts does the formatting).
 //
 // The converter is a tiny hand-rolled HTML reader because core/ is pure TS
 // (I7): no DOM, no DOMParser, no dependencies. It only needs to be as good
@@ -13,6 +15,7 @@
 
 import type { CanvasDocument } from './schema';
 import { compileBlocks } from './blocks';
+import { bibliographyMarkdown, type CitationStyle } from './citation';
 import { stripHtml } from './derive';
 
 type HtmlNode = { tag: string; attrs: Record<string, string>; children: Child[] };
@@ -236,13 +239,26 @@ export type MarkdownExport = { markdown: string; title: string };
 /**
  * Export a compile-face node (document/manuscript/claim/passage) as a
  * Markdown document: the node's title as H1, then its compiled work.
+ *
+ * Pass `citationStyle` and the paper writes its own reference list from the
+ * Source nodes on the canvas (design direction question 12 -- the physics
+ * papers). Omit it and the output is byte-identical to before, which is
+ * what keeps the existing export goldens meaningful.
  */
-export function exportMarkdown(document: CanvasDocument, nodeId: string): MarkdownExport {
+export function exportMarkdown(
+  document: CanvasDocument,
+  nodeId: string,
+  citationStyle?: CitationStyle,
+): MarkdownExport {
   const node = document.nodes.find((candidate) => candidate.id === nodeId);
   const title = (node?.data.title ?? '').trim() || 'Untitled';
   const compiled = compileBlocks(document, nodeId);
   const body = compiledHtmlToMarkdown(compiled.text);
-  const markdown = body === '' ? `# ${title}\n` : `# ${title}\n\n${body}\n`;
+  let markdown = body === '' ? `# ${title}\n` : `# ${title}\n\n${body}\n`;
+  if (citationStyle) {
+    const references = bibliographyMarkdown(document, citationStyle);
+    if (references !== '') markdown += `\n${references}`;
+  }
   return { markdown, title };
 }
 

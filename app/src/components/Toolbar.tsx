@@ -17,6 +17,7 @@ import {
   Combine,
   Copy,
   Filter,
+  Library,
   Frame,
   GitBranch,
   HelpCircle,
@@ -80,6 +81,8 @@ export function Toolbar({
   const editorNodeId = useCanvasStore((state) => state.editorNodeId);
   const setPaletteOpen = useCanvasStore((state) => state.setPaletteOpen);
   const filterPinned = useCanvasStore((state) => state.filterPinned);
+  const libraryOpen = useCanvasStore((state) => state.libraryOpen);
+  const setLibraryOpen = useCanvasStore((state) => state.setLibraryOpen);
   const setFilterPinned = useCanvasStore((state) => state.setFilterPinned);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [launcherOpen, setLauncherOpen] = useState(false);
@@ -184,6 +187,10 @@ export function Toolbar({
         case '4':
           toFocus();
           break;
+        case 'l':
+        case 'L':
+          setLibraryOpen(!useCanvasStore.getState().libraryOpen);
+          break;
         case 'f':
         case 'F':
           if (!event.shiftKey) setFilterPinned(!filterPinned);
@@ -241,6 +248,15 @@ export function Toolbar({
         >
           <Filter size={16} aria-hidden />
           <span className="dock-label">Filter</span>
+        </button>
+        <button
+          className={`dock-tile ${libraryOpen ? 'is-active' : ''}`}
+          aria-label="Library"
+          title={tile('Library — every source in one list', 'L')}
+          onClick={() => setLibraryOpen(!libraryOpen)}
+        >
+          <Library size={16} aria-hidden />
+          <span className="dock-label">Library</span>
         </button>
         <button
           className={`dock-tile ${inkMode ? 'is-active' : ''}`}

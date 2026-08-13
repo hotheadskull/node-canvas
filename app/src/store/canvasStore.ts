@@ -7,6 +7,7 @@ import {
   addNode,
   addPlainEdge,
   addWire,
+  type CitationStyle,
   describeInference,
   inferConnection,
   applyEmbedToSource,
@@ -189,6 +190,12 @@ type CanvasState = {
    * automatic 4-wire threshold. Session only. */
   filterPinned: boolean;
   setFilterPinned: (pinned: boolean) => void;
+  /** The Library room: every source as a list (design direction q12). */
+  libraryOpen: boolean;
+  setLibraryOpen: (open: boolean) => void;
+  /** Citation style for the library and for exports. Persisted. */
+  citationStyle: CitationStyle;
+  setCitationStyle: (style: CitationStyle) => void;
   /** Observatory collapse (spec §2): sticky, user-controlled, persisted in
    * node.data. 'rolled-up' is the assembly state and stays derived. */
   toggleNodeCollapsed: (nodeId: string) => void;
@@ -367,6 +374,20 @@ let saveTimer: ReturnType<typeof setTimeout> | undefined;
  */
 export function cancelPendingSave(): void {
   clearTimeout(saveTimer);
+}
+
+export const CITATION_STYLE_KEY = 'nodecanvas.v2.citationStyle';
+
+/** The style the library and exports use. A preference, so a bad value
+ * falls back silently rather than blocking the canvas from loading. */
+function loadCitationStyle(): CitationStyle {
+  try {
+    const raw = localStorage.getItem(CITATION_STYLE_KEY);
+    if (raw === 'apa' || raw === 'mla' || raw === 'chicago') return raw;
+  } catch {
+    // preferences only
+  }
+  return 'apa';
 }
 
 export function loadSettings(): CanvasSettings {
@@ -967,6 +988,18 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
     setWireFilter: (kinds) => set({ wireFilter: kinds }),
     filterPinned: false,
     setFilterPinned: (pinned) => set({ filterPinned: pinned }),
+
+    libraryOpen: false,
+    setLibraryOpen: (open) => set({ libraryOpen: open }),
+    citationStyle: loadCitationStyle(),
+    setCitationStyle: (style) => {
+      set({ citationStyle: style });
+      try {
+        localStorage.setItem(CITATION_STYLE_KEY, style);
+      } catch {
+        // a preference, not user data
+      }
+    },
 
     toggleNodeCollapsed: (nodeId) => {
       const doc = get().document;

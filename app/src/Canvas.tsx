@@ -56,6 +56,7 @@ import { Toolbar } from './components/Toolbar';
 import { Tutorial } from './components/Tutorial';
 import { WireEdge } from './components/WireEdge';
 import { InkLayer } from './components/InkLayer';
+import { LibraryRoom } from './components/LibraryRoom';
 import { InkPalette } from './components/InkPalette';
 import { delegate as tippyDelegate } from 'tippy.js';
 import 'tippy.js/dist/tippy.css';
@@ -1042,6 +1043,7 @@ export function Canvas() {
       <Tutorial />
       <TipsPanel />
       <InkPalette />
+      <LibraryRoom />
       {menuOpen && <AddNodeMenu onPick={pickType} onPickTemplate={pickTemplate} onClose={() => setMenuOpen(false)} />}
     </div>
   );
