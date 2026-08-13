@@ -149,7 +149,13 @@ test('manual resize takes ownership; Fit hands the height back to the text', asy
     .toBeLessThan(box.height + 60);
 });
 
-test('an owned height smaller than the text becomes a scrolling window (nothing clipped)', async ({
+// RULE CHANGED 2026-08-12 (question 2, "grow even if touched"). This used
+// to assert that a short owned height turned the body into a SCROLLING
+// window. That was the old answer to the original bug ("when i resize it
+// the main body doesnt change so i cant see half of the stuff"); the new
+// answer keeps the same promise more directly -- the card itself grows, so
+// there is no window to scroll and nothing to hide.
+test('text past an owned height grows the card instead of scrolling inside it', async ({
   page,
 }) => {
   await addNode(page, 'note');
@@ -166,18 +172,18 @@ test('an owned height smaller than the text becomes a scrolling window (nothing 
   await page.mouse.move(cornerBox.x + cornerBox.width / 2, cornerBox.y + 60, { steps: 8 });
   await page.mouse.up();
   const main = note.locator('.canvas-node-main');
-  await expect(main).toHaveClass(/is-owned/);
+  const shortHeight = (await note.boundingBox())!.height;
 
-  // now write PAST the owned window: the body scrolls instead of clipping
-  // (user bug: "when i resize it the main body doesnt change so i cant
-  // see half of the stuff")
+  // now write PAST the height that was dragged
   await note.locator('.richtext-content').click();
   await page.keyboard.type(LONG_TEXT, { delay: 1 });
+
+  // the CARD grew past its floor...
   await expect
-    .poll(() => main.evaluate((element) => element.scrollHeight - element.clientHeight))
-    .toBeGreaterThan(20);
-  await main.evaluate((element) => {
-    element.scrollTop = 999;
-  });
-  expect(await main.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    .poll(async () => (await note.boundingBox())!.height)
+    .toBeGreaterThan(shortHeight + 40);
+  // ...and the body never became a scroller, so none of it is hidden
+  expect(
+    await main.evaluate((element) => element.scrollHeight - element.clientHeight),
+  ).toBeLessThan(4);
 });

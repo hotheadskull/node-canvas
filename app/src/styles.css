@@ -106,29 +106,32 @@ html, body, #root {
   position: relative;
   height: 100%; width: 100%; min-height: 70px;
   display: flex; flex-direction: row;
-  /* pt2 handoff §2: the plate wears a whisper of its OWN kind -- a 100deg
-     tint over the dark base, a tinted border, and a coloured under-glow. */
-  background:
-    linear-gradient(
-      100deg,
-      color-mix(in srgb, var(--kind) 15%, transparent),
-      color-mix(in srgb, var(--kind) 6%, transparent) 42%,
-      transparent 80%
-    ),
-    linear-gradient(180deg, rgba(22, 24, 53, 0.95), rgba(12, 14, 35, 0.95));
-  border: 1px solid color-mix(in srgb, var(--kind) 50%, transparent);
+  /* SOLID and physical (user, 2026-08-12: "bolder and more physical" +
+     "colours are muddy or samey").
+     The old plate washed its hue across the body at 6-15% over a
+     TRANSLUCENT navy. Two problems, one cause: a 6% tint of anything over
+     a blue starfield is blue, so every type drifted to the same
+     blue-violet; and a see-through card reads as glass, not as an object.
+     The body is now opaque and neutral, and the colour moves to the header
+     band at full strength -- where a small area of saturated hue separates
+     types far better than a large area of diluted one. */
+  background: linear-gradient(180deg, #191d38 0%, #10132a 100%);
+  border: 1px solid color-mix(in srgb, var(--kind) 40%, #05060d);
   border-radius: 10px;
   overflow: visible;
-  box-shadow: var(--shadow-plate), 0 0 22px -8px color-mix(in srgb, var(--kind) 22%, transparent);
+  /* weight underneath, not glow around: the card sits ON the sky */
+  box-shadow:
+    0 20px 44px -18px rgba(0, 0, 0, 0.96),
+    0 4px 12px -5px rgba(0, 0, 0, 0.7);
   font-family: var(--font-ui);
   color: var(--text);
 }
 .canvas-node.is-selected {
-  border-color: #8a7ce0;
+  border-color: color-mix(in srgb, var(--kind) 85%, white);
   box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--kind) 22%, transparent),
-    var(--shadow-plate),
-    0 0 22px -8px color-mix(in srgb, var(--kind) 22%, transparent);
+    0 0 0 2px color-mix(in srgb, var(--kind) 55%, transparent),
+    0 20px 44px -18px rgba(0, 0, 0, 0.96),
+    0 4px 12px -5px rgba(0, 0, 0, 0.7);
 }
 /* selection registration ticks: 10x10, 1.5px, corner brackets */
 .plate-tick {
@@ -139,11 +142,13 @@ html, body, #root {
 .tick-tr { right: -5px; top: -5px; border-left: none; border-bottom: none; }
 .tick-bl { left: -5px; bottom: -5px; border-right: none; border-top: none; }
 .tick-br { right: -5px; bottom: -5px; border-left: none; border-top: none; }
-/* type spine: 3px, the colour of the primary give, fading downward */
+/* type spine: 4px of FULL-strength colour down the whole edge. It used to
+   fade to 30% by the bottom, which on a tall plate meant the identifying
+   stripe disappeared exactly where the card had the most content. */
 .plate-spine {
-  position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
   border-radius: 10px 0 0 10px; z-index: 5; pointer-events: none;
-  background: linear-gradient(180deg, var(--kind), color-mix(in srgb, var(--kind) 30%, transparent));
+  background: linear-gradient(180deg, var(--kind), color-mix(in srgb, var(--kind) 72%, #05060d));
 }
 /* Port GUTTERS (13px, divider, dark fill): takes LEFT, gives RIGHT; a side
    with no ports keeps a whisper so the grammar reads everywhere. */
@@ -167,18 +172,31 @@ html, body, #root {
 .canvas-node-gutter.is-empty { width: 6px; }
 /* Body column between the gutters: header rail / rule / content / rule / meta */
 .plate-column { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+/* The header is a SOLID BAND of the type's colour -- the one place the hue
+   runs at full strength. A small saturated area separates types far more
+   sharply than a large diluted one, which is why the old 22%-to-transparent
+   sweep left every plate looking the same. Text on the band goes dark,
+   because every hue in the palette is bright enough to carry it. */
 .plate-header {
-  display: flex; align-items: center; gap: 6px;
-  padding: 7px 9px 6px; min-height: 27px;
+  display: flex; align-items: center; gap: 7px;
+  padding: 6px 10px; min-height: 28px;
   background: linear-gradient(
-    96deg,
-    color-mix(in srgb, var(--kind) 22%, transparent),
-    color-mix(in srgb, var(--kind) 5%, transparent) 46%,
-    transparent 74%
+    180deg,
+    color-mix(in srgb, var(--kind) 92%, #05060d),
+    color-mix(in srgb, var(--kind) 74%, #05060d)
   );
   border-radius: 0 9px 0 0;
   cursor: grab;
 }
+.plate-header .canvas-node-kind {
+  color: #0a0d1c;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.13em;
+}
+.plate-header .canvas-node-glyph { color: #0a0d1c; opacity: 0.85; }
+/* controls that ride the band inherit the dark ink */
+.plate-header .readiness-ring-button,
+.plate-header .canvas-node-swap { color: #0a0d1c; }
+.plate-header .owner-chip { color: #0a0d1c; border-color: rgba(10, 13, 28, 0.35); }
 .plate-header:active { cursor: grabbing; }
 .plate-spacer { flex: 1; }
 .plate-id {
@@ -2480,16 +2498,18 @@ html, body, #root {
 /* a node that already has fields keeps the affordance quieter still */
 .node-fields-container .node-field-row + .node-field-adder > button { opacity: 0; }
 
-/* the meta rail: telemetry, so it waits to be asked for */
+/* The meta rail: telemetry, so it waits to be asked for. It is taken OUT
+   of flow rather than collapsed, because animating its height changed the
+   card's height on hover -- and the ResizeObserver would then record that
+   as the node's measured size. Merely pointing at a node would have
+   written a new height into the document. */
 .plate-meta {
-  opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0;
-  overflow: hidden;
-  transition: opacity 0.12s ease, max-height 0.12s ease, padding 0.12s ease;
+  position: absolute; left: 0; right: 0; bottom: 0;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.12s ease;
 }
 .canvas-node:hover .plate-meta,
-.canvas-node.is-selected .plate-meta {
-  opacity: 1; max-height: 28px; padding-top: 5px; padding-bottom: 6px;
-}
+.canvas-node.is-selected .plate-meta { opacity: 1; }
 
 /* Reference stays COMPACT (question 8: "icon and name") -- it is a
    pointer to a node, not a copy of one, so it carries no field editor,

@@ -135,6 +135,9 @@ test('undo brings the previous canvas back after New', async ({ page }) => {
   await openProjectMenu(page);
   await page.getByRole('button', { name: 'New canvas' }).click();
   await expect(page.locator('.react-flow__node')).toHaveCount(0);
-  await page.getByRole('button', { name: /undo/i }).click();
+  // scope to the TOAST: the dock gained its own Undo tile, so a bare
+  // name match now hits two buttons that do different things -- the tile
+  // undoes the last edit, this one restores the whole replaced canvas
+  await page.getByRole('status').getByRole('button', { name: 'Undo' }).click();
   await expect(page.locator('.react-flow__node')).toHaveCount(1);
 });
