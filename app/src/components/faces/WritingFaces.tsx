@@ -43,7 +43,6 @@ export function SectionFace({ nodeId, content }: FaceProps) {
     return document.wires
       .filter((wire) => wire.status === 'live' && wire.target === nodeId && wire.targetPort === 'people-in')
       .map((wire) => ({ id: wire.source, name: titleOf(wire.source) }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [document.wires, document.nodes, nodeId]);
 
   // the scene sub-line (§11 novel scene, v1): POV and setting read from
@@ -59,7 +58,6 @@ export function SectionFace({ nodeId, content }: FaceProps) {
       pov: pov ? titleOf(pov.source) : null,
       setting: setting ? titleOf(setting.source) : null,
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [document.wires, document.nodes, nodeId]);
 
   return (
