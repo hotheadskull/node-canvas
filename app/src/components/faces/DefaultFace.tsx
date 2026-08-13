@@ -5,10 +5,11 @@
 
 import { useCanvasStore } from '../../store/canvasStore';
 import { LazyRichText } from '../RichText';
-import type { FaceProps } from './index';
+import { EXTRACT_TYPES, type FaceProps } from './index';
 
 export function DefaultFace({ nodeId, content }: FaceProps) {
   const setNodeContent = useCanvasStore((state) => state.setNodeContent);
+  const extractNodeText = useCanvasStore((state) => state.extractNodeText);
   return (
     <div className="canvas-node-body">
       <LazyRichText
@@ -16,6 +17,8 @@ export function DefaultFace({ nodeId, content }: FaceProps) {
         onChange={(html) => setNodeContent(nodeId, html)}
         placeholder="Write here…"
         variant="inline"
+        onExtract={(parts, type) => extractNodeText(nodeId, parts, type || 'note')}
+        extractTypes={EXTRACT_TYPES}
       />
     </div>
   );

@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { useCanvasStore } from '../../store/canvasStore';
 import { LazyRichText } from '../RichText';
 import { SplitPanel } from '../SplitPanel';
-import type { FaceProps } from './index';
+import { EXTRACT_TYPES, type FaceProps } from './index';
 
 /** The Split affordance rode on the old compile face; these per-type
  * bodies replaced that face, so they carry it themselves -- splitting a
@@ -30,6 +30,7 @@ function SplitAction({ nodeId }: { nodeId: string }) {
 
 export function SectionFace({ nodeId, content }: FaceProps) {
   const setNodeContent = useCanvasStore((state) => state.setNodeContent);
+  const extractNodeText = useCanvasStore((state) => state.extractNodeText);
   const document = useCanvasStore((state) => state.document);
 
   const titleOf = (id: string) => {
@@ -90,6 +91,8 @@ export function SectionFace({ nodeId, content }: FaceProps) {
         onChange={(html) => setNodeContent(nodeId, html)}
         placeholder="Write your section here…"
         variant="inline"
+        onExtract={(parts, type) => extractNodeText(nodeId, parts, type || 'note')}
+        extractTypes={EXTRACT_TYPES}
       />
     </div>
   );
@@ -98,6 +101,7 @@ import { castOf, compile } from '@node-canvas/core';
 
 export function ManuscriptFace({ nodeId, content }: FaceProps) {
   const setNodeContent = useCanvasStore((state) => state.setNodeContent);
+  const extractNodeText = useCanvasStore((state) => state.extractNodeText);
   const document = useCanvasStore((state) => state.document);
   
   const matrix = useMemo(() => {
@@ -146,6 +150,8 @@ export function ManuscriptFace({ nodeId, content }: FaceProps) {
         onChange={(html) => setNodeContent(nodeId, html)}
         placeholder="Manuscript synopsis or details…"
         variant="inline"
+        onExtract={(parts, type) => extractNodeText(nodeId, parts, type || 'note')}
+        extractTypes={EXTRACT_TYPES}
       />
       <SplitAction nodeId={nodeId} />
     </div>
@@ -154,6 +160,7 @@ export function ManuscriptFace({ nodeId, content }: FaceProps) {
 
 export function PassageFace({ nodeId, content }: FaceProps) {
   const setNodeContent = useCanvasStore((state) => state.setNodeContent);
+  const extractNodeText = useCanvasStore((state) => state.extractNodeText);
   return (
     <div className="canvas-node-body passage-face" data-face="passage">
       <div className="passage-content">
@@ -162,6 +169,8 @@ export function PassageFace({ nodeId, content }: FaceProps) {
           onChange={(html) => setNodeContent(nodeId, html)}
           placeholder="Quote or passage prose…"
           variant="inline"
+          onExtract={(parts, type) => extractNodeText(nodeId, parts, type || 'note')}
+          extractTypes={EXTRACT_TYPES}
         />
       </div>
       <SplitAction nodeId={nodeId} />

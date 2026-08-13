@@ -58,16 +58,23 @@ import {
   stripHtml,
   tentativeInboundCount,
   wordCount,
+  type CustomField,
   type PortDef,
 } from '@node-canvas/core';
 import { useCanvasStore } from '../store/canvasStore';
 import { faceFor } from './faces';
 import { ReadinessRing } from './ReadinessRing';
+import { NodeFields } from './NodeFields';
+
+// Field shapes live in core (Zod-validated with the document, I9); the app
+// re-exports them so existing imports from this module keep working.
+export type { CustomField, CustomFieldType } from '@node-canvas/core';
 
 export type CanvasNodeData = {
   coreType: string;
   title: string;
   content: string;
+  fields?: CustomField[];
   ownedHeight?: number;
   accent?: string;
   /** Observatory §2: sticky user-controlled collapse, persisted in data. */
@@ -146,6 +153,7 @@ function PortStars({
   side,
   counts,
   merged,
+  anchorOnly,
   candidates,
   broadcasting,
   autoSides,
@@ -159,6 +167,13 @@ function PortStars({
    * v1 lesson: an edge without its handle cannot render) but they stack at
    * one spot and read as a single dot per side. */
   merged?: boolean;
+  /** Standard plate under the 2026-08-12 direction: ordinary nodes show ONE
+   * universal in/out, not a stack of typed slots. The typed handles still
+   * mount (invisible, stacked at the edge midpoint) purely as wire anchors
+   * -- without them React Flow drops every structural wire on the floor
+   * ("Couldn't create edge for source handle id"). Typed wiring by hand
+   * lives in the open plate, where the full slots are drawn. */
+  anchorOnly?: boolean;
   /** Drag-time broadcast: ports the dragged wire could land on light up
    * in their kind color; the rest step back while a drag is live. */
   candidates?: ReadonlySet<string>;
@@ -176,7 +191,7 @@ function PortStars({
     candidates?.has(portId) ? 'is-candidate' : broadcasting ? 'is-bystander' : '';
   
   const getStyle = (index: number, portSide: string) => {
-    if (merged) {
+    if (merged || anchorOnly) {
       if (portSide === 'top' || portSide === 'bottom') return { left: '50%', [portSide === 'top' ? 'top' : 'bottom']: 2 };
       return { top: '50%', [portSide === 'left' ? 'left' : 'right']: 2 };
     }
@@ -209,7 +224,7 @@ function PortStars({
               id={port.id}
               type="source"
               position={getPosition(portSide)}
-              className={`port-star kind-${port.dataKind} ${portStateClass(port, counts.get(port.id) ?? 0)} ${merged ? 'is-merged' : ''} ${port.defaultVisible || merged ? '' : 'is-hidden-port'} ${broadcastClass(port.id)}`}
+              className={`port-star kind-${port.dataKind} ${portStateClass(port, counts.get(port.id) ?? 0)} ${merged ? 'is-merged' : ''} ${anchorOnly ? 'is-anchor-only' : ''} ${port.defaultVisible || merged || anchorOnly ? '' : 'is-hidden-port'} ${broadcastClass(port.id)}`}
               style={{
                 ...getStyle(index, portSide),
                 ['--port-color' as string]: PORT_KIND_COLORS[port.dataKind] ?? '#8e94c2',
@@ -217,7 +232,7 @@ function PortStars({
               data-port-label={port.label}
               data-port-direction={port.direction}
             />
-            {!merged && (
+            {!merged && !anchorOnly && (
               <span
                 className={`port-label side-${portSide} ${port.defaultVisible ? '' : 'is-hidden-port'} ${broadcastClass(port.id)}`}
                 style={{
@@ -621,7 +636,7 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
   return (
     <div
       ref={cardRef}
-      className={`canvas-node ${selected ? 'is-selected' : ''}`}
+      className={`canvas-node type-${data.type} ${selected ? 'is-selected' : ''}`}
       style={{ ['--accent' as string]: accent, ['--kind' as string]: kindHue }}
     >
       <NodeResizer
@@ -674,12 +689,6 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
           </button>
         </div>
       )}
-      {/* Port gutters (Observatory zone 2/4): takes enter LEFT, gives leave
-          RIGHT; a side with no ports keeps a whisper so the grammar reads. */}
-      <span
-        className={`canvas-node-gutter gutter-left ${(flipped ? gives : takes).length > 0 ? '' : 'is-empty'} ${leftUsed ? 'is-used' : ''}`}
-        aria-hidden
-      />
       <div className="plate-column">
         <header className="canvas-node-header plate-header">
           <TabIcon size={10} aria-hidden className="canvas-node-glyph" />
@@ -719,7 +728,7 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
               title={
                 flipped
                   ? 'Swap back: intake left, output right'
-                  : 'Swap sides: intake and output trade gutters'
+                  : 'Swap sides: intake and output trade sides'
               }
               aria-label="Swap connection sides"
               onClick={() => toggleNodeFlipped(id)}
@@ -787,8 +796,11 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
         )}
         </div>
         <span className="plate-rule" aria-hidden />
-        {/* meta rail (Observatory zone 5): the truth strip -- counts must
-            match the wires actually attached */}
+        {/* Fields Section (Stub for Phase 2) */}
+        <div className="canvas-node-fields" data-fields>
+          <NodeFields nodeId={id} fields={data.fields || []} />
+        </div>
+        <span className="plate-rule" aria-hidden />
         <footer className="plate-meta" aria-hidden>
           <span>{words} w</span>
           <span>
@@ -803,12 +815,49 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
           <span className="plate-meta-state">{readiness}</span>
         </footer>
       </div>
-      <span
-        className={`canvas-node-gutter gutter-right ${(flipped ? takes : gives).length > 0 ? '' : 'is-empty'} ${rightUsed ? 'is-used' : ''}`}
-        aria-hidden
+      
+      {/* Universal ports: the ONLY connectors an ordinary node shows
+          (direction §2) -- one in, one out, no typed stack. */}
+      <Handle
+        type="target"
+        position={flipped ? Position.Right : Position.Left}
+        id="in"
+        className="universal-port"
+        style={{ top: '50%' }}
       />
-      <PortStars nodeId={id} ports={takes} side={takeSide} counts={wireCounts} candidates={candidatePorts} broadcasting={broadcasting} autoSides={autoSides} />
-      <PortStars nodeId={id} ports={gives} side={giveSide} counts={wireCounts} candidates={candidatePorts} broadcasting={broadcasting} autoSides={autoSides} />
+      <Handle
+        type="source"
+        position={flipped ? Position.Left : Position.Right}
+        id="out"
+        className="universal-port"
+        style={{ top: '50%' }}
+      />
+      {/* Typed handles stay MOUNTED but invisible, stacked on the universal
+          anchors: every structural wire (Document<-Sections, cast, plants,
+          arcs) targets a typed port id, and React Flow silently drops any
+          edge whose handle is missing. Without these the canvas looked
+          wireless while the document still held every relationship. */}
+      <PortStars
+        nodeId={id}
+        ports={takes}
+        side={takeSide}
+        counts={wireCounts}
+        anchorOnly
+        candidates={candidatePorts}
+        broadcasting={broadcasting}
+        autoSides={autoSides}
+      />
+      <PortStars
+        nodeId={id}
+        ports={gives}
+        side={giveSide}
+        counts={wireCounts}
+        anchorOnly
+        candidates={candidatePorts}
+        broadcasting={broadcasting}
+        autoSides={autoSides}
+      />
+
       <RelateAnchors related={hasPlainEdges} />
     </div>
   );

@@ -8,6 +8,8 @@ import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { DOMSerializer } from '@tiptap/pm/model';
 import { Bold, Heading2, Italic, List, Scissors, TextQuote } from 'lucide-react';
+import Mention from '@tiptap/extension-mention';
+import { getMentionSuggestion } from './MentionSuggestion';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 export type BoundaryDirection = 'up' | 'down' | 'left' | 'right';
@@ -52,7 +54,15 @@ export function RichText({
   const [splitOpen, setSplitOpen] = useState(false);
 
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [
+      StarterKit,
+      Mention.configure({
+        HTMLAttributes: {
+          class: 'mention-chip',
+        },
+        suggestion: getMentionSuggestion(),
+      }),
+    ],
     ...(value !== '' ? { content: value } : {}),
     // Synchronous construction: the editor exists in the SAME tick the
     // component mounts, so a click on a just-warmed lazy face lands on real

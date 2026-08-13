@@ -19,6 +19,7 @@ import {
   commitTentativeWire,
   createAssembly,
   createEmptyDocument,
+  createId,
   createTentativeWire,
   dissolveTentativeWire,
   findFreePosition,
@@ -94,8 +95,12 @@ function loadCustomPresets(): CustomSplitPreset[] {
 
 export type Toast = { message: string; undo?: () => void };
 
-/** RF handle ids that mean "plain relationship edge", not a port. */
-export const PLAIN_HANDLES = new Set(['top', 'bottom', 'left', 'right']);
+/** RF handle ids that mean "plain relationship edge", not a port.
+ * 'in'/'out' are the UNIVERSAL ports every standard plate shows (design
+ * direction 2026-08-12 §2): "ordinary connections should stay simple by
+ * default". They are not registry ports, so without them here `getPort`
+ * looks up an id that cannot exist and the drop is refused. */
+export const PLAIN_HANDLES = new Set(['top', 'bottom', 'left', 'right', 'in', 'out']);
 
 type CanvasState = {
   document: CanvasDocument;
@@ -145,6 +150,10 @@ type CanvasState = {
   setNodeContent: (nodeId: string, content: string) => void;
   setNodeAccent: (nodeId: string, accent: string | undefined) => void;
   setNodeField: (nodeId: string, field: string, value: unknown) => void;
+  addCustomField: (nodeId: string, field: import('../components/CanvasNode').CustomField) => void;
+  updateCustomField: (nodeId: string, fieldId: string, value: any) => void;
+  removeCustomField: (nodeId: string, fieldId: string) => void;
+  extractNodeText: (nodeId: string, parts: { extracted: string; remaining: string }, type: string) => void;
 
   // ---- Ink Layer ----
   inkMode: boolean;
@@ -270,6 +279,8 @@ type CanvasState = {
     nodeId: string,
     topic: { id: string; type: string; title: string; content: string },
   ) => void;
+  saveTemplate: (nodeIds: string[], name: string, description?: string) => void;
+  spawnTemplate: (templateId: string, position: { x: number, y: number }) => void;
   /** The document open in the fullscreen writing room; null = closed. */
   docRoomId: string | null;
   openDocRoom: (docId: string | null) => void;
@@ -1395,6 +1406,88 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
       });
     },
 
+    saveTemplate: (nodeIds, name, description) => {
+      const doc = get().document;
+      
+      const nodes = doc.nodes.filter(n => nodeIds.includes(n.id));
+      const edges = doc.edges.filter(e => nodeIds.includes(e.source) && nodeIds.includes(e.target));
+      const wires = doc.wires.filter(w => nodeIds.includes(w.source) && nodeIds.includes(w.target));
+      
+      if (nodes.length === 0) {
+        set({ toast: { message: 'No nodes selected to save as template.' } });
+        return;
+      }
+
+      const template = {
+        id: createId('tpl'),
+        name,
+        // description is optional in the schema: an explicit undefined is
+        // not assignable under exactOptionalPropertyTypes
+        ...(description ? { description } : {}),
+        nodes,
+        edges,
+        wires,
+      };
+
+      tryOp(() => {
+        const templates = [...(doc.templates ?? []), template];
+        return { ...doc, templates };
+      });
+      set({ toast: { message: `Template "${name}" saved.` } });
+    },
+
+    spawnTemplate: (templateId, position) => {
+      const doc = get().document;
+      const template = doc.templates?.find(t => t.id === templateId);
+      if (!template) return;
+      if (template.nodes.length === 0) return;
+      
+      const idMap = new Map<string, string>();
+      // anchor on the template's TOP-LEFT corner, not on nodes[0] -- the
+      // first node in the array is rarely the top-left one, and using it
+      // would drop the copy at a surprising offset from the cursor
+      const origin = {
+        x: Math.min(...template.nodes.map((node) => node.position.x)),
+        y: Math.min(...template.nodes.map((node) => node.position.y)),
+      };
+
+      const newNodes = template.nodes.map((node) => {
+        const newId = createId('node');
+        idMap.set(node.id, newId);
+        return {
+          ...node,
+          id: newId,
+          position: {
+            x: position.x + (node.position.x - origin.x),
+            y: position.y + (node.position.y - origin.y),
+          },
+        };
+      });
+
+      const newEdges = template.edges.map((edge) => ({
+        ...edge,
+        id: createId('edge'),
+        source: idMap.get(edge.source)!,
+        target: idMap.get(edge.target)!,
+      }));
+
+      const newWires = template.wires.map((wire) => ({
+        ...wire,
+        id: createId('wire'),
+        source: idMap.get(wire.source)!,
+        target: idMap.get(wire.target)!,
+      }));
+      
+      tryOp(() => {
+        return {
+          ...doc,
+          nodes: [...doc.nodes, ...newNodes],
+          edges: [...doc.edges, ...newEdges],
+          wires: [...doc.wires, ...newWires],
+        };
+      });
+    },
+
     docRoomId: null,
     openDocRoom: (docId) => set({ docRoomId: docId }),
 
@@ -1509,6 +1602,89 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
       });
     },
 
+    addCustomField: (nodeId, field) => {
+      const doc = get().document;
+      commit({
+        ...doc,
+        nodes: doc.nodes.map((node) => {
+          if (node.id !== nodeId) return node;
+          const fields = node.data.fields || [];
+          return { ...node, data: { ...node.data, fields: [...fields, field] } };
+        }),
+      });
+    },
+
+    updateCustomField: (nodeId, fieldId, value) => {
+      const doc = get().document;
+      commit({
+        ...doc,
+        nodes: doc.nodes.map((node) => {
+          if (node.id !== nodeId) return node;
+          const fields = node.data.fields || [];
+          return { 
+            ...node, 
+            data: { 
+              ...node.data, 
+              fields: fields.map(f => f.id === fieldId ? { ...f, value } : f) 
+            } 
+          };
+        }),
+      });
+    },
+
+    removeCustomField: (nodeId, fieldId) => {
+      const doc = get().document;
+      commit({
+        ...doc,
+        nodes: doc.nodes.map((node) => {
+          if (node.id !== nodeId) return node;
+          const fields = node.data.fields || [];
+          return { 
+            ...node, 
+            data: { 
+              ...node.data, 
+              fields: fields.filter(f => f.id !== fieldId) 
+            } 
+          };
+        }),
+      });
+    },
+
+    extractNodeText: (nodeId, parts, type) => {
+      const state = get();
+      const doc = state.document;
+      const sourceNode = doc.nodes.find(n => n.id === nodeId);
+      if (!sourceNode) return;
+
+      const position = findFreePosition(
+        doc.nodes.map(nodeRect), 
+        { x: sourceNode.position.x + 350, y: sourceNode.position.y }, 
+        { width: 300, height: 200 }
+      );
+      
+      const newNode = spawnNode(type || sourceNode.type || 'note', position);
+      newNode.data.content = parts.extracted;
+
+      let nextDoc = doc;
+      try {
+        nextDoc = addNode(nextDoc, newNode);
+        nextDoc = {
+          ...nextDoc,
+          nodes: nextDoc.nodes.map((n) =>
+            n.id === nodeId ? { ...n, data: { ...n.data, content: parts.remaining } } : n
+          ),
+        };
+        nextDoc = addWire(nextDoc, {
+          source: sourceNode.id,
+          sourcePort: 'out',
+          target: newNode.id,
+          targetPort: 'in',
+        });
+        commit(nextDoc);
+      } catch (err) {
+        set({ toast: { message: `Extraction failed: ${err instanceof Error ? err.message : String(err)}` } });
+      }
+    },
     setStoryTime: (nodeId, storyTime) => {
       if (storyTime !== null && !Number.isFinite(storyTime)) return;
       const doc = get().document;

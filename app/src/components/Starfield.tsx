@@ -42,9 +42,12 @@ function generateMagTile(
   aMin: number,
   aMax: number,
 ): string {
-  let circles = '';
+  let rects = '';
   const add = (cx: number, cy: number, r: number, color: string, alpha: string) => {
-    circles += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(2)}" fill="${color}" opacity="${alpha}"/>`;
+    const size = Math.max(1, Math.round(r * 2));
+    const x = Math.round(cx - size / 2);
+    const y = Math.round(cy - size / 2);
+    rects += `<rect x="${x}" y="${y}" width="${size}" height="${size}" fill="${color}" opacity="${alpha}"/>`;
   };
   for (let i = 0; i < count; i++) {
     const cx = Math.random() * w;
@@ -58,7 +61,7 @@ function generateMagTile(
     if (cy - r < 0) add(cx, cy + h, r, color, alpha);
     if (cy + r > h) add(cx, cy - h, r, color, alpha);
   }
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">${circles}</svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">${rects}</svg>`;
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
@@ -188,10 +191,10 @@ export function Starfield() {
       ))}
       {/* layer 13: the work grid -- 1px dots, 24px pitch, barely there */}
       <Background
-        color="rgba(255,255,255,0.045)"
-        variant={BackgroundVariant.Dots}
-        gap={24}
-        size={1}
+        color="rgba(255,255,255,0.06)"
+        variant={BackgroundVariant.Lines}
+        gap={48}
+        lineWidth={1}
       />
     </>
   );

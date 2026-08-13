@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Plus, ExternalLink, Trash2 } from 'lucide-react';
 import { useCanvasStore } from '../../store/canvasStore';
 import { LazyRichText } from '../RichText';
-import type { FaceProps } from './index';
+import { EXTRACT_TYPES, type FaceProps } from './index';
 
 export interface BrainstormTopic {
   id: string;
@@ -47,6 +47,7 @@ export function BrainstormFace({ nodeId, content }: FaceProps) {
     store.setNodeField(nodeId, 'topics', topics.filter(t => t.id !== id));
   };
 
+  const extractNodeText = useCanvasStore((state) => state.extractNodeText);
   return (
     <div className="canvas-node-body brainstorm-face">
       <div className="brainstorm-dump">
@@ -55,6 +56,8 @@ export function BrainstormFace({ nodeId, content }: FaceProps) {
           onChange={(html) => store.setNodeContent(nodeId, html)}
           placeholder="Dump thoughts, ideas, and brain flow here..."
           variant="inline"
+          onExtract={(parts, type) => extractNodeText(nodeId, parts, type || 'note')}
+          extractTypes={EXTRACT_TYPES}
         />
       </div>
       

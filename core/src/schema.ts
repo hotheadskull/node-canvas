@@ -24,6 +24,35 @@ const SizeSchema = z.object({
   height: z.number().positive().finite(),
 });
 
+/** The twelve field kinds a user can add to any node (design direction
+ * 2026-08-12 §4). `reference` holds a node id; `multiselect` holds a list. */
+export const CUSTOM_FIELD_TYPES = [
+  'text',
+  'longtext',
+  'number',
+  'boolean',
+  'date',
+  'dropdown',
+  'multiselect',
+  'color',
+  'image',
+  'url',
+  'rating',
+  'reference',
+] as const;
+
+// Custom fields are a CORE feature, not pack payload: any node can grow the
+// structure its user invents. Validated here so a hand-edited or foreign
+// file can never smuggle a malformed field past load (I9).
+export const CustomFieldSchema = z.object({
+  id: z.string().min(1),
+  name: z.string(),
+  type: z.enum(CUSTOM_FIELD_TYPES),
+  value: z.union([z.string(), z.number(), z.boolean(), z.array(z.string())]),
+  /** dropdown / multiselect choices. */
+  options: z.array(z.string()).optional(),
+});
+
 // data is passthrough: pack node types store their payloads here without the
 // core schema ever needing to know about them (I8).
 const NodeDataSchema = z
@@ -32,6 +61,7 @@ const NodeDataSchema = z
     content: z.string().optional(),
     mediaUrl: z.string().optional(),
     mediaType: z.string().optional(),
+    fields: z.array(CustomFieldSchema).optional(),
   })
   .passthrough();
 
@@ -95,6 +125,16 @@ export const StrokeSchema = z.object({
   points: z.array(z.tuple([z.number(), z.number(), z.number()])), // x, y, pressure
 });
 
+export const TemplateSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  description: z.string().optional(),
+  icon: z.string().optional(),
+  nodes: z.array(NodeSchema),
+  edges: z.array(PlainEdgeSchema),
+  wires: z.array(WireSchema),
+});
+
 export const DocumentSchema = z
   .object({
     schemaVersion: z.literal(DOCUMENT_SCHEMA_VERSION),
@@ -107,6 +147,7 @@ export const DocumentSchema = z
     wires: z.array(WireSchema),
     assemblies: z.array(AssemblySchema),
     ink: z.array(StrokeSchema).optional(),
+    templates: z.array(TemplateSchema).optional(),
   })
   .superRefine((doc, ctx) => {
     const nodeIds = new Set<string>();
@@ -201,6 +242,9 @@ export type PlainEdge = z.infer<typeof PlainEdgeSchema>;
 export type DataWire = z.infer<typeof WireSchema>;
 export type Assembly = z.infer<typeof AssemblySchema>;
 export type Stroke = z.infer<typeof StrokeSchema>;
+export type CustomFieldType = (typeof CUSTOM_FIELD_TYPES)[number];
+export type CustomField = z.infer<typeof CustomFieldSchema>;
+export type CanvasTemplate = z.infer<typeof TemplateSchema>;
 export type CanvasDocument = z.infer<typeof DocumentSchema>;
 
 export type ParseResult =

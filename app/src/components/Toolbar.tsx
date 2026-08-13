@@ -15,6 +15,7 @@ import { useReactFlow } from '@xyflow/react';
 import {
   Boxes,
   Combine,
+  Copy,
   Filter,
   Frame,
   GitBranch,
@@ -351,6 +352,22 @@ export function Toolbar({
             >
               <Boxes size={15} aria-hidden />
               <span>Group {selectedCount}</span>
+            </button>
+          )}
+          {selectedCount >= 1 && (
+            <button
+              className="toolbar-button"
+              title="Save selection as a Template"
+              onClick={() => {
+                const name = prompt('Name for this template:', 'My Template');
+                if (name) {
+                  const nodeIds = getNodes().filter(n => n.selected).map(n => n.id);
+                  useCanvasStore.getState().saveTemplate(nodeIds, name);
+                }
+              }}
+            >
+              <Copy size={15} aria-hidden />
+              <span>Save Template</span>
             </button>
           )}
           {mergeableCount >= 2 && (

@@ -7,7 +7,7 @@
 import { useMemo } from 'react';
 import { useCanvasStore } from '../../store/canvasStore';
 import { LazyRichText } from '../RichText';
-import type { FaceProps } from './index';
+import { EXTRACT_TYPES, type FaceProps } from './index';
 
 function useTitleOf() {
   const nodes = useCanvasStore((state) => state.document.nodes);
@@ -21,6 +21,7 @@ function useTitleOf() {
 export function PlaceFace({ nodeId, content }: FaceProps) {
   const document = useCanvasStore((state) => state.document);
   const setNodeContent = useCanvasStore((state) => state.setNodeContent);
+  const extractNodeText = useCanvasStore((state) => state.extractNodeText);
   const titleOf = useTitleOf();
 
   // contains: places wired INTO this one; within: this place's identity
@@ -52,6 +53,8 @@ export function PlaceFace({ nodeId, content }: FaceProps) {
         onChange={(html) => setNodeContent(nodeId, html)}
         placeholder="What is this place…"
         variant="inline"
+        onExtract={(parts, type) => extractNodeText(nodeId, parts, type || 'note')}
+        extractTypes={EXTRACT_TYPES}
       />
       {contains.length > 0 && (
         <div className="face-chip-band nodrag" data-contains-band>
@@ -70,6 +73,7 @@ export function PlaceFace({ nodeId, content }: FaceProps) {
 export function ThingFace({ nodeId, content }: FaceProps) {
   const document = useCanvasStore((state) => state.document);
   const setNodeContent = useCanvasStore((state) => state.setNodeContent);
+  const extractNodeText = useCanvasStore((state) => state.extractNodeText);
   const titleOf = useTitleOf();
 
   const holders = useMemo(
@@ -91,6 +95,8 @@ export function ThingFace({ nodeId, content }: FaceProps) {
         onChange={(html) => setNodeContent(nodeId, html)}
         placeholder="What is it, and why does it matter…"
         variant="inline"
+        onExtract={(parts, type) => extractNodeText(nodeId, parts, type || 'note')}
+        extractTypes={EXTRACT_TYPES}
       />
       {holders.length > 0 && (
         <div className="face-chip-band nodrag" data-held-band>
@@ -116,6 +122,7 @@ function excerptOf(html: string, max = 90): string {
 export function QuestionFace({ nodeId, content }: FaceProps) {
   const document = useCanvasStore((state) => state.document);
   const setNodeContent = useCanvasStore((state) => state.setNodeContent);
+  const extractNodeText = useCanvasStore((state) => state.extractNodeText);
   const titleOf = useTitleOf();
 
   const answer = useMemo(() => {
@@ -138,6 +145,8 @@ export function QuestionFace({ nodeId, content }: FaceProps) {
         onChange={(html) => setNodeContent(nodeId, html)}
         placeholder="What are you asking…"
         variant="inline"
+        onExtract={(parts, type) => extractNodeText(nodeId, parts, type || 'note')}
+        extractTypes={EXTRACT_TYPES}
       />
       {answer ? (
         <div className="question-answer nodrag" data-answered>

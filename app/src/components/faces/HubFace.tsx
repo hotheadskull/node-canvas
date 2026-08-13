@@ -9,12 +9,13 @@ import { DATA_KIND_STYLES, getPort, type DataKind } from '@node-canvas/core';
 import { useMemo } from 'react';
 import { useCanvasStore } from '../../store/canvasStore';
 import { LazyRichText } from '../RichText';
-import type { FaceProps } from './index';
+import { EXTRACT_TYPES, type FaceProps } from './index';
 
 type RosterEntry = { nodeId: string; title: string; kind: DataKind };
 
 export function HubFace({ nodeId, content }: FaceProps) {
   const setNodeContent = useCanvasStore((state) => state.setNodeContent);
+  const extractNodeText = useCanvasStore((state) => state.extractNodeText);
   const document = useCanvasStore((state) => state.document);
 
   const { roster, subject } = useMemo(() => {
@@ -57,6 +58,8 @@ export function HubFace({ nodeId, content }: FaceProps) {
         onChange={(html) => setNodeContent(nodeId, html)}
         placeholder="What is this collection for?"
         variant="inline"
+        onExtract={(parts, type) => extractNodeText(nodeId, parts, type || 'note')}
+        extractTypes={EXTRACT_TYPES}
       />
       <div className="hub-roster nodrag" data-hub-roster>
         {roster.length === 0 ? (

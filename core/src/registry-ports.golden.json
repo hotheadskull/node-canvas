@@ -1,13 +1,4 @@
 {
-  "brainstorm": [
-    {
-      "id": "ideas-out",
-      "direction": "give",
-      "dataKind": "text",
-      "label": "Ideas",
-      "defaultVisible": true
-    }
-  ],
   "title": [
     {
       "id": "thread-out",
@@ -41,6 +32,18 @@
       "capacity": "many"
     }
   ],
+  "reference": [],
+  "sequence": [],
+  "decision": [],
+  "condition": [],
+  "and": [],
+  "or": [],
+  "not": [],
+  "compare": [],
+  "merge": [],
+  "split": [],
+  "transform": [],
+  "filter": [],
   "note": [
     {
       "id": "text-out",
@@ -56,6 +59,15 @@
       "label": "Notes",
       "defaultVisible": false,
       "capacity": "many"
+    }
+  ],
+  "brainstorm": [
+    {
+      "id": "ideas-out",
+      "direction": "give",
+      "dataKind": "text",
+      "label": "Ideas",
+      "defaultVisible": true
     }
   ],
   "document": [
@@ -92,16 +104,6 @@
       "defaultVisible": false,
       "capacity": "many"
     },
-    {
-      "id": "notes-in",
-      "direction": "take",
-      "dataKind": "text",
-      "label": "Notes",
-      "defaultVisible": false,
-      "capacity": "many"
-    }
-  ],
-  "image": [
     {
       "id": "notes-in",
       "direction": "take",
@@ -279,6 +281,16 @@
       "label": "Identity",
       "defaultVisible": true
     },
+    {
+      "id": "notes-in",
+      "direction": "take",
+      "dataKind": "text",
+      "label": "Notes",
+      "defaultVisible": false,
+      "capacity": "many"
+    }
+  ],
+  "image": [
     {
       "id": "notes-in",
       "direction": "take",

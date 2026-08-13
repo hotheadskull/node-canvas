@@ -23,11 +23,29 @@ import { TitleFace } from './TitleFace';
 import { ManuscriptFace, PassageFace, SectionFace } from './WritingFaces';
 import { BrainstormFace } from './BrainstormFace';
 
+import { ReferenceFace } from './ReferenceFace';
+import { SequenceFace, DecisionFace, ConditionFace, AndFace, OrFace, NotFace, CompareFace, MergeFace, SplitFace, TransformFace, FilterFace } from './LogicFaces';
+
 export type FaceProps = {
   nodeId: string;
   title: string;
   content: string;
 };
+
+/** What "Extract" offers on selected prose (design direction §13: pull a
+ * Character, Location, Theme, Event or Scene out of a big note WITHOUT
+ * removing the source text). One list so every face offers the same verbs;
+ * every entry must be a REGISTERED type or the extraction spawns nothing. */
+export const EXTRACT_TYPES = [
+  { type: 'note', label: 'Note' },
+  { type: 'section', label: 'Scene / Section' },
+  { type: 'person', label: 'Character / Person' },
+  { type: 'place', label: 'Location' },
+  { type: 'thing', label: 'Object' },
+  { type: 'event', label: 'Event' },
+  { type: 'question', label: 'Question' },
+  { type: 'source', label: 'Source' },
+];
 
 export const NODE_FACES: Record<string, ComponentType<FaceProps>> = {
   title: TitleFace,
@@ -47,6 +65,18 @@ export const NODE_FACES: Record<string, ComponentType<FaceProps>> = {
   question: QuestionFace,
   hub: HubFace,
   source: SourceFace,
+  reference: ReferenceFace,
+  sequence: SequenceFace,
+  decision: DecisionFace,
+  condition: ConditionFace,
+  and: AndFace,
+  or: OrFace,
+  not: NotFace,
+  compare: CompareFace,
+  merge: MergeFace,
+  split: SplitFace,
+  transform: TransformFace,
+  filter: FilterFace,
 };
 
 export function faceFor(coreType: string): ComponentType<FaceProps> {

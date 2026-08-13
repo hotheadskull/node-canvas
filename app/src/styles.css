@@ -241,10 +241,10 @@ html, body, #root {
   clip-path: none;
 }
 
-.canvas-node-glyph { color: var(--kind); flex: none; }
+.canvas-node-glyph { color: #05060d; flex: none; }
 .canvas-node-kind {
   font-size: 8.5px; letter-spacing: 0.15em; text-transform: uppercase;
-  font-weight: 500; color: var(--kind); white-space: nowrap;
+  font-weight: 700; color: #05060d; white-space: nowrap;
 }
 /* Content column: clips to the card's rounded corners so the card itself
    can keep overflow visible for the tab, stars, and floating labels. */
@@ -395,6 +395,39 @@ html, body, #root {
   background: #f0c050;
   border-color: transparent;
   box-shadow: 0 0 8px rgba(240, 192, 80, 0.7);
+}
+
+/* ---------- UNIVERSAL PORTS (design direction 2026-08-12 §2) ----------
+   An ordinary node shows ONE inlet and ONE outlet, not a stack of typed
+   slots: "the connection itself can communicate the relationship". A
+   rounded tab in the plate's own hue, quiet at rest, lit on hover so the
+   drag target is obvious. */
+.universal-port.react-flow__handle {
+  width: 9px; height: 22px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--kind) 26%, #0b0d20);
+  border: 1px solid color-mix(in srgb, var(--kind) 70%, transparent);
+  box-shadow: 0 0 0 2px rgba(7, 9, 22, 0.9);
+  /* above the plate frame, like the typed slots (user, 2026-08-10) */
+  z-index: 9;
+  transform: translate(-50%, -50%);
+  transition: background 0.12s ease, box-shadow 0.12s ease;
+}
+.universal-port.react-flow__handle:hover,
+.universal-port.react-flow__handle.connectingto {
+  background: var(--kind);
+  box-shadow:
+    0 0 0 2px rgba(7, 9, 22, 0.9),
+    0 0 10px color-mix(in srgb, var(--kind) 75%, transparent);
+}
+/* Anchor-only typed handles: mounted so React Flow can render the wires
+   that target them, but never drawn -- the universal port is the only
+   connector the standard plate shows. Must stay in layout (a display:none
+   handle has no position and the edge lands at 0,0). */
+.port-star.is-anchor-only.react-flow__handle {
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: none;
 }
 
 /* ---------- Port SLOTS in the gutters (pt2 handoff §3) ----------
@@ -2152,3 +2185,63 @@ html, body, #root {
   color: var(--text-primary);
   outline: none;
 }
+
+/* Reference Node */
+.canvas-node.type-reference {
+  background: var(--bg-surface);
+  border: 1px solid var(--kind);
+}
+.canvas-node.type-reference .canvas-node-header,
+.canvas-node.type-reference .canvas-node-fields {
+  display: none;
+}
+.canvas-node-reference {
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+.reference-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--kind);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 8px;
+}
+.reference-icon {
+  opacity: 0.8;
+}
+.reference-select {
+  background: transparent; border: none; color: inherit;
+  font: inherit; outline: none; cursor: pointer;
+  appearance: none;
+}
+.reference-select option { background: #111424; color: #fff; }
+
+/* Logic Nodes */
+.canvas-node-logic {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+}
+.logic-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--kind);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.logic-title {
+  opacity: 0.9;
+}
+

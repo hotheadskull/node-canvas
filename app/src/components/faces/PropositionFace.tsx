@@ -5,10 +5,11 @@
 
 import { useCanvasStore } from '../../store/canvasStore';
 import { LazyRichText } from '../RichText';
-import type { FaceProps } from './index';
+import { EXTRACT_TYPES, type FaceProps } from './index';
 
 export function PropositionFace({ nodeId, content }: FaceProps) {
   const setNodeContent = useCanvasStore((state) => state.setNodeContent);
+  const extractNodeText = useCanvasStore((state) => state.extractNodeText);
   const setVerseRef = useCanvasStore((state) => state.setVerseRef);
   const verseRef = useCanvasStore((state) => {
     const node = state.document.nodes.find((candidate) => candidate.id === nodeId);
@@ -31,6 +32,8 @@ export function PropositionFace({ nodeId, content }: FaceProps) {
         onChange={(html) => setNodeContent(nodeId, html)}
         placeholder="One assertion of the text…"
         variant="inline"
+        onExtract={(parts, type) => extractNodeText(nodeId, parts, type || 'note')}
+        extractTypes={EXTRACT_TYPES}
       />
     </div>
   );

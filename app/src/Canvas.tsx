@@ -57,6 +57,8 @@ import { Tutorial } from './components/Tutorial';
 import { WireEdge } from './components/WireEdge';
 import { InkLayer } from './components/InkLayer';
 import { InkPalette } from './components/InkPalette';
+import { delegate as tippyDelegate } from 'tippy.js';
+import 'tippy.js/dist/tippy.css';
 import { firstCompatibleTake, PLAIN_HANDLES, useCanvasStore } from './store/canvasStore';
 import { computeHarness, type FlatHarness } from './harnessRouting';
 
@@ -292,6 +294,45 @@ export function Canvas() {
       window.removeEventListener('paste', onPaste);
     };
   }, [screenToFlowPosition]);
+
+  useEffect(() => {
+    // Hover preview for smart links (design direction §9): peek at a
+    // referenced node without leaving the writing. `window.document` is
+    // explicit -- `document` in this module is the CANVAS document.
+    const escapeHtml = (text: string) =>
+      text.replace(
+        /[&<>"']/g,
+        (char) =>
+          ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]!,
+      );
+    const instances = tippyDelegate(window.document.body, {
+      target: '.mention-chip',
+      theme: 'light',
+      delay: [200, 0],
+      allowHTML: true,
+      onShow(instance) {
+        const id = instance.reference.getAttribute('data-id');
+        const node = useCanvasStore.getState().document.nodes.find((entry) => entry.id === id);
+        if (!node) {
+          instance.setContent('Node not found');
+          return;
+        }
+        const def = getNodeDef(node.type);
+        const body = node.data.content
+          ? node.data.content.replace(/<[^>]*>?/gm, '').slice(0, 140)
+          : 'No content yet';
+        // titles and prose are user text: escape before it becomes markup
+        instance.setContent(`
+          <div class="mention-preview">
+            <span class="mention-preview-kind">${escapeHtml(def?.labels.universal ?? node.type)}</span>
+            <strong>${escapeHtml(node.data.title || 'Untitled')}</strong>
+            <div class="mention-preview-body">${escapeHtml(body)}</div>
+          </div>
+        `);
+      },
+    });
+    return () => instances.destroy();
+  }, []);
 
   useEffect(() => {
     if (!flowReady) return;
@@ -577,6 +618,18 @@ export function Canvas() {
       }
     },
     [screenToFlowPosition, spawnAt, getViewport, setCenter],
+  );
+
+  const pickTemplate = useCallback(
+    (templateId: string) => {
+      const center = screenToFlowPosition({
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2,
+      });
+      useCanvasStore.getState().spawnTemplate(templateId, center);
+      setMenuOpen(false);
+    },
+    [screenToFlowPosition],
   );
 
   const selectedIds = useMemo(
@@ -984,7 +1037,7 @@ export function Canvas() {
       <Tutorial />
       <TipsPanel />
       <InkPalette />
-      {menuOpen && <AddNodeMenu onPick={pickType} onClose={() => setMenuOpen(false)} />}
+      {menuOpen && <AddNodeMenu onPick={pickType} onPickTemplate={pickTemplate} onClose={() => setMenuOpen(false)} />}
     </div>
   );
 }

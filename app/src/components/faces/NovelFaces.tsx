@@ -14,10 +14,11 @@ import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useCanvasStore } from '../../store/canvasStore';
 import { LazyRichText } from '../RichText';
-import type { FaceProps } from './index';
+import { EXTRACT_TYPES, type FaceProps } from './index';
 
 export function PlantFace({ nodeId, content }: FaceProps) {
   const setNodeContent = useCanvasStore((state) => state.setNodeContent);
+  const extractNodeText = useCanvasStore((state) => state.extractNodeText);
   const document = useCanvasStore((state) => state.document);
   const payoffs = useMemo(() => payoffsOf(document, nodeId), [document, nodeId]);
   return (
@@ -27,6 +28,8 @@ export function PlantFace({ nodeId, content }: FaceProps) {
         onChange={(html) => setNodeContent(nodeId, html)}
         placeholder="What are you setting up?"
         variant="inline"
+        onExtract={(parts, type) => extractNodeText(nodeId, parts, type || 'note')}
+        extractTypes={EXTRACT_TYPES}
       />
       <div className="pair-list nodrag" data-pair-list>
         {payoffs.length === 0 ? (
@@ -48,6 +51,7 @@ export function PlantFace({ nodeId, content }: FaceProps) {
 
 export function PayoffFace({ nodeId, content }: FaceProps) {
   const setNodeContent = useCanvasStore((state) => state.setNodeContent);
+  const extractNodeText = useCanvasStore((state) => state.extractNodeText);
   const document = useCanvasStore((state) => state.document);
   const plants = useMemo(() => plantsResolvedBy(document, nodeId), [document, nodeId]);
   return (
@@ -57,6 +61,8 @@ export function PayoffFace({ nodeId, content }: FaceProps) {
         onChange={(html) => setNodeContent(nodeId, html)}
         placeholder="The moment it lands…"
         variant="inline"
+        onExtract={(parts, type) => extractNodeText(nodeId, parts, type || 'note')}
+        extractTypes={EXTRACT_TYPES}
       />
       <div className="pair-list nodrag" data-pair-list>
         {plants.length === 0 ? (
@@ -78,6 +84,7 @@ export function PayoffFace({ nodeId, content }: FaceProps) {
 
 export function EventFace({ nodeId, content }: FaceProps) {
   const setNodeContent = useCanvasStore((state) => state.setNodeContent);
+  const extractNodeText = useCanvasStore((state) => state.extractNodeText);
   const setStoryTime = useCanvasStore((state) => state.setStoryTime);
   const document = useCanvasStore((state) => state.document);
   const storyTime = useCanvasStore((state) => {
@@ -121,6 +128,8 @@ export function EventFace({ nodeId, content }: FaceProps) {
         onChange={(html) => setNodeContent(nodeId, html)}
         placeholder="What happens…"
         variant="inline"
+        onExtract={(parts, type) => extractNodeText(nodeId, parts, type || 'note')}
+        extractTypes={EXTRACT_TYPES}
       />
       {involved.length > 0 && (
         <p className="event-involves nodrag" data-event-involves>
@@ -156,6 +165,7 @@ export function EventFace({ nodeId, content }: FaceProps) {
 
 export function PersonFace({ nodeId, content }: FaceProps) {
   const setNodeContent = useCanvasStore((state) => state.setNodeContent);
+  const extractNodeText = useCanvasStore((state) => state.extractNodeText);
   const setNodeField = useCanvasStore((state) => state.setNodeField);
   const document = useCanvasStore((state) => state.document);
   
@@ -212,6 +222,8 @@ export function PersonFace({ nodeId, content }: FaceProps) {
         onChange={(html) => setNodeContent(nodeId, html)}
         placeholder="Who are they?"
         variant="inline"
+        onExtract={(parts, type) => extractNodeText(nodeId, parts, type || 'note')}
+        extractTypes={EXTRACT_TYPES}
       />
       <div className="person-fields">
         {field('Role', role, 'role')}

@@ -12,11 +12,12 @@ import { useMemo, useState } from 'react';
 import { useCanvasStore } from '../../store/canvasStore';
 import { LazyRichText } from '../RichText';
 import { SplitPanel } from '../SplitPanel';
-import type { FaceProps } from './index';
+import { EXTRACT_TYPES, type FaceProps } from './index';
 
 export function ClaimFace({ nodeId, content }: FaceProps) {
   const document = useCanvasStore((state) => state.document);
   const setNodeContent = useCanvasStore((state) => state.setNodeContent);
+  const extractNodeText = useCanvasStore((state) => state.extractNodeText);
   const [splitOpen, setSplitOpen] = useState(false);
 
   const titleOf = (id: string) => {
@@ -46,6 +47,8 @@ export function ClaimFace({ nodeId, content }: FaceProps) {
         onChange={(html) => setNodeContent(nodeId, html)}
         placeholder="State the claim…"
         variant="inline"
+        onExtract={(parts, type) => extractNodeText(nodeId, parts, type || 'note')}
+        extractTypes={EXTRACT_TYPES}
       />
 
       <div className="claim-rows nodrag">

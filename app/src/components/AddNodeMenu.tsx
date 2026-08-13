@@ -14,6 +14,7 @@ import {
   getNodeDef,
   NODE_TYPE_DEFS,
   type CanvasMode,
+  type CanvasTemplate,
   type NodeTypeDef,
   type PortDef,
 } from '@node-canvas/core';
@@ -91,8 +92,11 @@ function portHue(port: PortDef): string {
   return DATA_KIND_STYLES[port.dataKind]?.hue ?? DATA_KIND_STYLES.any.hue;
 }
 
+import { useCanvasStore } from '../store/canvasStore';
+
 type Props = {
   onPick: (type: string) => void;
+  onPickTemplate?: (id: string) => void;
   onClose: () => void;
   /** Selection size (for the Group shortcut tile); omit = 0. */
   selectedCount?: number;
@@ -136,7 +140,13 @@ function Tile({
   );
 }
 
-export function AddNodeMenu({ onPick, onClose, selectedCount = 0, onGather }: Props) {
+/** Stable empty list: a selector that mints `[]` on every call makes
+ * useSyncExternalStore see a new snapshot forever and React bails out with
+ * "Maximum update depth exceeded" (it hung this menu outright). */
+const NO_TEMPLATES: readonly CanvasTemplate[] = [];
+
+export function AddNodeMenu({ onPick, onPickTemplate, onClose, selectedCount = 0, onGather }: Props) {
+  const templates = useCanvasStore((state) => state.document.templates ?? NO_TEMPLATES);
   const [previewType, setPreviewType] = useState<string>('note');
   const groups = useMemo(() => {
     // families first; anything registered but not yet in a family (a new
@@ -247,6 +257,27 @@ export function AddNodeMenu({ onPick, onClose, selectedCount = 0, onGather }: Pr
               </div>
             </section>
           ))}
+          {templates.length > 0 && (
+            <section key="Templates">
+              <p className="add-menu-group-title">Templates</p>
+              <div className="sheet-grid">
+                {templates.map((template) => (
+                  <button
+                    key={template.id}
+                    className={`sheet-tile`}
+                    style={{ ['--tile-hue' as string]: '#10b981' }} // emerald for templates
+                    onClick={() => {
+                      onPickTemplate?.(template.id);
+                      onClose();
+                    }}
+                  >
+                    <Layers size={17} aria-hidden className="sheet-tile-icon" />
+                    <span className="sheet-tile-label">{template.name}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       </div>
       {preview && (
