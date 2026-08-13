@@ -2532,3 +2532,118 @@ html, body, #root {
   margin: 0 0 6px; font-size: 11px; line-height: 1.5;
   color: var(--obs-dimmer);
 }
+
+/* ==========================================================================
+   RIGGED PLATES (user reference image, 2026-08-12: "colors bright like
+   this, and a pixelated rigged feel")
+   Terminal-hardware voice: near-black bodies so the hue reads as NEON,
+   chamfered corners, a dither strip under the header band, fields drawn as
+   outlined boxes with their label sitting on the border, and a chip row
+   naming what the node takes and gives. No blur, no soft glow -- every
+   edge is hard, the way a pixel display has no choice but to be.
+   ========================================================================== */
+
+.canvas-node {
+  /* near-black: the colour has to sit on darkness to read as neon */
+  background: #07080f;
+  border: 2px solid var(--kind);
+  border-radius: 0;
+  /* Chamfered on THREE corners -- the bottom-right stays square because
+     React Flow's resize handle lives exactly there, and clip-path clips
+     its descendants: cutting that corner deleted the handle's hit area and
+     made every node un-resizable. Caught by the resize spec. The
+     asymmetry suits the rigged look anyway. */
+  clip-path: polygon(
+    9px 0, calc(100% - 9px) 0, 100% 9px,
+    100% 100%, 9px 100%, 0 calc(100% - 9px), 0 9px
+  );
+  box-shadow: 6px 6px 0 -1px rgba(0, 0, 0, 0.9);
+}
+.canvas-node.is-selected {
+  border-color: #ffffff;
+  box-shadow: 6px 6px 0 -1px rgba(0, 0, 0, 0.9), 0 0 0 2px var(--kind);
+}
+
+/* the band: flat, full-strength, dark ink -- no gradient */
+.plate-header {
+  background: var(--kind);
+  border-radius: 0;
+  padding: 5px 9px;
+  min-height: 24px;
+}
+.plate-header .canvas-node-kind {
+  font-family: var(--font-mono);
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.16em;
+}
+/* takes ▸ gives, in the corner of the band */
+.plate-shape {
+  font-family: var(--font-mono); font-size: 9.5px; font-weight: 700;
+  color: rgba(10, 13, 28, 0.78); letter-spacing: 0.06em;
+}
+.plate-shape b { font-weight: 700; margin: 0 1px; }
+
+/* DITHER: the 2px checkerboard that reads as a pixel display */
+.plate-header::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -4px; height: 4px;
+  background:
+    repeating-linear-gradient(90deg,
+      var(--kind) 0 2px, transparent 2px 4px),
+    repeating-linear-gradient(90deg,
+      transparent 0 2px, var(--kind) 2px 4px);
+  background-size: 4px 2px, 4px 2px;
+  background-position: 0 0, 0 2px;
+  background-repeat: repeat-x, repeat-x;
+  opacity: 0.5; pointer-events: none;
+}
+.plate-header { position: relative; }
+/* the spine is now the border; drop the separate stripe */
+.plate-spine { display: none; }
+
+/* FIELDS as outlined boxes, label riding the top border */
+.node-field-row,
+.person-field-row {
+  position: relative;
+  display: block;
+  margin: 11px 9px 0;
+  padding: 7px 8px 5px;
+  border: 1px solid color-mix(in srgb, var(--kind) 45%, #07080f);
+  background: transparent;
+}
+.node-field-label,
+.person-field-label {
+  position: absolute; top: -6px; left: 6px;
+  padding: 0 4px; background: #07080f;
+  font-family: var(--font-mono); font-size: 8px; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--kind) 78%, white);
+}
+.node-field-input,
+.person-field-input {
+  width: 100%; border: none; background: transparent;
+  color: var(--text); font-family: var(--font-ui); font-size: 12px;
+  padding: 0;
+}
+.node-field-input:focus, .person-field-input:focus { outline: none; }
+
+/* the chip row: what plugs in, and what comes out */
+.plate-chips {
+  display: flex; flex-wrap: wrap; gap: 5px 9px;
+  padding: 8px 9px 7px;
+}
+.plate-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--font-mono); font-size: 8.5px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--chip) 72%, white);
+}
+.plate-chip i {
+  width: 8px; height: 8px; flex: none;
+  background: var(--chip);
+}
+/* Chrome speaks in the terminal face; PROSE does not. The reference is all
+   monospace, but it shows spec cards -- a chapter you actually write in
+   still wants a reading face, so the mono stops at the furniture. */
+.canvas-node-title {
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.02em;
+}
+.plate-chips + .plate-meta { display: none; }

@@ -685,9 +685,16 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
               {owner}
             </span>
           )}
-          {/* The short id used to sit here. It is developer information in
-              the busiest row of every plate -- the header is for what the
-              node IS (direction §3), not its key in the store. */}
+          {/* Port shape at a glance: takes ▸ gives, e.g. "3▸1" (user
+              reference, 2026-08-12). Replaces the short id, which was
+              developer information sitting in the busiest row of the card. */}
+          {allPorts.length > 0 && (
+            <span className="plate-shape" aria-hidden>
+              {allPorts.filter((port) => port.direction === 'take').length}
+              <b>▸</b>
+              {allPorts.filter((port) => port.direction === 'give').length}
+            </span>
+          )}
           <ReadinessRing stage={readiness} onClick={() => cycleReadiness(id)} />
           {selected && (
             <button
@@ -769,6 +776,24 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
           <NodeFields nodeId={id} fields={data.fields || []} />
         </div>
         <span className="plate-rule" aria-hidden />
+        {/* PORT CHIPS (user reference, 2026-08-12): what this node takes and
+            gives, as a swatch + kind name + direction arrow -- "◂TEXT",
+            "PERSON▸". A plate should say what it plugs into without being
+            wired to anything, which the old word/wire counters never did. */}
+        {allPorts.length > 0 && (
+          <footer className="plate-chips" aria-hidden>
+            {allPorts.map((port) => (
+              <span
+                key={port.id}
+                className={`plate-chip ${port.direction === 'give' ? 'is-give' : 'is-take'}`}
+                style={{ ['--chip' as string]: PORT_KIND_COLORS[port.dataKind] ?? '#8e94c2' }}
+              >
+                <i aria-hidden />
+                {port.direction === 'give' ? `${port.dataKind}▸` : `◂${port.dataKind}`}
+              </span>
+            ))}
+          </footer>
+        )}
         <footer className="plate-meta" aria-hidden>
           <span>{words} w</span>
           <span>
