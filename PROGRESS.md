@@ -31,6 +31,32 @@ master brief — see its "Revision log" for what changed and why).
 | 18 | Hardening: perf pass (500-node stress green), Playwright e2e full loop, migration + backup-before-migrate, file-per-project (.nodecanvas) persistence, exports (markdown/text/PNG/SVG), Tauri shell wiring | **completed** (desktop-window smoke test pending — see session log) |
 | 19 | Commercial: license keys, payments, Windows code signing, Tauri updater, crash reporting | deferred to VERY LAST (user, 2026-08-06); also blocked on user accounts — see 2026-08-05 log |
 
+## The twelve answers (user, 2026-08-12) — these settle open design questions
+
+Asked in docs/QUESTIONS.md, answered in full. Treat these as decided; do
+not re-litigate them without the user reopening one.
+
+| # | Question | Answer | Status |
+|---|---|---|---|
+| 1 | Do connections carry meaning? | **Infer it.** A drag is READ: Person→Section is cast, Place is setting, Note→Document is a section. | **built** — core/src/infer.ts |
+| 2 | May a node resize itself? | **Grow even if touched.** Height always follows content; a drag sets a FLOOR, never a ceiling. | pending |
+| 3 | Shapes per node kind? | **Yes for small / specifically picked nodes**, plus a per-node menu to change shape. | pending |
+| 4 | Linking names in prose? | **Underline matches**, click to link; linked names shimmer faintly. | pending |
+| 5 | What does Extract leave? | **Link the text** — extracted words become a live reference both ways. | pending |
+| 6 | Keep AND/OR/NOT? | **Keep them** — they are for brainstorming. | already built |
+| 7 | Template contents? | **Structure only** — fields present, empty. | needs change (carries text today) |
+| 8 | Reference node face? | **Icon and name.** | pending |
+| 9 | Missing node types? | **All of them** — Word, Translation, Syntax, Outline, Study, Reminder too. "Something for every aspect." | pending |
+| 10 | Alternate versions? | **Not a versioning system.** Duplicate the node and write beside it; old drafts live on as ordinary neighbouring nodes (they rewrote Ch.1 eleven times and want them all visible). | mostly satisfied by duplicate |
+| 11 | Track time? | **No** — not until group projects arrive. | closed |
+| 12 | First real projects? | Fantasy **novel**; **sermon + word study**; sister's **nursing study** notes (diseases, everything connected); her partner's **physics papers** (many sources, no 50 tabs). | calibration |
+
+**What #12 changes:** this is no longer a single-user writing tool. Four
+real users, four shapes of work — fiction, homiletics, clinical study,
+and multi-source academic writing. Sources, references and note capture
+matter as much as prose. The academic and study paths deserve the same
+care the novel path has had.
+
 ## Observatory adoption — the current focus
 
 **RESOLVED (2026-08-09): the user picked a visual system** — not from the

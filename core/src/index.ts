@@ -13,6 +13,7 @@ export * from './routing';
 export * from './derive';
 export * from './split';
 export * from './merge';
+export * from './infer';
 export * from './assemblies';
 export * from './arcs';
 export * from './blocks';

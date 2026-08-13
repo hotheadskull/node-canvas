@@ -7,6 +7,8 @@ import {
   addNode,
   addPlainEdge,
   addWire,
+  describeInference,
+  inferConnection,
   applyEmbedToSource,
   blocksOf,
   editEmbed as editEmbedOp,
@@ -1113,7 +1115,33 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
         return;
       }
 
-      // everything else is the universal fallback: a plain relationship line (I1)
+      // The universal path (user decision 2026-08-12, question 1: "infer
+      // it"). A drag between two plates used to mean only "these are
+      // related". Now the app READS it: a Person onto a Chapter is cast, a
+      // Place is the setting, a Note into a Document is a section of it.
+      // The reading is announced, because an inference the user cannot see
+      // is indistinguishable from a bug -- and Ctrl+Z takes it back.
+      const inferred = inferConnection(doc, source, target);
+      if (inferred) {
+        const role = describeInference(doc, inferred);
+        tryOp(() =>
+          addWire(doc, {
+            source: inferred.source,
+            sourcePort: inferred.sourcePort,
+            target: inferred.target,
+            targetPort: inferred.targetPort,
+          }),
+        );
+        const targetTitle = doc.nodes.find((node) => node.id === inferred.target)?.data['title'];
+        const named = typeof targetTitle === 'string' && targetTitle.trim() !== ''
+          ? ` of ${targetTitle.trim()}`
+          : '';
+        set({ toast: { message: `Connected as ${role}${named}` } });
+        return;
+      }
+
+      // No typed reading exists, so it stays a plain relationship line --
+      // always legal, zero setup (I1).
       tryOp(() =>
         addPlainEdge(doc, source, target, {
           ...(sourceHandle && !sourceIsPort ? { sourceHandle } : {}),

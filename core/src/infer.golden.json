@@ -1,0 +1,216 @@
+{
+  "fixture": {
+    "schemaVersion": 2,
+    "id": "doc_infer",
+    "name": "Inference fixture",
+    "mode": "novel",
+    "nodes": [
+      {
+        "id": "node_durvain",
+        "type": "person",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
+        "data": {
+          "title": "Durvain"
+        }
+      },
+      {
+        "id": "node_deepvault",
+        "type": "place",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "title": "Deepvault"
+        }
+      },
+      {
+        "id": "node_ch1",
+        "type": "section",
+        "position": {
+          "x": 400,
+          "y": 0
+        },
+        "data": {
+          "title": "Chapter 1"
+        }
+      },
+      {
+        "id": "node_ch2",
+        "type": "section",
+        "position": {
+          "x": 400,
+          "y": 300
+        },
+        "data": {
+          "title": "Chapter 2"
+        }
+      },
+      {
+        "id": "node_book",
+        "type": "document",
+        "position": {
+          "x": 800,
+          "y": 0
+        },
+        "data": {
+          "title": "The Book"
+        }
+      },
+      {
+        "id": "node_scrap",
+        "type": "note",
+        "position": {
+          "x": 0,
+          "y": 400
+        },
+        "data": {
+          "title": "A thought"
+        }
+      },
+      {
+        "id": "node_payoff",
+        "type": "payoff",
+        "position": {
+          "x": 0,
+          "y": 600
+        },
+        "data": {
+          "title": "The reveal"
+        }
+      },
+      {
+        "id": "node_idea",
+        "type": "idea",
+        "position": {
+          "x": 0,
+          "y": 800
+        },
+        "data": {
+          "title": "What if"
+        }
+      },
+      {
+        "id": "node_theme",
+        "type": "theme",
+        "position": {
+          "x": 200,
+          "y": 800
+        },
+        "data": {
+          "title": "Memory"
+        }
+      }
+    ],
+    "edges": [],
+    "wires": [
+      {
+        "id": "wire_setting",
+        "source": "node_deepvault",
+        "sourcePort": "place-out",
+        "target": "node_ch1",
+        "targetPort": "place-in",
+        "status": "live"
+      }
+    ],
+    "assemblies": []
+  },
+  "results": [
+    {
+      "case": "person into a chapter is cast",
+      "from": "node_durvain",
+      "to": "node_ch1",
+      "inferred": {
+        "source": "node_durvain",
+        "sourcePort": "identity-out",
+        "target": "node_ch1",
+        "targetPort": "people-in",
+        "reversed": false
+      },
+      "describes": "People"
+    },
+    {
+      "case": "place into a free chapter is the setting",
+      "from": "node_deepvault",
+      "to": "node_ch2",
+      "inferred": {
+        "source": "node_deepvault",
+        "sourcePort": "identity-out",
+        "target": "node_ch2",
+        "targetPort": "place-in",
+        "reversed": false
+      },
+      "describes": "Setting"
+    },
+    {
+      "case": "place into a chapter whose setting is taken",
+      "from": "node_deepvault",
+      "to": "node_ch1",
+      "inferred": null,
+      "describes": null
+    },
+    {
+      "case": "note into a document is a section of it",
+      "from": "node_scrap",
+      "to": "node_book",
+      "inferred": {
+        "source": "node_scrap",
+        "sourcePort": "text-out",
+        "target": "node_book",
+        "targetPort": "sections-in",
+        "reversed": false
+      },
+      "describes": "Sections"
+    },
+    {
+      "case": "chapter into a document",
+      "from": "node_ch1",
+      "to": "node_book",
+      "inferred": {
+        "source": "node_ch1",
+        "sourcePort": "text-out",
+        "target": "node_book",
+        "targetPort": "sections-in",
+        "reversed": false
+      },
+      "describes": "Sections"
+    },
+    {
+      "case": "dragged backwards: chapter onto the person",
+      "from": "node_ch1",
+      "to": "node_durvain",
+      "inferred": {
+        "source": "node_durvain",
+        "sourcePort": "identity-out",
+        "target": "node_ch1",
+        "targetPort": "people-in",
+        "reversed": true
+      },
+      "describes": "People"
+    },
+    {
+      "case": "payoff has no gives and the idea no takes",
+      "from": "node_payoff",
+      "to": "node_idea",
+      "inferred": null,
+      "describes": null
+    },
+    {
+      "case": "two portless nodes stay a plain relationship",
+      "from": "node_idea",
+      "to": "node_theme",
+      "inferred": null,
+      "describes": null
+    },
+    {
+      "case": "a node onto itself never infers",
+      "from": "node_durvain",
+      "to": "node_durvain",
+      "inferred": null,
+      "describes": null
+    }
+  ]
+}
