@@ -210,6 +210,79 @@ presentation-walk mode. All registry entries + isolated reducers (invariant I8).
 
 ## Session log
 
+### 2026-08-12 — NEW DIRECTION adopted; the WIP repaired to a running build
+
+The user brought **"Node Canvas — Design Direction & Working Product
+Vision"** (Downloads/Node_Canvas_Design_Direction.pdf, 24 sections). It
+REVISES the Observatory port language: §2 removes/greatly reduces visible
+ports on ordinary nodes ("a character connected to a chapter does not need
+a People port"), and centres the product on custom fields (§4), compact
+Link nodes (§7-8), smart linking (§9), node-backed blocks (§11),
+extraction (§13), optional logic nodes (§14) and USER-BUILT templates
+(§23). Observatory's plate/wire/colour craft still stands underneath; what
+retires is the typed-port stack as the everyday connection language.
+
+The user had already built much of it solo (commit 14168b8 + a large
+uncommitted batch: universal in/out ports, NodeFields, MentionSuggestion,
+LogicFaces, ReferenceFace, BrainstormFace, templates in schema+store).
+**That tree did not compile (28 errors) and, once it did, drew no
+structural wires at all.** Repaired and committed as aa11043:
+
+- **Universal ports orphaned every typed wire.** RF drops any edge whose
+  handle is missing, so Document<-Sections, cast, plant/payoff and arcs
+  were all in the file and none rendered ("Couldn't create edge for source
+  handle id: text-out"). Typed handles now mount INVISIBLE, stacked on the
+  universal anchors (`PortStars anchorOnly` + `.is-anchor-only`); the open
+  plate still draws real slots, so hand-wiring a typed port lives there.
+- `in`/`out` were absent from PLAIN_HANDLES -> universal drags looked up a
+  registry port that cannot exist and were refused. Now plain edges.
+- AddNodeMenu selected `templates || []` (new array per call) -> React
+  "Maximum update depth exceeded"; the menu hung. Stable NO_TEMPLATES.
+- Two `@tiptap/core` copies (mention 3.30 nested under the hoisted 3.27) —
+  a real dual-instance runtime hazard. All `@tiptap/*` pinned to 3.30.0.
+- CustomField moved into core as a Zod schema (I9) + `CUSTOM_FIELD_TYPES`;
+  it was untyped passthrough typing as `{}` everywhere.
+- Hover preview used the CANVAS `document` instead of `window.document`
+  and injected unescaped titles as HTML.
+- `extractNodeText` was imported by NINE faces and wired into none; the
+  offer list named `'topic'` (unregistered -> spawns nothing). One shared
+  `EXTRACT_TYPES` (§13's list) now reaches every prose face.
+- Template spawn anchored on `nodes[0]` not the bounding-box corner, and
+  called `createId()` with no prefix.
+- Logic/reference types were flagged `coreMenu: true`, contradicting §14
+  ("optional reasoning tools rather than the default") -> `false`.
+- Mention suggestions offered untitled nodes (blank chips).
+
+registry-ports.golden.json regenerated — INVARIANT-CHANGE-APPROVED, purely
+ADDITIVE: 12 new types, every one with ZERO ports (the direction's own
+rule), no existing entry changed.
+
+Suite: typecheck clean, 276 unit green, **e2e 30/50**. The 20 failures all
+drive `.port-star[data-port-direction=...]` — the interaction this
+direction retires. They need rewriting against universal ports, which
+waits on decision 1 below.
+
+**Audit artifact** (what's built vs the 24 sections, and the open
+decisions) was delivered to the user. Three decisions block the next
+session, in order:
+1. **Should a plain connection carry meaning?** Derivations (cast,
+   compile, plants) read ONLY typed wires, so with ports hidden §2's
+   promise — "the connection itself can communicate the relationship" —
+   is NOT delivered. Recommended: infer from the two node types, let an
+   optional label refine.
+2. **Does the open state survive?** §7 says no separate expanded state;
+   it exists and is currently the only hand-wiring surface.
+3. **Shape by family?** §18 wants shape to carry node kind; every node is
+   still the same rectangle.
+
+Also still missing vs the doc: Concept, Theme, Idea, Quote, Definition,
+Evidence, Argument, Counterargument, Word, Translation, Syntax node types;
+field REORDERING and a real node-picker for reference fields; Move /
+Detach / Alternate-version operations (§12); logic nodes have no BEHAVIOR
+(Sequence doesn't order, Filter doesn't filter); templates don't carry
+embedded node-backed blocks; smart linking only fires on `@`, not on a
+node name typed plainly in prose.
+
 ### 2026-08-10 (late, cont.) — Per-node paint: bright red beside bright yellow
 
 Evaluation feedback #2 ("can one node be a bright red while another a
