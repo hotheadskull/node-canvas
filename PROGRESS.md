@@ -210,6 +210,53 @@ presentation-walk mode. All registry entries + isolated reducers (invariant I8).
 
 ## Session log
 
+### 2026-08-12 (later) — Flow nodes earn their keep; the expanded plate is gone
+
+User decisions taken this session:
+- **"portless" clarified.** It does NOT mean unconnectable. Every node
+  still connects to everything; what retires is the STACK of typed sockets.
+  One universal in, one universal out, drag between them.
+- **The expanded node state is REMOVED** ("if someone needs a bigger node
+  then they better drag it to make it bigger"). Double-click now opens the
+  editor room; the 94-line grown-plate branch in CanvasNode is deleted and
+  `openNodeId` is unused by the renderer. A node has ONE size and only the
+  user's drag changes it. The compact **reference** node is the small
+  quick-link they wanted, and already exists.
+- **Logic nodes got real behaviour** (they were icons over a text box).
+
+New `core/src/logic.ts` — pure, 7 unit tests:
+- `logicWiring()` splits a flow node's PLAIN EDGES into inputs/outputs and
+  carries each edge's label (portless nodes read plain edges, per §2).
+- `sequenceSteps()` / `reorderSteps()` — a Sequence orders everything it
+  touches. Order is DATA on the node (`stepOrder`, I10), never array
+  position; anything newly wired lands at the end so a fresh connection
+  always shows without re-ordering.
+- `gateVerdict()` — AND/OR/NOT judged on whether their inputs have content.
+  An empty gate returns satisfied: **null** (UNKNOWN), never false: an
+  unwired gate must not read as a failing one.
+- `filterPasses()` — Filter keeps inputs of a chosen type; unset passes
+  everything, so a new Filter shows its whole input instead of looking
+  broken.
+- `readableTitle()` — title, else first words of prose, else the type's
+  label. A flow list reading "Untitled, Untitled" helps nobody.
+
+LogicFaces rewritten against those: numbered reorderable Sequence, Decision/
+Condition branch lists (the edge label IS the branch condition), gate
+verdicts with met/total, Compare's two-up cells, Merge/Split/Transform
+fan lists, Filter's kind picker. ~110 lines of CSS for them.
+
+Verified in-browser: two notes wired into a Sequence list as 01/02, the
+move button reorders them, and `stepOrder` persists. No console errors.
+
+Suite: typecheck clean, **283 unit green** (33 files), e2e 29/50 — the same
+20 retired-port specs, plus open-state.spec.ts REWRITTEN to pin the new
+rule (double-click opens the room; a drag is the only thing that resizes)
+and both of its tests pass.
+
+Still open: the plain-connection MEANING decision (#1 in the audit) is
+unanswered and still blocks the e2e rewrite. Shape-by-family (#3) not
+started.
+
 ### 2026-08-12 — NEW DIRECTION adopted; the WIP repaired to a running build
 
 The user brought **"Node Canvas — Design Direction & Working Product

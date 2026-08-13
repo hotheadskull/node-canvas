@@ -955,9 +955,12 @@ export function Canvas() {
             return;
           }
           if (node.type === 'canvas') {
-            // double-click OPENS (spec §8/§10; ⌥click already collapses) --
-            // routing this to collapse orphaned the whole open state
-            useCanvasStore.getState().setOpenNode(node.id);
+            // The expanded plate is GONE (user, 2026-08-12: "i dont want an
+            // expanded node state ... if someone needs a bigger node then
+            // they better drag it to make it bigger"). Double-click opens
+            // the full editor room instead; the node itself only ever
+            // changes size by the user dragging its corner.
+            useCanvasStore.getState().openEditor(node.id);
             return;
           }
           if (node.type === 'assembly') {

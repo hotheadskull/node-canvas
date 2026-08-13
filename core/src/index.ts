@@ -19,3 +19,4 @@ export * from './blocks';
 export * from './novel';
 export * from './export';
 export * from './colors';
+export * from './logic';

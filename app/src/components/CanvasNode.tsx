@@ -46,7 +46,7 @@ import {
   LocateFixed,
   MapPin,
   Milestone,
-  Minimize2,
+
   Package,
   Palette,
   Paperclip,
@@ -373,10 +373,6 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
     return `${intake}|${output}|${ids.sort().join(' ')}`;
   });
   const [wiresIn = '0', wiresOut = '0', wiredList = ''] = wireSignature.split('|');
-  const wiredPorts = useMemo(
-    () => new Set(wiredList === '' ? [] : wiredList.split(' ')),
-    [wiredList],
-  );
 
   // Four-sided ports: the SHARED decision (portGeometry.ts). The harness's
   // anchorFor makes the identical call, so the DOM handle and the wire
@@ -459,11 +455,11 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
   const [openForkKey, setOpenForkKey] = useState<string | null>(null);
 
   const [accentPickerOpen, setAccentPickerOpen] = useState(false);
-  // Open state (Observatory §10): session-only; wins over collapse.
-  const isOpen = useCanvasStore((state) => state.openNodeId === id);
-  const setOpenNode = useCanvasStore((state) => state.setOpenNode);
-  const openFocusEditor = useCanvasStore((state) => state.openEditor);
-  const openDocRoom = useCanvasStore((state) => state.openDocRoom);
+  // The expanded plate is retired (user, 2026-08-12): a node has ONE size,
+  // and the user changes it by dragging. Double-click opens the editor
+  // room instead. isOpen survives only so the height observer and the
+  // collapse rule keep their existing shape while openNodeId is unused.
+  const isOpen = false;
   const Face = faceFor(data.coreType);
   // The title face IS the node's words -- no separate title line.
   const faceOwnsTitle = data.coreType === 'title';
@@ -525,100 +521,6 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
   const shortId = id.replace(/^node_/, '').slice(0, 4).toUpperCase();
   const words = wordCount(data.content);
 
-  // OPEN plate (Observatory §10): grown in place to 736px -- one quiet
-  // header line, a linked rail of port chips, the writing column, a footer
-  // rail with the word bar and the Focus step. The canvas dims behind via
-  // the plate's own spread shadow; Esc (Canvas-level) returns to the map.
-  // Every handle stays mounted at its usual spot so no wire can drop.
-  if (isOpen) {
-    const progress = Math.min(1, words / 1000);
-    const chip = (port: PortDef) => (
-      <span
-        key={port.id}
-        className={`open-chip ${wiredPorts.has(port.id) ? 'is-wired' : ''}`}
-        style={{ ['--port-color' as string]: PORT_KIND_COLORS[port.dataKind] ?? '#8e94c2' }}
-        title={`${port.label} · ${port.dataKind}${wiredPorts.has(port.id) ? ' · wired' : ''}`}
-      >
-        {port.label}
-      </span>
-    );
-    return (
-      <div
-        ref={cardRef}
-        className={`canvas-node is-open ${selected ? 'is-selected' : ''}`}
-        style={{ ['--accent' as string]: accent, ['--kind' as string]: kindHue }}
-        data-open-plate
-      >
-        <span className={`plate-spine ${data.coreType === 'question' ? 'is-dashed' : ''}`} aria-hidden />
-        <span
-          className={`canvas-node-gutter gutter-left ${(flipped ? gives : takes).length > 0 ? '' : 'is-empty'} ${leftUsed ? 'is-used' : ''}`}
-          aria-hidden
-        />
-        <div className="plate-column">
-          <header className="canvas-node-header plate-header">
-            <TabIcon size={10} aria-hidden className="canvas-node-glyph" />
-            <span className="canvas-node-kind">
-              {def ? nodeLabel(def.type, 'universal') : data.coreType}
-            </span>
-            <span className="plate-spacer" aria-hidden />
-            <span className="open-words">{words} w</span>
-            <ReadinessRing stage={readiness} onClick={() => cycleReadiness(id)} />
-            <button
-              className="open-close nodrag"
-              aria-label="Back to the map"
-              title="Back to the map (Esc)"
-              onClick={() => setOpenNode(null)}
-            >
-              <Minimize2 size={11} aria-hidden />
-            </button>
-          </header>
-          <span className="plate-rule is-tinted" aria-hidden />
-          <div className="open-body">
-            <aside className="open-rail nodrag" data-open-rail>
-              {takes.length > 0 && <p className="open-rail-title">Takes</p>}
-              {takes.map(chip)}
-              {gives.length > 0 && <p className="open-rail-title">Gives</p>}
-              {gives.map(chip)}
-            </aside>
-            <div className="open-column nowheel">
-              {!faceOwnsTitle && (
-                <input
-                  className="canvas-node-title open-title nodrag"
-                  value={data.title}
-                  placeholder="Untitled"
-                  onChange={(event) => setNodeTitle(id, event.target.value)}
-                />
-              )}
-              <Face nodeId={id} title={data.title} content={data.content} />
-            </div>
-          </div>
-          <span className="plate-rule" aria-hidden />
-          <footer className="open-footer nodrag">
-            <span className="open-progress" aria-hidden>
-              <i style={{ width: `${progress * 100}%` }} />
-            </span>
-            <span>{words} words</span>
-            <button
-              className="open-focus"
-              title="Focus: one column, no canvas (⇧F)"
-              onClick={() =>
-                data.coreType === 'document' ? openDocRoom(id) : openFocusEditor(id)
-              }
-            >
-              Open Full Editor
-            </button>
-          </footer>
-        </div>
-        <span
-          className={`canvas-node-gutter gutter-right ${(flipped ? takes : gives).length > 0 ? '' : 'is-empty'} ${rightUsed ? 'is-used' : ''}`}
-          aria-hidden
-        />
-        <PortStars nodeId={id} ports={takes} side={takeSide} counts={wireCounts} candidates={candidatePorts} broadcasting={broadcasting} autoSides={autoSides} />
-        <PortStars nodeId={id} ports={gives} side={giveSide} counts={wireCounts} candidates={candidatePorts} broadcasting={broadcasting} autoSides={autoSides} />
-        <RelateAnchors related={hasPlainEdges} />
-      </div>
-    );
-  }
 
   // Collapsed plate: title + one subtitle line + readiness ring; ports
   // merge to one dot per side (handles stay mounted so no wire can drop).
