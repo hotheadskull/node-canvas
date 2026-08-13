@@ -527,9 +527,15 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
   // The plate's spine and header tint come from its PRIMARY GIVE's dataKind
   // (the colour of what this node produces). A user accent overrides.
   const primaryKind = gives[0]?.dataKind ?? takes[0]?.dataKind;
+  // The plate's colour: a user's paint job first, then the primary give's
+  // dataKind, then the TYPE'S OWN accent. That last step matters now that
+  // most types are portless (direction §2) -- falling through to the
+  // neutral 'any' grey painted two dozen types the same violet while their
+  // labels and menu tiles wore their real colours, so a plate disagreed
+  // with its own heading. Same rule the add sheet uses.
   const kindHue =
-    data.accent ?? (primaryKind ? DATA_KIND_STYLES[primaryKind].hue : DATA_KIND_STYLES.any.hue);
-  const shortId = id.replace(/^node_/, '').slice(0, 4).toUpperCase();
+    data.accent ??
+    (primaryKind ? DATA_KIND_STYLES[primaryKind].hue : def?.accent ?? DATA_KIND_STYLES.any.hue);
   const words = wordCount(data.content);
 
 
@@ -679,9 +685,9 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
               {owner}
             </span>
           )}
-          <span className="plate-id" aria-hidden>
-            {shortId}
-          </span>
+          {/* The short id used to sit here. It is developer information in
+              the busiest row of every plate -- the header is for what the
+              node IS (direction §3), not its key in the store. */}
           <ReadinessRing stage={readiness} onClick={() => cycleReadiness(id)} />
           {selected && (
             <button

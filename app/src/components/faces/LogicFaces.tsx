@@ -33,9 +33,9 @@ import { useCanvasStore } from '../../store/canvasStore';
 import type { FaceProps } from './index';
 
 /** Shared chrome: the type's glyph and name, then whatever it derives. */
+// icon and title are still accepted (every caller names them, and they
+// document what the face IS) but deliberately not rendered -- see below.
 function LogicShell({
-  icon: Icon,
-  title,
   hint,
   children,
 }: {
@@ -44,13 +44,12 @@ function LogicShell({
   hint?: string | undefined;
   children: ReactNode;
 }) {
+  // No header row here. The plate above already draws this exact icon and
+  // type name, so repeating it made every logic node read "DECISION /
+  // DECISION". The hint stays, as a quiet aside rather than a heading.
   return (
     <div className="canvas-node-body canvas-node-logic" data-face="logic">
-      <div className="logic-header">
-        <Icon size={13} className="logic-icon" aria-hidden />
-        <span className="logic-title">{title}</span>
-        {hint && <span className="logic-hint">{hint}</span>}
-      </div>
+      {hint && <p className="logic-hint">{hint}</p>}
       {children}
     </div>
   );
