@@ -33,6 +33,63 @@ master brief — see its "Revision log" for what changed and why).
 
 ## Open bugs — reported, not yet fixed
 
+### Resizing shows nothing until you let go (user, 2026-08-12)
+
+> "i dont visually see what is happening to the node until i let go."
+
+Dragging the corner gives no live feedback; the card jumps to its new
+size only on release. You are resizing blind, which makes hitting a size
+a guess-and-retry loop.
+
+Strong suspect, already located: `Canvas.tsx:347` strips React Flow's
+own width/height off every node on EVERY document sync --
+
+    const { width: _staleW, height: _staleH, ...existingBase } = existing
+
+That line exists for a good reason (a stale RF height would pin the card
+after Fit hands sizing back to the text), but NodeResizer works by
+writing exactly those fields continuously during the drag. So every
+frame: RF writes the new size, our sync deletes it, nothing moves. Only
+on release does `setOwnedSize` commit to the document, and the card
+finally snaps.
+
+If that is confirmed, the fix is to keep RF's dims while a resize is in
+flight and strip them only outside one -- the same shape as the existing
+drag bookkeeping for the wire harness (`draggingCount`). Verify by
+watching whether the card follows the cursor mid-drag, not by whether
+the final size is right; the final size has always been correct, which
+is why this went unnoticed.
+
+## Do nodes need a system too? (user question 2026-08-12)
+
+Partly -- and the useful answer is WHICH part.
+
+**Node TYPES already are a system, and it works.** The registry is the
+single source of truth: a type is one entry plus a renderer, and
+invariant I6/I8 forbids touching core graph logic to add one. Forty-five
+types have landed that way without the graph code changing. Nothing to
+fix there.
+
+**Node SIZE is not a system, and it is the thing that keeps breaking.**
+A node's size is currently decided in six places:
+
+    registry `size`            the declared default
+    node.size                  what is persisted
+    data.ownedHeight           the user's dragged floor
+    recordMeasuredHeight       what the content measured
+    Canvas.tsx:347             strips RF's live dims each sync
+    NodeResizer                writes RF's live dims during a drag
+
+Bugs that trace to exactly this split: the resize-blind bug above; new
+plates landing on top of old ones (placement trusted the declared size
+while the card drew far past it, fixed 2026-08-12); "grow even if
+touched" needing changes in three files.
+
+A sizing system would be one place that answers "how big is this node,
+right now, and why" -- declared, measured, user-owned, or live-dragging,
+with a stated precedence -- and everything else reads it. That is a
+smaller job than the wire system and would retire a whole class of bug.
+
 ### Connections exist in the data but draw nothing (user, 2026-08-12)
 
 > "the connections arent showing up visually and i get an error saying
