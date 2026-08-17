@@ -31,6 +31,44 @@ master brief — see its "Revision log" for what changed and why).
 | 18 | Hardening: perf pass (500-node stress green), Playwright e2e full loop, migration + backup-before-migrate, file-per-project (.nodecanvas) persistence, exports (markdown/text/PNG/SVG), Tauri shell wiring | **completed** (desktop-window smoke test pending — see session log) |
 | 19 | Commercial: license keys, payments, Windows code signing, Tauri updater, crash reporting | deferred to VERY LAST (user, 2026-08-06); also blocked on user accounts — see 2026-08-05 log |
 
+## Open bugs — reported, not yet fixed
+
+### Writing surfaces are hard to see and hard to aim at (user, 2026-08-12) — NEXT UP
+
+> "The text boxes inside of the nodes are impossible to see and hard to
+> click into to then see where it is."
+
+Two separate failures, both about the moment you sit down to write:
+
+1. **They do not look editable.** Under the rigged restyle the plate body
+   went near-black (#07080f) and the prose editor and custom-field inputs
+   are both fully transparent with no border of their own. Nothing marks
+   where the writing surface starts and the card ends, so an empty node
+   reads as a solid slab rather than as something with a box in it. The
+   only affordance left is placeholder text, which vanishes the moment
+   there is content.
+2. **The caret is invisible once you are in.** No caret-color is set, so
+   the browser default (near-black on Windows) sits on a near-black body.
+   Even after clicking successfully you cannot see where you are, which is
+   why it reads as "hard to click into" -- the click often DID land.
+
+Suspected cause is mine and recent: the near-black body landed in
+88a1697, and the outlined-box treatment was given to the FIELD rows only,
+never to the prose editor.
+
+Fix when picked up (do not guess -- verify each):
+- give prose and field inputs a visible resting surface, one step lighter
+  than the body, so the writing area is a box you can see
+- set `caret-color` explicitly to the plate's kind hue, and check it
+  against every body colour, not just Note's
+- give the focused surface an unmistakable focus ring; the current focus
+  state changes almost nothing
+- confirm the hit area covers the whole visible box, and that clicking
+  anywhere in a node's body puts the caret in the prose (today the click
+  target and the visible area may not be the same rectangle)
+- check at 100%, and zoomed out, and on the Person face where prose and
+  five field rows share a card
+
 ## The twelve answers (user, 2026-08-12) — these settle open design questions
 
 Asked in docs/QUESTIONS.md, answered in full. Treat these as decided; do
