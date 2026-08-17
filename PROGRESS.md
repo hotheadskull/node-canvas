@@ -236,6 +236,40 @@ presentation-walk mode. All registry entries + isolated reducers (invariant I8).
 
 ## Session log
 
+### 2026-08-12 (evening) — Ready to actually write in: three defects, and the first real desktop build
+
+Walked the novel workflow end to end rather than reading diffs -- add a
+character, name them, fill a field, write a chapter, connect the two,
+reload. That found three defects no amount of screenshot-reading would
+have:
+
+- **every wire was a permanent ghost.** anchorFor still placed typed
+  ports down the edge (PORT_TOP + index * PORT_GAP) while PortStars
+  mounts them all at the edge midpoint. Routed anchor and real handle
+  could never agree, so WireEdge stayed in its mid-drag fallback
+  forever: a dim straight diagonal. Wires route orthogonally and settle
+  again; both sides now read one rule.
+- **chips ate clicks from the plate next door.** The chip row was
+  decorative but interactive, and plates are overflow:visible.
+- **new plates landed on top of old ones.** Placement tested the
+  registry's declared height; a plate with fields and chips draws far
+  past it. The exclusion zone is padded now.
+
+Plus: wire opacity .68 -> .92 and strokes up ~40% (the spec's values
+were tuned against navy bodies, not near-black); Person's prose stacks
+above its fields; chips name deduped kinds.
+
+**The desktop build ships.** `npx tauri build` for both arm64 and
+x86_64-pc-windows-msvc; NSIS + MSI bundles for each. The x64 binary was
+launched and confirmed to run (window titled "Node Canvas", stable,
+61MB) -- the desktop smoke test that had been pending since Chunk 18 is
+finally done. Installers land in
+`app/src-tauri/target/{,x86_64-pc-windows-msvc/}release/bundle/nsis/`.
+
+Suite: typecheck + lint clean, 309 unit green, e2e 30 passing / 19
+failing (one BETTER than the standing baseline -- the ghost fix repaired
+two harness specs). The 19 remain the known-stale port-drag specs.
+
 ### 2026-08-12 (later) — Flow nodes earn their keep; the expanded plate is gone
 
 User decisions taken this session:
