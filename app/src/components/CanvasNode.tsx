@@ -477,6 +477,21 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
 
   // ALL declared ports get handles (hidden ones appear on hover).
   const allPorts = def?.ports ?? [];
+  // Chips name KINDS, not ports. Section has three separate text takes and
+  // two person takes, which printed "◂TEXT ◂PERSON ◂PLACE ◂PERSON ◂THREAD
+  // ◂TEXT" -- a row that looks broken and says less than the deduped one.
+  const chipKinds = useMemo(() => {
+    const seen = new Set<string>();
+    const out: { direction: 'give' | 'take'; dataKind: string }[] = [];
+    for (const port of allPorts) {
+      const key = `${port.direction}:${port.dataKind}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ direction: port.direction, dataKind: port.dataKind });
+    }
+    // gives first: what it produces reads before what it accepts
+    return out.sort((a, b) => (a.direction === b.direction ? 0 : a.direction === 'give' ? -1 : 1));
+  }, [allPorts]);
   const takes = allPorts.filter((port) => port.direction === 'take');
   const gives = allPorts.filter((port) => port.direction === 'give');
 
@@ -780,16 +795,16 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps & { data: CanvasN
             gives, as a swatch + kind name + direction arrow -- "◂TEXT",
             "PERSON▸". A plate should say what it plugs into without being
             wired to anything, which the old word/wire counters never did. */}
-        {allPorts.length > 0 && (
+        {chipKinds.length > 0 && (
           <footer className="plate-chips" aria-hidden>
-            {allPorts.map((port) => (
+            {chipKinds.map((chip) => (
               <span
-                key={port.id}
-                className={`plate-chip ${port.direction === 'give' ? 'is-give' : 'is-take'}`}
-                style={{ ['--chip' as string]: PORT_KIND_COLORS[port.dataKind] ?? '#8e94c2' }}
+                key={`${chip.direction}:${chip.dataKind}`}
+                className={`plate-chip ${chip.direction === 'give' ? 'is-give' : 'is-take'}`}
+                style={{ ['--chip' as string]: PORT_KIND_COLORS[chip.dataKind] ?? '#8e94c2' }}
               >
                 <i aria-hidden />
-                {port.direction === 'give' ? `${port.dataKind}▸` : `◂${port.dataKind}`}
+                {chip.direction === 'give' ? `${chip.dataKind}▸` : `◂${chip.dataKind}`}
               </span>
             ))}
           </footer>

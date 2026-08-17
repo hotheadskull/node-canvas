@@ -1158,6 +1158,10 @@ html, body, #root {
    selection and hover answer with full opacity) ---------- */
 .wire-edge.react-flow__edge-path {
   stroke: var(--wire-color, #8e94c2);
+  /* hard corners suit the rigged language. Width is NOT set here: WireEdge
+     writes it inline from the kind's stroke, so a CSS width silently loses. */
+  stroke-linecap: square;
+  stroke-linejoin: miter;
 }
 .wire-edge.is-selected { opacity: 1 !important; }
 .wire-edge.is-ghost { stroke-linecap: round; }
@@ -2629,6 +2633,13 @@ html, body, #root {
 .plate-chips {
   display: flex; flex-wrap: wrap; gap: 5px 9px;
   padding: 8px 9px 7px;
+  /* Decorative: they name the node's kinds and there is nothing to click.
+     Without this they swallowed pointer events -- and because the plate is
+     overflow:visible, a chip row could sit over a NEIGHBOURING plate and
+     eat clicks meant for its header. Caught by the assemblies spec. */
+  pointer-events: none;
+  /* never spill past the plate, whatever the kind count */
+  max-width: 100%; overflow: hidden;
 }
 .plate-chip {
   display: inline-flex; align-items: center; gap: 4px;
@@ -2647,3 +2658,10 @@ html, body, #root {
   font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.02em;
 }
 .plate-chips + .plate-meta { display: none; }
+
+/* Person: prose ABOVE the fields, not beside them. The face laid the
+   editor and the field stack side by side, so "Who are they?" sat in a
+   40px gutter next to ROLE/WANTS/FEARS and both read as broken. */
+.person-face { display: flex; flex-direction: column; }
+.person-face .richtext-editor { width: 100%; }
+.person-fields { margin: 4px 0 2px; }

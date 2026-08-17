@@ -30,8 +30,8 @@ describe('data-kind color law', () => {
   it('palette literals hold for the load-bearing kinds', () => {
     // 2026-08-10 spread (user: "colors too similar"): ~30 degree hue
     // steps, text keeps the user's teal; strokes and dashes unchanged
-    expect(DATA_KIND_STYLES.text).toEqual({ hue: '#2dd4bf', stroke: 1.9 });
-    expect(DATA_KIND_STYLES.thread).toEqual({ hue: '#ff70dd', stroke: 2.2 });
+    expect(DATA_KIND_STYLES.text).toEqual({ hue: '#2dd4bf', stroke: 2.6 });
+    expect(DATA_KIND_STYLES.thread).toEqual({ hue: '#ff70dd', stroke: 3.0 });
     expect(DATA_KIND_STYLES.cite.dash).toBe('1 4');
     expect(STATE_COLORS.conflict).toBe('#ff6a58');
   });

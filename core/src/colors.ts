@@ -30,22 +30,26 @@ export type DataKindStyle = {
 // thread 310. Where hues sit closest, dash pattern and stroke weight
 // carry the rest of the difference.
 export const DATA_KIND_STYLES: Record<DataKind, DataKindStyle> = {
-  text: { hue: '#2dd4bf', stroke: 1.9 },
-  person: { hue: '#ff8e66', stroke: 1.6, dash: '3 3' },
-  place: { hue: '#f5a742', stroke: 1.6, dash: '2 5' },
-  thing: { hue: '#b19bff', stroke: 1.6, dash: '7 4' },
-  cite: { hue: '#4d9bff', stroke: 1.5, dash: '1 4' },
-  claim: { hue: '#46e06c', stroke: 1.8 },
-  prop: { hue: '#33c5f0', stroke: 1.6, dash: '12 5' },
-  plant: { hue: '#b5e84f', stroke: 1.6, dash: '9 3 2 3' },
-  event: { hue: '#c46bff', stroke: 1.6, dash: '10 4 3 4' },
-  thread: { hue: '#ff70dd', stroke: 2.2 },
-  any: { hue: '#8e94c2', stroke: 1.4, dash: '1 6' },
+  text: { hue: '#2dd4bf', stroke: 2.6 },
+  person: { hue: '#ff8e66', stroke: 2.2, dash: '3 3' },
+  place: { hue: '#f5a742', stroke: 2.2, dash: '2 5' },
+  thing: { hue: '#b19bff', stroke: 2.2, dash: '7 4' },
+  cite: { hue: '#4d9bff', stroke: 2.0, dash: '1 4' },
+  claim: { hue: '#46e06c', stroke: 2.4 },
+  prop: { hue: '#33c5f0', stroke: 2.2, dash: '12 5' },
+  plant: { hue: '#b5e84f', stroke: 2.2, dash: '9 3 2 3' },
+  event: { hue: '#c46bff', stroke: 2.2, dash: '10 4 3 4' },
+  thread: { hue: '#ff70dd', stroke: 3.0 },
+  any: { hue: '#8e94c2', stroke: 2.0, dash: '1 6' },
 };
 
 /** Base wire opacity; thread and heavier structural wires ride higher. */
-export const WIRE_OPACITY = 0.68;
-export const WIRE_OPACITY_HEAVY = 0.74;
+// Raised 2026-08-12: against the near-black rigged plates a wire at .68
+// read as a smudge -- a connection you have to hunt for is a connection
+// you stop trusting. The spec's values were set against the old navy
+// bodies, which carried far more ambient light.
+export const WIRE_OPACITY = 0.92;
+export const WIRE_OPACITY_HEAVY = 1;
 
 /** State colours (attention/conflict/healthy/ink annotations). */
 export const STATE_COLORS = {

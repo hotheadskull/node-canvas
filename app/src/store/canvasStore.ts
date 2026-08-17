@@ -915,7 +915,15 @@ export const useCanvasStore = create<CanvasState>((set, get) => {
         set({ toast: { message: `Unknown node type "${type}"` } });
         return null;
       }
-      const size = def.size ?? { width: 300, height: 200 };
+      // Reserve MORE room than the declared size. A plate renders taller
+      // than its registry height once its fields, chip row and grown prose
+      // are in (Person declares 260 and draws past 400), so placing against
+      // the declared box dropped new plates on top of their neighbours --
+      // and an overlapping plate silently eats the clicks meant for the one
+      // underneath. The declared size stays the node's own; this padding
+      // only widens the exclusion zone while looking for a free spot.
+      const declared = def.size ?? { width: 300, height: 200 };
+      const size = { width: declared.width, height: declared.height + 180 };
       const doc = get().document;
       const position = findFreePosition(doc.nodes.map(nodeRect), desired, size);
       const node = spawnNode(type, position);

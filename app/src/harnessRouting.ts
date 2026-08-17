@@ -50,7 +50,7 @@ export function anchorFor(
   nodeId: string,
   portId: string,
   direction: 'give' | 'take',
-  zoomBorrow: boolean,
+  _zoomBorrow: boolean,
   openNodeId: string | null = null,
 ): HarnessEndpoint | null {
   const node = document.nodes.find((candidate) => candidate.id === nodeId);
@@ -78,17 +78,29 @@ export function anchorFor(
         : ('right' as const)
   );
 
-  const collapsed = zoomBorrow || node.data['collapsed'] === 'collapsed';
-  
+  // STACKED, always. Under the 2026-08-12 direction an ordinary plate shows
+  // one universal in and one universal out; the typed handles still mount
+  // (React Flow drops any edge whose handle is missing) but they all sit at
+  // the edge midpoint, exactly where PortStars puts them in anchorOnly mode.
+  //
+  // This used to spread them down the edge at PORT_TOP + index * PORT_GAP,
+  // which is where the OLD stacked slots lived. The harness then routed to
+  // coordinates no handle occupied, WireEdge saw its live coords diverge
+  // from the routed anchors by more than the 6px tolerance, and every wire
+  // ghosted permanently -- a straight dim diagonal that never settled.
+  // Both sides now read this one rule; if slots ever come back, they have
+  // to come back HERE and in getStyle together.
+  const stacked = true;
+
   if (side === 'top' || side === 'bottom') {
-    const x = collapsed
+    const x = stacked
       ? node.position.x + width / 2
-      : node.position.x + PORT_TOP + index * PORT_GAP; // Note: horizontally spread for top/bottom
+      : node.position.x + PORT_TOP + index * PORT_GAP;
     const y = side === 'top' ? node.position.y - ANCHOR_OUT : node.position.y + height + ANCHOR_OUT;
     return { x, y, side };
   }
 
-  const y = collapsed
+  const y = stacked
     ? node.position.y + height / 2
     : node.position.y + PORT_TOP + index * PORT_GAP;
   const x =
