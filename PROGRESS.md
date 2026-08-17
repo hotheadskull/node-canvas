@@ -33,6 +33,60 @@ master brief — see its "Revision log" for what changed and why).
 
 ## Open bugs — reported, not yet fixed
 
+### Connections exist in the data but draw nothing (user, 2026-08-12)
+
+> "the connections arent showing up visually and i get an error saying
+> they are connected."
+
+The wire is IN the document -- which is why a second attempt is rejected
+as already-connected -- but no line appears. Connected-and-invisible is
+worse than not connecting at all: the app and the user disagree about
+what is true, and the user is the one who is wrong-footed.
+
+Hypotheses, in the order worth checking:
+- React Flow silently drops any edge whose source/target HANDLE id is not
+  mounted. Inference picks a typed port (e.g. `people-in`); if that port
+  is not in the rendered handle set for that node type, the edge vanishes
+  with only a console warning. This has bitten this codebase before.
+- the edge is built but filtered out: wireFilter, the collapsed/hidden
+  visibility predicate, or onlyRenderVisibleElements culling.
+- the harness returns no route for it, and the fallback path is
+  zero-length or NaN (a NaN in the `d` attribute renders nothing at all,
+  silently).
+Check the document JSON first, then whether an `.react-flow__edge` exists
+in the DOM, then its `d`. Those three answers isolate it immediately.
+
+## The wire system (architecture note, user question 2026-08-12)
+
+The user asked whether connecting lines could be "a system, like how game
+engines have systems for how things operate". That instinct is correct
+and worth acting on. Wire knowledge is currently spread across five
+places that each hold part of the truth:
+
+    core/harness.ts        routes the path
+    core/routing.ts        corridor + obstacle avoidance
+    app/portGeometry.ts    which edge a port sits on
+    app/harnessRouting.ts  where the anchor is in pixels
+    app/WireEdge.tsx       ghost vs settled, colour, animation
+    app/Canvas.tsx         which edges exist at all
+
+Every wire bug so far has been two of those disagreeing, not one of them
+being wrong on its own:
+- auto-side computed in two places -> permanent ghosts (fixed 2026-08-10)
+- anchor said "spread down the edge", DOM said "at the midpoint" ->
+  every wire a permanent ghost (fixed 2026-08-12)
+- connected-but-invisible, above -> almost certainly the same shape
+
+A wire system would be ONE pure function: (document, view state) -> the
+complete list of wires to draw, each with its path, colour, state and
+endpoints. Everything else renders what it returns and decides nothing.
+That makes the whole layer testable without a browser, and makes
+"connected but invisible" impossible to express -- if a wire is in the
+list it has a path, and if it is not, nothing claims it is connected.
+
+Worth doing BEFORE more visual work on wires, because each new feature
+currently has to be taught to all five places.
+
 ### Writing surfaces are hard to see and hard to aim at (user, 2026-08-12) — NEXT UP
 
 > "The text boxes inside of the nodes are impossible to see and hard to
